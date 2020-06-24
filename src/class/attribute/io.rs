@@ -1,4 +1,4 @@
-use crate::class::attribute::AttributeData::{SourceFile, Unknown, LineNumberTable, CodeInfo};
+use crate::class::attribute::AttributeData::{SourceFile, Unknown, LineNumberTable, CodeInfo, ConstantValue};
 use crate::class::attribute::{Attribute, AttributeData, Code};
 use crate::class::constant::ConstantPool;
 use crate::class::io::ReadBytesExt;
@@ -31,6 +31,7 @@ impl<'r, 'c, R: BufRead> AttributeReader<'r, 'c, R> {
             "SourceFile" => self.read_source_file_attribute()?,
             "LineNumberTable" => self.read_line_number_table_attribute()?,
             "Code" => self.read_code_attribute()?,
+            "ConstantValue" => self.read_constant_value_attribute()?,
             _ => self.read_unknown_attribute(len)?,
         };
 
@@ -40,6 +41,11 @@ impl<'r, 'c, R: BufRead> AttributeReader<'r, 'c, R> {
     fn read_source_file_attribute(&mut self) -> Result<AttributeData<'c>> {
         let name_index = self.reader.read_u2()?;
         Ok(SourceFile(self.constants.get_utf8(name_index)))
+    }
+
+    fn read_constant_value_attribute(&mut self) -> Result<AttributeData<'c>> {
+        let value_index = self.reader.read_u2()?;
+        Ok(ConstantValue(self.constants.get(value_index)))
     }
 
     fn read_code_attribute(&mut self) -> Result<AttributeData<'c>> {
@@ -96,7 +102,7 @@ impl<'r, 'c, R: BufRead> AttributeReader<'r, 'c, R> {
 mod test {
     use crate::class::attribute::io::AttributeReader;
     use crate::class::attribute::{Attribute, Code};
-    use crate::class::attribute::AttributeData::{SourceFile, Unknown, LineNumberTable, CodeInfo};
+    use crate::class::attribute::AttributeData::{SourceFile, Unknown, LineNumberTable, CodeInfo, ConstantValue};
     use crate::class::constant::Constant::*;
     use crate::class::constant::ConstantPool;
     use std::io::{Cursor, BufRead};
@@ -165,6 +171,28 @@ mod test {
             vec![Attribute {
                 name: "LineNumberTable",
                 data: LineNumberTable(vec![(0, 5), (4, 7)]),
+            }]
+        );
+    }
+
+    #[test]
+    fn read_constant_value_attribute() {
+        let mut constants = ConstantPool::new(1);
+        constants.add(Utf8("ConstantValue".to_owned()));
+        constants.add(Long(10));
+
+        let mut data = Cursor::new(vec![
+            0x00, 0x01, // Count
+            0x00, 0x01, // Name index
+            0x00, 0x00, 0x00, 0x02, // Info length
+            0x00, 0x02, // Constant value index
+        ]);
+
+        assert_eq!(
+            read_attributes(&mut data, &constants),
+            vec![Attribute {
+                name: "ConstantValue",
+                data: ConstantValue(&Long(10)),
             }]
         );
     }

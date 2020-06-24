@@ -1,3 +1,5 @@
+use crate::class::constant::Constant;
+
 pub mod io;
 
 #[derive(Debug, PartialEq)]
@@ -11,6 +13,7 @@ pub enum AttributeData<'a> {
     SourceFile(&'a str),
     LineNumberTable(Vec<(u16, u16)>),
     CodeInfo(Code<'a>),
+    ConstantValue(&'a Constant),
     Unknown(Vec<u8>),
 }
 
