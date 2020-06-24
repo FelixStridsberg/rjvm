@@ -9,5 +9,6 @@ pub struct Attribute<'a> {
 #[derive(Debug, PartialEq)]
 pub enum AttributeData<'a> {
     SourceFile(&'a str),
+    LineNumberTable(Vec<(u16, u16)>),
     Unknown(Vec<u8>),
 }
