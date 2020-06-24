@@ -1,6 +1,9 @@
+use crate::class::attribute::Attribute;
+
 pub mod constant;
 pub mod io;
 pub mod code;
+pub mod attribute;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Version {
@@ -79,16 +82,4 @@ pub struct FieldInfo<'a> {
     name: &'a str,
     descriptor: &'a str,
     attributes: Vec<Attribute<'a>>,
-}
-
-#[derive(Debug, PartialEq)]
-pub struct Attribute<'a> {
-    name: &'a str,
-    data: AttributeData<'a>,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum AttributeData<'a> {
-    SourceFile(&'a str),
-    Unknown(Vec<u8>),
 }
