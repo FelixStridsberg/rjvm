@@ -61,18 +61,14 @@ mod test {
     use std::io::Cursor;
 
     #[test]
-    fn read_attributes() {
-        let mut constants = ConstantPool::new(2);
-        constants.add(Utf8("SourceFile".to_owned()));
+    fn read_unknown_attribute() {
+        let mut constants = ConstantPool::new(1);
         constants.add(Utf8("Unknown attribute".to_owned()));
-        constants.add(Utf8("file.java".to_owned()));
 
         let mut data = Cursor::new(vec![
-            0x00, 0x02, // Count 2
-            0x00, 0x01, // Attribute1 name index
-            0x00, 0x00, 0x00, 0x02, 0x00, 0x03, // Attribute1 info index
-            0x00, 0x02, // Attribute2 name index
-            0x00, 0x00, 0x00, 0x02, 0x01, 0x02, // Attribute2 info index
+            0x00, 0x01, // Count
+            0x00, 0x01, // Name index
+            0x00, 0x00, 0x00, 0x02, 0x01, 0x02, // Info
         ]);
 
         let mut reader = AttributeReader::new(&mut data, &constants);
@@ -80,16 +76,34 @@ mod test {
 
         assert_eq!(
             attributes,
-            vec![
-                Attribute {
-                    name: "SourceFile",
-                    data: SourceFile("file.java"),
-                },
-                Attribute {
-                    name: "Unknown attribute",
-                    data: Unknown(vec![0x01, 0x02])
-                }
-            ]
+            vec![Attribute {
+                name: "Unknown attribute",
+                data: Unknown(vec![0x01, 0x02])
+            }]
+        );
+    }
+
+    #[test]
+    fn read_source_file_attribute() {
+        let mut constants = ConstantPool::new(3);
+        constants.add(Utf8("file.java".to_owned()));
+        constants.add(Utf8("SourceFile".to_owned()));
+
+        let mut data = Cursor::new(vec![
+            0x00, 0x01, // Count
+            0x00, 0x02, // Name index
+            0x00, 0x00, 0x00, 0x02, 0x00, 0x01, // Info
+        ]);
+
+        let mut reader = AttributeReader::new(&mut data, &constants);
+        let attributes = reader.read_attributes().unwrap();
+
+        assert_eq!(
+            attributes,
+            vec![Attribute {
+                name: "SourceFile",
+                data: SourceFile("file.java"),
+            }]
         );
     }
 }
