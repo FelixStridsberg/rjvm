@@ -10,5 +10,15 @@ pub struct Attribute<'a> {
 pub enum AttributeData<'a> {
     SourceFile(&'a str),
     LineNumberTable(Vec<(u16, u16)>),
+    CodeInfo(Code<'a>),
     Unknown(Vec<u8>),
+}
+
+#[derive(Debug, PartialEq)]
+pub struct Code<'a> {
+    max_stack: u16,
+    max_locals: u16,
+    // TODO code
+    // TODO exception table
+    attributes: Vec<Attribute<'a>>
 }
