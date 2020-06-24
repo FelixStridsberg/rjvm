@@ -337,7 +337,7 @@ impl<R: BufRead> ClassReader<R> {
 #[cfg(test)]
 mod test {
     use crate::class::attribute::Attribute;
-    use crate::class::attribute::AttributeData::{SourceFile, Unknown};
+    use crate::class::attribute::AttributeData::Unknown;
     use crate::class::constant::Constant::*;
     use crate::class::constant::ConstantPool;
     use crate::class::constant::MethodHandleKind::GetField;
@@ -444,38 +444,6 @@ mod test {
 
         let indexes = reader.read_interfaces(&constants).unwrap();
         assert_eq!(indexes, vec!["interface"]);
-    }
-
-    #[test]
-    fn read_attributes() {
-        let mut constants = ConstantPool::new(2);
-        constants.add(Utf8("SourceFile".to_owned()));
-        constants.add(Utf8("Unknown attribute".to_owned()));
-        constants.add(Utf8("file.java".to_owned()));
-
-        let data: Vec<u8> = vec![
-            0x00, 0x02, // Count 2
-            0x00, 0x01, // Attribute1 name index
-            0x00, 0x00, 0x00, 0x02, 0x00, 0x03, // Attribute1 info index
-            0x00, 0x02, // Attribute2 name index
-            0x00, 0x00, 0x00, 0x02, 0x01, 0x02, // Attribute2 info index
-        ];
-        let mut reader = ClassReader::new(data.as_slice());
-        let attributes = reader.read_attributes(&constants).unwrap();
-
-        assert_eq!(
-            attributes,
-            vec![
-                Attribute {
-                    name: "SourceFile",
-                    data: SourceFile("file.java"),
-                },
-                Attribute {
-                    name: "Unknown attribute",
-                    data: Unknown(vec![0x01, 0x02])
-                }
-            ]
-        );
     }
 
     #[test]

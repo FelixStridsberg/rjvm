@@ -50,3 +50,46 @@ impl<'r, 'c, R: BufRead> AttributeReader<'r, 'c, R> {
         Ok(Unknown(info))
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::class::attribute::io::AttributeReader;
+    use crate::class::attribute::Attribute;
+    use crate::class::attribute::AttributeData::{SourceFile, Unknown};
+    use crate::class::constant::Constant::*;
+    use crate::class::constant::ConstantPool;
+    use std::io::Cursor;
+
+    #[test]
+    fn read_attributes() {
+        let mut constants = ConstantPool::new(2);
+        constants.add(Utf8("SourceFile".to_owned()));
+        constants.add(Utf8("Unknown attribute".to_owned()));
+        constants.add(Utf8("file.java".to_owned()));
+
+        let mut data = Cursor::new(vec![
+            0x00, 0x02, // Count 2
+            0x00, 0x01, // Attribute1 name index
+            0x00, 0x00, 0x00, 0x02, 0x00, 0x03, // Attribute1 info index
+            0x00, 0x02, // Attribute2 name index
+            0x00, 0x00, 0x00, 0x02, 0x01, 0x02, // Attribute2 info index
+        ]);
+
+        let mut reader = AttributeReader::new(&mut data, &constants);
+        let attributes = reader.read_attributes().unwrap();
+
+        assert_eq!(
+            attributes,
+            vec![
+                Attribute {
+                    name: "SourceFile",
+                    data: SourceFile("file.java"),
+                },
+                Attribute {
+                    name: "Unknown attribute",
+                    data: Unknown(vec![0x01, 0x02])
+                }
+            ]
+        );
+    }
+}
