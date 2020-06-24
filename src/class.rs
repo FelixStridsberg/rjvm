@@ -1,9 +1,9 @@
 use crate::class::attribute::Attribute;
 
+pub mod attribute;
+pub mod code;
 pub mod constant;
 pub mod io;
-pub mod code;
-pub mod attribute;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Version {

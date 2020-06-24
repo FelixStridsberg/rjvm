@@ -1,3 +1,5 @@
+use crate::class::attribute::io::AttributeReader;
+use crate::class::attribute::Attribute;
 use crate::class::constant::Constant::*;
 use crate::class::constant::MethodHandleKind::*;
 use crate::class::constant::{Constant, ConstantPool};
@@ -8,7 +10,6 @@ use crate::class::{Class, FieldInfo, MethodInfo, Version};
 use crate::error::ErrorKind::ParseError;
 use crate::error::{Error, Result};
 use std::io::BufRead;
-use crate::class::attribute::{AttributeReader, Attribute};
 
 const SIGNATURE: &[u8] = &[0xCA, 0xFE, 0xBA, 0xBE];
 
@@ -335,6 +336,8 @@ impl<R: BufRead> ClassReader<R> {
 
 #[cfg(test)]
 mod test {
+    use crate::class::attribute::Attribute;
+    use crate::class::attribute::AttributeData::{SourceFile, Unknown};
     use crate::class::constant::Constant::*;
     use crate::class::constant::ConstantPool;
     use crate::class::constant::MethodHandleKind::GetField;
@@ -343,8 +346,6 @@ mod test {
     use crate::class::{
         ClassAccessFlags, FieldAccessFlags, FieldInfo, MethodAccessFlags, MethodInfo,
     };
-    use crate::class::attribute::Attribute;
-    use crate::class::attribute::AttributeData::{SourceFile, Unknown};
 
     #[test]
     fn read_signature() {
