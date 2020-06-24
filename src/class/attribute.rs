@@ -14,6 +14,7 @@ pub enum AttributeData<'a> {
     LineNumberTable(Vec<(u16, u16)>),
     CodeInfo(Code<'a>),
     ConstantValue(&'a Constant),
+    Exceptions(Vec<&'a str>),
     Unknown(Vec<u8>),
 }
 
@@ -23,5 +24,5 @@ pub struct Code<'a> {
     max_locals: u16,
     // TODO code
     // TODO exception table
-    attributes: Vec<Attribute<'a>>
+    attributes: Vec<Attribute<'a>>,
 }

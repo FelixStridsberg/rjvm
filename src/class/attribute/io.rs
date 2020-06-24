@@ -1,4 +1,6 @@
-use crate::class::attribute::AttributeData::{SourceFile, Unknown, LineNumberTable, CodeInfo, ConstantValue};
+use crate::class::attribute::AttributeData::{
+    CodeInfo, ConstantValue, Exceptions, LineNumberTable, SourceFile, Unknown,
+};
 use crate::class::attribute::{Attribute, AttributeData, Code};
 use crate::class::constant::ConstantPool;
 use crate::class::io::ReadBytesExt;
@@ -32,6 +34,7 @@ impl<'r, 'c, R: BufRead> AttributeReader<'r, 'c, R> {
             "LineNumberTable" => self.read_line_number_table_attribute()?,
             "Code" => self.read_code_attribute()?,
             "ConstantValue" => self.read_constant_value_attribute()?,
+            "Exceptions" => self.read_exceptions_attribute()?,
             _ => self.read_unknown_attribute(len)?,
         };
 
@@ -46,6 +49,17 @@ impl<'r, 'c, R: BufRead> AttributeReader<'r, 'c, R> {
     fn read_constant_value_attribute(&mut self) -> Result<AttributeData<'c>> {
         let value_index = self.reader.read_u2()?;
         Ok(ConstantValue(self.constants.get(value_index)))
+    }
+
+    fn read_exceptions_attribute(&mut self) -> Result<AttributeData<'c>> {
+        let exception_count = self.reader.read_u2()?;
+        let mut exceptions = Vec::with_capacity(exception_count as usize);
+
+        for _ in 0..exception_count {
+            exceptions.push(self.constants.get_class_info_name(self.reader.read_u2()?));
+        }
+
+        Ok(Exceptions(exceptions))
     }
 
     fn read_code_attribute(&mut self) -> Result<AttributeData<'c>> {
@@ -101,11 +115,13 @@ impl<'r, 'c, R: BufRead> AttributeReader<'r, 'c, R> {
 #[cfg(test)]
 mod test {
     use crate::class::attribute::io::AttributeReader;
+    use crate::class::attribute::AttributeData::{
+        CodeInfo, ConstantValue, Exceptions, LineNumberTable, SourceFile, Unknown,
+    };
     use crate::class::attribute::{Attribute, Code};
-    use crate::class::attribute::AttributeData::{SourceFile, Unknown, LineNumberTable, CodeInfo, ConstantValue};
     use crate::class::constant::Constant::*;
     use crate::class::constant::ConstantPool;
-    use std::io::{Cursor, BufRead};
+    use std::io::{BufRead, Cursor};
 
     #[test]
     fn read_unknown_attribute() {
@@ -198,6 +214,30 @@ mod test {
     }
 
     #[test]
+    fn read_exceptions_attribute() {
+        let mut constants = ConstantPool::new(1);
+        constants.add(Utf8("Exceptions".to_owned()));
+        constants.add(ClassRef(3));
+        constants.add(Utf8("java/lang/Exception".to_owned()));
+
+        let mut data = Cursor::new(vec![
+            0x00, 0x01, // Count
+            0x00, 0x01, // Name index
+            0x00, 0x00, 0x00, 0x04, // Info length
+            0x00, 0x01, // Number of exceptions
+            0x00, 0x02, // Exception index
+        ]);
+
+        assert_eq!(
+            read_attributes(&mut data, &constants),
+            vec![Attribute {
+                name: "Exceptions",
+                data: Exceptions(vec!["java/lang/Exception"]),
+            }]
+        );
+    }
+
+    #[test]
     fn read_code_attribute() {
         let mut constants = ConstantPool::new(2);
         constants.add(Utf8("Code".to_owned()));
@@ -227,21 +267,22 @@ mod test {
             read_attributes(&mut data, &constants),
             vec![Attribute {
                 name: "Code",
-                data: CodeInfo(
-                    Code {
-                        max_stack: 3,
-                        max_locals: 1,
-                        attributes: vec![Attribute {
-                            name: "LineNumberTable",
-                            data: LineNumberTable(vec![(0, 5), (4, 7)]),
-                        }]
-                    }
-                ),
+                data: CodeInfo(Code {
+                    max_stack: 3,
+                    max_locals: 1,
+                    attributes: vec![Attribute {
+                        name: "LineNumberTable",
+                        data: LineNumberTable(vec![(0, 5), (4, 7)]),
+                    }]
+                }),
             }]
         );
     }
 
-    fn read_attributes<'a, R: BufRead>(r: &mut R, constants: &'a ConstantPool) -> Vec<Attribute<'a>> {
+    fn read_attributes<'a, R: BufRead>(
+        r: &mut R,
+        constants: &'a ConstantPool,
+    ) -> Vec<Attribute<'a>> {
         let mut reader = AttributeReader::new(r, &constants);
         reader.read_attributes().unwrap()
     }
