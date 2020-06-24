@@ -30,7 +30,7 @@ impl <'r, 'c, R: BufRead> AttributeReader<'r, 'c, R> {
     }
 
     pub fn read_attributes(&mut self) -> Result<Vec<Attribute<'c>>> {
-        let attribute_len = self.reader.read_u16()? as usize;
+        let attribute_len = self.reader.read_u2()? as usize;
         let mut attributes = Vec::with_capacity(attribute_len);
         for _ in 0..attribute_len {
             attributes.push(self.read_attribute_info()?)
@@ -39,8 +39,8 @@ impl <'r, 'c, R: BufRead> AttributeReader<'r, 'c, R> {
     }
 
     fn read_attribute_info(&mut self) -> Result<Attribute<'c>> {
-        let name = self.constants.get_utf8(self.reader.read_u16()?);
-        let len = self.reader.read_u32()? as usize;
+        let name = self.constants.get_utf8(self.reader.read_u2()?);
+        let len = self.reader.read_u4()? as usize;
         let data = match name {
             "SourceFile" => self.read_source_file_attribute()?,
             _ => self.read_unknown_attribute(len)?,
@@ -50,7 +50,7 @@ impl <'r, 'c, R: BufRead> AttributeReader<'r, 'c, R> {
     }
 
     fn read_source_file_attribute(&mut self) -> Result<AttributeData<'c>> {
-        let name_index = self.reader.read_u16()?;
+        let name_index = self.reader.read_u2()?;
         Ok(SourceFile(self.constants.get_utf8(name_index)))
     }
 

@@ -19,23 +19,23 @@ pub struct ClassReader<R: BufRead> {
 
 pub trait ReadBytesExt: std::io::Read {
     #[inline]
-    fn read_u8(&mut self) -> Result<u8> {
+    fn read_u1(&mut self) -> Result<u8> {
         let mut bytes = [0u8; 1];
         self.read_exact(&mut bytes)?;
         Ok(bytes[0])
     }
 
     #[inline]
-    fn read_u16(&mut self) -> Result<u16> {
+    fn read_u2(&mut self) -> Result<u16> {
         let mut bytes = [0u8; 2];
         self.read_exact(&mut bytes)?;
         Ok((bytes[0] as u16) << 8 | bytes[1] as u16)
     }
 
     #[inline]
-    fn read_u32(&mut self) -> Result<u32> {
-        let u16_0 = self.read_u16()? as u32;
-        let u16_1 = self.read_u16()? as u32;
+    fn read_u4(&mut self) -> Result<u32> {
+        let u16_0 = self.read_u2()? as u32;
+        let u16_1 = self.read_u2()? as u32;
         Ok(u16_0 << 16 | u16_1)
     }
 }
@@ -62,8 +62,8 @@ impl<R: BufRead> ClassReader<R> {
 
     pub fn read_class(mut self, constants: &ConstantPool) -> Result<Class> {
         let access_flags = self.read_access_flags()?;
-        let this_class = constants.get_class_info_name(self.reader.read_u16()?);
-        let super_class = constants.get_class_info_name(self.reader.read_u16()?);
+        let this_class = constants.get_class_info_name(self.reader.read_u2()?);
+        let super_class = constants.get_class_info_name(self.reader.read_u2()?);
         let interfaces = self.read_interfaces(constants)?;
         let fields = self.read_fields(constants)?;
         let methods = self.read_methods(constants)?;
@@ -82,7 +82,7 @@ impl<R: BufRead> ClassReader<R> {
     }
 
     fn read_fields<'a>(&mut self, constants: &'a ConstantPool) -> Result<Vec<FieldInfo<'a>>> {
-        let len = self.reader.read_u16()?;
+        let len = self.reader.read_u2()?;
         let mut fields = Vec::with_capacity(len as usize);
         for _ in 0..len {
             fields.push(self.read_field(constants)?);
@@ -96,9 +96,9 @@ impl<R: BufRead> ClassReader<R> {
     }
 
     fn read_field<'a>(&mut self, constants: &'a ConstantPool) -> Result<FieldInfo<'a>> {
-        let access_flags = FieldAccessFlags::from_bits(self.reader.read_u16()?).unwrap();
-        let name = constants.get_utf8(self.reader.read_u16()?);
-        let descriptor = constants.get_utf8(self.reader.read_u16()?);
+        let access_flags = FieldAccessFlags::from_bits(self.reader.read_u2()?).unwrap();
+        let name = constants.get_utf8(self.reader.read_u2()?);
+        let descriptor = constants.get_utf8(self.reader.read_u2()?);
         let attributes = self.read_attributes(constants)?;
 
         Ok(FieldInfo {
@@ -110,7 +110,7 @@ impl<R: BufRead> ClassReader<R> {
     }
 
     fn read_methods<'a>(&mut self, constants: &'a ConstantPool) -> Result<Vec<MethodInfo<'a>>> {
-        let len = self.reader.read_u16()?;
+        let len = self.reader.read_u2()?;
         let mut fields = Vec::with_capacity(len as usize);
         for _ in 0..len {
             fields.push(self.read_method(constants)?);
@@ -119,9 +119,9 @@ impl<R: BufRead> ClassReader<R> {
     }
 
     fn read_method<'a>(&mut self, constants: &'a ConstantPool) -> Result<MethodInfo<'a>> {
-        let access_flags = MethodAccessFlags::from_bits(self.reader.read_u16()?).unwrap();
-        let name = constants.get_utf8(self.reader.read_u16()?);
-        let descriptor = constants.get_utf8(self.reader.read_u16()?);
+        let access_flags = MethodAccessFlags::from_bits(self.reader.read_u2()?).unwrap();
+        let name = constants.get_utf8(self.reader.read_u2()?);
+        let descriptor = constants.get_utf8(self.reader.read_u2()?);
         let attributes = self.read_attributes(constants)?;
 
         Ok(MethodInfo {
@@ -147,24 +147,24 @@ impl<R: BufRead> ClassReader<R> {
     }
 
     fn read_version(&mut self) -> Result<Version> {
-        let minor = self.reader.read_u16()?;
-        let major = self.reader.read_u16()?;
+        let minor = self.reader.read_u2()?;
+        let major = self.reader.read_u2()?;
 
         Ok(Version { minor, major })
     }
 
     fn read_interfaces<'a>(&mut self, constants: &'a ConstantPool) -> Result<Vec<&'a str>> {
-        let len = self.reader.read_u16()?;
+        let len = self.reader.read_u2()?;
         let mut indexes = Vec::with_capacity(len as usize);
 
         for _ in 0..len {
-            indexes.push(constants.get_class_info_name(self.reader.read_u16()?))
+            indexes.push(constants.get_class_info_name(self.reader.read_u2()?))
         }
         Ok(indexes)
     }
 
     fn read_constants(&mut self) -> Result<ConstantPool> {
-        let entries = self.reader.read_u16()?;
+        let entries = self.reader.read_u2()?;
         let mut pool = ConstantPool::new(entries);
 
         let mut i = entries;
@@ -184,7 +184,7 @@ impl<R: BufRead> ClassReader<R> {
     }
 
     fn read_constant(&mut self) -> Result<Constant> {
-        let tag = self.reader.read_u8()?;
+        let tag = self.reader.read_u1()?;
 
         match tag {
             1 => self.read_utf8_constant(),
@@ -209,14 +209,14 @@ impl<R: BufRead> ClassReader<R> {
     }
 
     fn read_access_flags(&mut self) -> Result<ClassAccessFlags> {
-        let flags = self.reader.read_u16()?;
+        let flags = self.reader.read_u2()?;
         Ok(ClassAccessFlags::from_bits(flags).unwrap())
     }
 
     // TODO implement according to spec
     // Naive implementation that do not correspond to spec about modified utf8
     fn read_utf8_constant(&mut self) -> Result<Constant> {
-        let len = self.reader.read_u16()?;
+        let len = self.reader.read_u2()?;
 
         let mut bytes = Vec::with_capacity(len as usize);
         unsafe {
@@ -252,41 +252,41 @@ impl<R: BufRead> ClassReader<R> {
     }
 
     fn read_class_constant(&mut self) -> Result<Constant> {
-        let class_index = self.reader.read_u16()?;
+        let class_index = self.reader.read_u2()?;
         Ok(ClassRef(class_index))
     }
 
     fn read_string_constant(&mut self) -> Result<Constant> {
-        let string_index = self.reader.read_u16()?;
+        let string_index = self.reader.read_u2()?;
         Ok(StringRef(string_index))
     }
 
     fn read_fieldref_constant(&mut self) -> Result<Constant> {
-        let class_index = self.reader.read_u16()?;
-        let name_and_type_index = self.reader.read_u16()?;
+        let class_index = self.reader.read_u2()?;
+        let name_and_type_index = self.reader.read_u2()?;
         Ok(FieldRef(class_index, name_and_type_index))
     }
 
     fn read_methodref_constant(&mut self) -> Result<Constant> {
-        let class_index = self.reader.read_u16()?;
-        let name_and_type_index = self.reader.read_u16()?;
+        let class_index = self.reader.read_u2()?;
+        let name_and_type_index = self.reader.read_u2()?;
         Ok(MethodRef(class_index, name_and_type_index))
     }
 
     fn read_interfacemethodref_constant(&mut self) -> Result<Constant> {
-        let class_index = self.reader.read_u16()?;
-        let name_and_type_index = self.reader.read_u16()?;
+        let class_index = self.reader.read_u2()?;
+        let name_and_type_index = self.reader.read_u2()?;
         Ok(InterfaceMethodRef(class_index, name_and_type_index))
     }
 
     fn read_nameandtype_constant(&mut self) -> Result<Constant> {
-        let name_index = self.reader.read_u16()?;
-        let descriptor_index = self.reader.read_u16()?;
+        let name_index = self.reader.read_u2()?;
+        let descriptor_index = self.reader.read_u2()?;
         Ok(NameAndType(name_index, descriptor_index))
     }
 
     fn read_methodhandle_constant(&mut self) -> Result<Constant> {
-        let reference_kind = match self.reader.read_u8()? {
+        let reference_kind = match self.reader.read_u1()? {
             1 => GetField,
             2 => GetStatic,
             3 => PutField,
@@ -298,24 +298,24 @@ impl<R: BufRead> ClassReader<R> {
             9 => InvokeInterface,
             x => panic!("Unknown method handle kind: {}", x),
         };
-        let reference_index = self.reader.read_u16()?;
+        let reference_index = self.reader.read_u2()?;
         Ok(MethodHandle(reference_kind, reference_index))
     }
 
     fn read_methodtype_constant(&mut self) -> Result<Constant> {
-        let descriptor_index = self.reader.read_u16()?;
+        let descriptor_index = self.reader.read_u2()?;
         Ok(MethodType(descriptor_index))
     }
 
     fn read_dynamic_constant(&mut self) -> Result<Constant> {
-        let bootstrap_method_attr_index = self.reader.read_u16()?;
-        let name_and_type_index = self.reader.read_u16()?;
+        let bootstrap_method_attr_index = self.reader.read_u2()?;
+        let name_and_type_index = self.reader.read_u2()?;
         Ok(Dynamic(bootstrap_method_attr_index, name_and_type_index))
     }
 
     fn read_invokedynamic_constant(&mut self) -> Result<Constant> {
-        let bootstrap_method_attr_index = self.reader.read_u16()?;
-        let name_and_type_index = self.reader.read_u16()?;
+        let bootstrap_method_attr_index = self.reader.read_u2()?;
+        let name_and_type_index = self.reader.read_u2()?;
         Ok(InvokeDynamic(
             bootstrap_method_attr_index,
             name_and_type_index,
@@ -323,12 +323,12 @@ impl<R: BufRead> ClassReader<R> {
     }
 
     fn read_module_constant(&mut self) -> Result<Constant> {
-        let name_index = self.reader.read_u16()?;
+        let name_index = self.reader.read_u2()?;
         Ok(Module(name_index))
     }
 
     fn read_package_constant(&mut self) -> Result<Constant> {
-        let name_index = self.reader.read_u16()?;
+        let name_index = self.reader.read_u2()?;
         Ok(Package(name_index))
     }
 }
