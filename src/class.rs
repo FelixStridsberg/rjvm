@@ -1,5 +1,6 @@
 pub mod constant;
 pub mod io;
+pub mod code;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Version {

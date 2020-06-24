@@ -12,14 +12,14 @@ use std::io::BufRead;
 
 const SIGNATURE: &[u8] = &[0xCA, 0xFE, 0xBA, 0xBE];
 
-pub struct Reader<R: BufRead> {
+pub struct ClassReader<R: BufRead> {
     reader: R,
     version: Option<Version>,
 }
 
-impl<R: BufRead> Reader<R> {
+impl<R: BufRead> ClassReader<R> {
     pub fn new(reader: R) -> Self {
-        Reader {
+        ClassReader {
             reader,
             version: None,
         }
@@ -368,7 +368,7 @@ mod test {
     use crate::class::constant::Constant::*;
     use crate::class::constant::ConstantPool;
     use crate::class::constant::MethodHandleKind::GetField;
-    use crate::class::io::Reader;
+    use crate::class::io::ClassReader;
     use crate::class::AttributeData::{SourceFile, Unknown};
     use crate::class::Version;
     use crate::class::{
@@ -378,14 +378,14 @@ mod test {
     #[test]
     fn read_signature() {
         let data: Vec<u8> = vec![0xCA, 0xFE, 0xBA, 0xBE];
-        let mut reader = Reader::new(data.as_slice());
+        let mut reader = ClassReader::new(data.as_slice());
         assert_eq!(reader.read_signature(), Ok(()));
     }
 
     #[test]
     fn read_invalid_signature() {
         let data: Vec<u8> = vec![0xCA, 0xFE, 0xAB, 0xBB];
-        let mut reader = Reader::new(data.as_slice());
+        let mut reader = ClassReader::new(data.as_slice());
         let error = reader.read_signature().unwrap_err();
         assert_eq!(error.to_string(), "Invalid file signature.");
     }
@@ -393,7 +393,7 @@ mod test {
     #[test]
     fn read_version() {
         let data: Vec<u8> = vec![0x01, 0x00, 0x00, 0x37];
-        let mut reader = Reader::new(data.as_slice());
+        let mut reader = ClassReader::new(data.as_slice());
 
         assert_eq!(
             reader.read_version(),
@@ -427,7 +427,7 @@ mod test {
             0x14, 0x00, 0x02, // Package
         ];
 
-        let mut reader = Reader::new(data.as_slice());
+        let mut reader = ClassReader::new(data.as_slice());
         let pool = reader.read_constant_pool().unwrap();
 
         assert_eq!(pool.get(1), &Utf8("<init>".to_owned()));
@@ -452,7 +452,7 @@ mod test {
     #[test]
     fn read_access_flags() {
         let data: Vec<u8> = vec![0x00, 0x21];
-        let mut reader = Reader::new(data.as_slice());
+        let mut reader = ClassReader::new(data.as_slice());
 
         let flags = reader.read_access_flags().unwrap();
         assert_eq!(flags, ClassAccessFlags::SUPER | ClassAccessFlags::PUBLIC);
@@ -468,7 +468,7 @@ mod test {
             0x00, 0x01, // Count
             0x00, 0x02, // ClassRef index
         ];
-        let mut reader = Reader::new(data.as_slice());
+        let mut reader = ClassReader::new(data.as_slice());
 
         let indexes = reader.read_interfaces(&constants).unwrap();
         assert_eq!(indexes, vec!["interface"]);
@@ -488,7 +488,7 @@ mod test {
             0x00, 0x02, // Attribute2 name index
             0x00, 0x00, 0x00, 0x02, 0x01, 0x02, // Attribute2 info index
         ];
-        let mut reader = Reader::new(data.as_slice());
+        let mut reader = ClassReader::new(data.as_slice());
         let attributes = reader.read_attributes(&constants).unwrap();
 
         assert_eq!(
@@ -522,7 +522,7 @@ mod test {
             0x00, 0x03, // Attribute name index
             0x00, 0x00, 0x00, 0x02, 0x01, 0x02, // Attribute data
         ];
-        let mut reader = Reader::new(data.as_slice());
+        let mut reader = ClassReader::new(data.as_slice());
 
         let indexes = reader.read_fields(&constants).unwrap();
         assert_eq!(
@@ -555,7 +555,7 @@ mod test {
             0x00, 0x03, // Attribute name index
             0x00, 0x00, 0x00, 0x02, 0x01, 0x02, // Attribute data 0x01, 0x02
         ];
-        let mut reader = Reader::new(data.as_slice());
+        let mut reader = ClassReader::new(data.as_slice());
 
         let indexes = reader.read_methods(&constants).unwrap();
         assert_eq!(

@@ -3,12 +3,12 @@ extern crate rjvm;
 use std::fs::read;
 use std::io::{BufRead, BufReader};
 
-use rjvm::class::io::Reader;
+use rjvm::class::io::ClassReader;
 
 #[test]
 fn test_simple() {
     let file = read("./tests/test_data/Simple.class").unwrap();
-    let mut reader = Reader::new(BufReader::new(&file[..]));
+    let mut reader = ClassReader::new(BufReader::new(&file[..]));
 
     reader.verify_meta();
     let constants = reader.read_constant_pool().unwrap();
