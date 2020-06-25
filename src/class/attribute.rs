@@ -1,11 +1,9 @@
 use crate::class::constant::Constant;
 
-pub mod io;
-
 #[derive(Debug, PartialEq)]
 pub struct Attribute<'a> {
-    pub(crate) name: &'a str,
-    pub(crate) data: AttributeData<'a>,
+    pub name: &'a str,
+    pub data: AttributeData<'a>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -20,9 +18,9 @@ pub enum AttributeData<'a> {
 
 #[derive(Debug, PartialEq)]
 pub struct Code<'a> {
-    max_stack: u16,
-    max_locals: u16,
+    pub max_stack: u16,
+    pub max_locals: u16,
     // TODO code
     // TODO exception table
-    attributes: Vec<Attribute<'a>>,
+    pub attributes: Vec<Attribute<'a>>,
 }

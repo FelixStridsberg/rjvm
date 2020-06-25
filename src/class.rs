@@ -3,13 +3,6 @@ use crate::class::attribute::Attribute;
 pub mod attribute;
 pub mod code;
 pub mod constant;
-pub mod io;
-
-#[derive(Debug, Eq, PartialEq)]
-pub struct Version {
-    minor: u16,
-    major: u16,
-}
 
 bitflags! {
     pub struct ClassAccessFlags: u16 {
@@ -58,28 +51,34 @@ bitflags! {
 
 #[derive(Debug)]
 pub struct Class<'a> {
-    version: Version,
-    access_flags: ClassAccessFlags,
-    this_class: &'a str,
-    super_class: &'a str,
-    interfaces: Vec<&'a str>,
-    fields: Vec<FieldInfo<'a>>,
-    methods: Vec<MethodInfo<'a>>,
-    attributes: Vec<Attribute<'a>>,
+    pub version: Version,
+    pub access_flags: ClassAccessFlags,
+    pub this_class: &'a str,
+    pub super_class: &'a str,
+    pub interfaces: Vec<&'a str>,
+    pub fields: Vec<FieldInfo<'a>>,
+    pub methods: Vec<MethodInfo<'a>>,
+    pub attributes: Vec<Attribute<'a>>,
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct Version {
+    pub minor: u16,
+    pub major: u16,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct MethodInfo<'a> {
-    access_flags: MethodAccessFlags,
-    name: &'a str,
-    descriptor: &'a str,
-    attributes: Vec<Attribute<'a>>,
+    pub access_flags: MethodAccessFlags,
+    pub name: &'a str,
+    pub descriptor: &'a str,
+    pub attributes: Vec<Attribute<'a>>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct FieldInfo<'a> {
-    access_flags: FieldAccessFlags,
-    name: &'a str,
-    descriptor: &'a str,
-    attributes: Vec<Attribute<'a>>,
+    pub access_flags: FieldAccessFlags,
+    pub name: &'a str,
+    pub descriptor: &'a str,
+    pub attributes: Vec<Attribute<'a>>,
 }

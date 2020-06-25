@@ -3,7 +3,7 @@ extern crate rjvm;
 use std::fs::read;
 use std::io::BufReader;
 
-use rjvm::class::io::ClassReader;
+use rjvm::io::class::ClassReader;
 
 #[test]
 fn test_simple() {

@@ -1,4 +1,3 @@
-use crate::class::attribute::io::AttributeReader;
 use crate::class::attribute::Attribute;
 use crate::class::constant::Constant::*;
 use crate::class::constant::MethodHandleKind::*;
@@ -9,6 +8,8 @@ use crate::class::MethodAccessFlags;
 use crate::class::{Class, FieldInfo, MethodInfo, Version};
 use crate::error::ErrorKind::ParseError;
 use crate::error::{Error, Result};
+use crate::io::attribute::AttributeReader;
+use crate::io::ReadBytesExt;
 use std::io::BufRead;
 
 const SIGNATURE: &[u8] = &[0xCA, 0xFE, 0xBA, 0xBE];
@@ -17,31 +18,6 @@ pub struct ClassReader<R: BufRead> {
     reader: R,
     version: Option<Version>,
 }
-
-pub trait ReadBytesExt: std::io::Read {
-    #[inline]
-    fn read_u1(&mut self) -> Result<u8> {
-        let mut bytes = [0u8; 1];
-        self.read_exact(&mut bytes)?;
-        Ok(bytes[0])
-    }
-
-    #[inline]
-    fn read_u2(&mut self) -> Result<u16> {
-        let mut bytes = [0u8; 2];
-        self.read_exact(&mut bytes)?;
-        Ok((bytes[0] as u16) << 8 | bytes[1] as u16)
-    }
-
-    #[inline]
-    fn read_u4(&mut self) -> Result<u32> {
-        let u16_0 = self.read_u2()? as u32;
-        let u16_1 = self.read_u2()? as u32;
-        Ok(u16_0 << 16 | u16_1)
-    }
-}
-
-impl<R: std::io::Read + ?Sized> ReadBytesExt for R {}
 
 impl<R: BufRead> ClassReader<R> {
     pub fn new(reader: R) -> Self {
@@ -341,11 +317,11 @@ mod test {
     use crate::class::constant::Constant::*;
     use crate::class::constant::ConstantPool;
     use crate::class::constant::MethodHandleKind::GetField;
-    use crate::class::io::ClassReader;
     use crate::class::Version;
     use crate::class::{
         ClassAccessFlags, FieldAccessFlags, FieldInfo, MethodAccessFlags, MethodInfo,
     };
+    use crate::io::class::ClassReader;
 
     #[test]
     fn read_signature() {

@@ -3,8 +3,8 @@ use crate::class::attribute::AttributeData::{
 };
 use crate::class::attribute::{Attribute, AttributeData, Code};
 use crate::class::constant::ConstantPool;
-use crate::class::io::ReadBytesExt;
 use crate::error::Result;
+use crate::io::ReadBytesExt;
 use std::io::BufRead;
 
 pub struct AttributeReader<'r, 'c, R: BufRead> {
@@ -114,13 +114,13 @@ impl<'r, 'c, R: BufRead> AttributeReader<'r, 'c, R> {
 
 #[cfg(test)]
 mod test {
-    use crate::class::attribute::io::AttributeReader;
     use crate::class::attribute::AttributeData::{
         CodeInfo, ConstantValue, Exceptions, LineNumberTable, SourceFile, Unknown,
     };
     use crate::class::attribute::{Attribute, Code};
     use crate::class::constant::Constant::*;
     use crate::class::constant::ConstantPool;
+    use crate::io::attribute::AttributeReader;
     use std::io::{BufRead, Cursor};
 
     #[test]
