@@ -1,9 +1,20 @@
-pub mod class;
 mod attribute;
+pub mod class;
+mod code;
 
 use crate::error::Result;
 
 trait ReadBytesExt: std::io::Read {
+    #[inline]
+    fn read_bytes(&mut self, length: usize) -> Result<Vec<u8>> {
+        let mut buf = Vec::with_capacity(length);
+        unsafe {
+            buf.set_len(length);
+        }
+        self.read_exact(&mut buf)?;
+        Ok(buf)
+    }
+
     #[inline]
     fn read_u1(&mut self) -> Result<u8> {
         let mut bytes = [0u8; 1];

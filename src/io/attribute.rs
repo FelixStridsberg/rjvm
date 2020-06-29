@@ -7,6 +7,8 @@ use crate::error::Result;
 use crate::io::ReadBytesExt;
 use std::io::BufRead;
 
+pub trait AttributeRead {}
+
 pub struct AttributeReader<'r, 'c, R: BufRead> {
     reader: &'r mut R,
     constants: &'c ConstantPool,
@@ -69,11 +71,7 @@ impl<'r, 'c, R: BufRead> AttributeReader<'r, 'c, R> {
         let code_length = self.reader.read_u4()?;
 
         // TODO code reader
-        let mut _code = Vec::with_capacity(code_length as usize);
-        unsafe {
-            _code.set_len(code_length as usize);
-        }
-        self.reader.read_exact(&mut _code)?;
+        let mut _code = self.reader.read_bytes(code_length as usize);
 
         let exception_table_length = self.reader.read_u2()?;
         if exception_table_length > 0 {
