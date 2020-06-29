@@ -6,8 +6,9 @@ public class Simple implements Serializable {
 
     private long field = 100L;
 
-    public static void main(String[] args) {
+    public int test() {
         int i = 0;
         i++;
+        return i;
     }
 }
