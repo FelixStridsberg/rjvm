@@ -1,7 +1,7 @@
 use crate::class::constant::ConstantPool;
 use crate::vm::Value::*;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Value {
     Boolean(bool),
     Byte(u8),
@@ -48,133 +48,11 @@ impl Frame<'_> {
         self.operand_stack.push(value);
     }
 
-    pub fn pop_operand_bool(&mut self) -> bool {
-        let boxed = self.operand_stack.pop();
-        if let Some(Boolean(value)) = boxed {
-            self.operand_stack_depth -= 1;
+    pub fn pop_operand(&mut self) -> Value {
+        if let Some(value) = self.operand_stack.pop() {
             value
         } else {
-            panic!(
-                "Tried to pop a bool from operand stack, got a {:?}.",
-                boxed
-            )
-        }
-    }
-
-    pub fn pop_operand_byte(&mut self) -> u8 {
-        let boxed = self.operand_stack.pop();
-        if let Some(Byte(value)) = boxed {
-            self.operand_stack_depth -= 1;
-            value
-        } else {
-            panic!(
-                "Tried to pop a byte from operand stack, got a {:?}.",
-                boxed
-            )
-        }
-    }
-
-    pub fn pop_operand_short(&mut self) -> u16 {
-        let boxed = self.operand_stack.pop();
-        if let Some(Short(value)) = boxed {
-            self.operand_stack_depth -= 1;
-            value
-        } else {
-            panic!(
-                "Tried to pop a short from operand stack, got a {:?}.",
-                boxed
-            )
-        }
-    }
-
-    pub fn pop_operand_int(&mut self) -> u32 {
-        let boxed = self.operand_stack.pop();
-        if let Some(Int(value)) = boxed {
-            self.operand_stack_depth -= 1;
-            value
-        } else {
-            panic!(
-                "Tried to pop an int from operand stack, got a {:?}.",
-                boxed
-            )
-        }
-    }
-
-    pub fn pop_operand_long(&mut self) -> u64 {
-        let boxed = self.operand_stack.pop();
-        if let Some(Long(value)) = boxed {
-            self.operand_stack_depth -= 2;
-            value
-        } else {
-            panic!(
-                "Tried to pop a long from operand stack, got a {:?}.",
-                boxed
-            )
-        }
-    }
-
-    pub fn pop_operand_char(&mut self) -> char {
-        let boxed = self.operand_stack.pop();
-        if let Some(Char(value)) = boxed {
-            self.operand_stack_depth -= 1;
-            value
-        } else {
-            panic!(
-                "Tried to pop a char from operand stack, got a {:?}.",
-                boxed
-            )
-        }
-    }
-
-    pub fn pop_operand_float(&mut self) -> f32 {
-        let boxed = self.operand_stack.pop();
-        if let Some(Float(value)) = boxed {
-            self.operand_stack_depth -= 1;
-            value
-        } else {
-            panic!(
-                "Tried to pop a float from operand stack, got a {:?}.",
-                boxed
-            )
-        }
-    }
-
-    pub fn pop_operand_double(&mut self) -> f64 {
-        let boxed = self.operand_stack.pop();
-        if let Some(Double(value)) = boxed {
-            self.operand_stack_depth -= 2;
-            value
-        } else {
-            panic!(
-                "Tried to pop a double from operand stack, got a {:?}.",
-                boxed
-            )
-        }
-    }
-
-    pub fn pop_operand_reference(&mut self) -> i32 {
-        let boxed = self.operand_stack.pop();
-        if let Some(Reference(value)) = boxed {
-            self.operand_stack_depth -= 1;
-            value
-        } else {
-            panic!(
-                "Tried to pop a double from operand stack, got a {:?}.",
-                boxed
-            )
-        }
-    }
-
-    pub fn pop_operand_return_address(&mut self) -> i32 {
-        let boxed = self.operand_stack.pop();
-        if let Some(ReturnAddress(value)) = boxed {
-            self.operand_stack_depth -= 1;
-            value
-        } else {
-            panic!(
-                "Tried to pop a return address from operand stack, got a {:?}.",
-                boxed
-            )
+            panic!("Tried to pop value from empty stack.");
         }
     }
 }
@@ -190,87 +68,6 @@ mod test {
         let mut frame = Frame::new(1, 0, &constants);
         frame.push_operand(Value::Boolean(true));
 
-        assert_eq!(frame.pop_operand_bool(), true);
-    }
-
-    #[test]
-    fn pop_byte() {
-        let constants = ConstantPool::new(0);
-        let mut frame = Frame::new(1, 0, &constants);
-        frame.push_operand(Value::Byte(0x42));
-
-        assert_eq!(frame.pop_operand_byte(), 0x42);
-    }
-
-    #[test]
-    fn pop_short() {
-        let constants = ConstantPool::new(0);
-        let mut frame = Frame::new(1, 0, &constants);
-        frame.push_operand(Value::Short(16));
-
-        assert_eq!(frame.pop_operand_short(), 16);
-    }
-
-    #[test]
-    fn pop_int() {
-        let constants = ConstantPool::new(0);
-        let mut frame = Frame::new(1, 0, &constants);
-        frame.push_operand(Value::Int(1000));
-
-        assert_eq!(frame.pop_operand_int(), 1000);
-    }
-
-    #[test]
-    fn pop_long() {
-        let constants = ConstantPool::new(0);
-        let mut frame = Frame::new(1, 0, &constants);
-        frame.push_operand(Value::Long(0x42));
-
-        assert_eq!(frame.pop_operand_long(), 0x42);
-    }
-
-    #[test]
-    fn pop_char() {
-        let constants = ConstantPool::new(0);
-        let mut frame = Frame::new(1, 0, &constants);
-        frame.push_operand(Value::Char('a'));
-
-        assert_eq!(frame.pop_operand_char(), 'a');
-    }
-
-    #[test]
-    fn pop_float() {
-        let constants = ConstantPool::new(0);
-        let mut frame = Frame::new(1, 0, &constants);
-        frame.push_operand(Value::Float(3.14));
-
-        assert_eq!(frame.pop_operand_float(), 3.14);
-    }
-
-    #[test]
-    fn pop_double() {
-        let constants = ConstantPool::new(0);
-        let mut frame = Frame::new(1, 0, &constants);
-        frame.push_operand(Value::Double(3.14));
-
-        assert_eq!(frame.pop_operand_double(), 3.14);
-    }
-
-    #[test]
-    fn pop_reference() {
-        let constants = ConstantPool::new(0);
-        let mut frame = Frame::new(1, 0, &constants);
-        frame.push_operand(Value::Reference(4242));
-
-        assert_eq!(frame.pop_operand_reference(), 4242);
-    }
-
-    #[test]
-    fn pop_return_address() {
-        let constants = ConstantPool::new(0);
-        let mut frame = Frame::new(1, 0, &constants);
-        frame.push_operand(Value::ReturnAddress(1111));
-
-        assert_eq!(frame.pop_operand_return_address(), 1111);
+        assert_eq!(frame.pop_operand(), Value::Boolean(true));
     }
 }
