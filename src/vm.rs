@@ -1,13 +1,17 @@
 use crate::class::constant::ConstantPool;
 use crate::vm::Value::*;
+use crate::class::MethodInfo;
+use crate::vm::interpreter::interpret;
+
+mod interpreter;
 
 #[derive(Debug, PartialEq)]
 pub enum Value {
     Boolean(bool),
     Byte(u8),
-    Short(u16),
-    Int(u32),
-    Long(u64),
+    Short(i16),
+    Int(i32),
+    Long(i64),
     Char(char),
     Float(f32),
     Double(f64),
@@ -19,7 +23,18 @@ pub struct VirtualMachine<'a> {
     stack: Vec<Frame<'a>>,
 }
 
-struct Frame<'a> {
+impl VirtualMachine<'_> {
+
+    pub fn execute_method(constants: &ConstantPool, method: &MethodInfo) {
+        let code = method.get_code()
+            .expect("No Code attribute on method.");
+
+        let mut frame = Frame::new(code.max_stack, code.max_locals, constants);
+        interpret(&mut frame, &code.instructions);
+    }
+}
+
+pub struct Frame<'a> {
     local_variables: Vec<u32>,
     operand_stack: Vec<Value>,
     operand_stack_depth: u32,
@@ -31,10 +46,10 @@ pub trait PopOperandFrame<T> {
 }
 
 impl Frame<'_> {
-    pub fn new(stack: usize, locals: usize, constant_pool: &ConstantPool) -> Frame {
+    pub fn new(stack: u16, locals: u16, constant_pool: &ConstantPool) -> Frame {
         Frame {
-            local_variables: vec![0; locals],
-            operand_stack: Vec::with_capacity(stack),
+            local_variables: vec![0; locals as usize],
+            operand_stack: Vec::with_capacity(stack as usize),
             operand_stack_depth: 0,
             constant_pool,
         }

@@ -6,6 +6,7 @@ use crate::class::constant::ConstantPool;
 use crate::error::Result;
 use crate::io::ReadBytesExt;
 use std::io::BufRead;
+use crate::io::code::CodeReader;
 
 pub trait AttributeRead {}
 
@@ -68,10 +69,8 @@ impl<'r, 'c, R: BufRead> AttributeReader<'r, 'c, R> {
         let max_stack = self.reader.read_u2()?;
         let max_locals = self.reader.read_u2()?;
 
-        let code_length = self.reader.read_u4()?;
-
-        // TODO code reader
-        let mut _code = self.reader.read_bytes(code_length as usize);
+        let mut code_reader = CodeReader::new(&mut self.reader);
+        let instructions = code_reader.read_code()?;
 
         let exception_table_length = self.reader.read_u2()?;
         if exception_table_length > 0 {
@@ -85,6 +84,7 @@ impl<'r, 'c, R: BufRead> AttributeReader<'r, 'c, R> {
             max_stack,
             max_locals,
             attributes,
+            instructions,
         }))
     }
 
@@ -120,6 +120,8 @@ mod test {
     use crate::class::constant::ConstantPool;
     use crate::io::attribute::AttributeReader;
     use std::io::{BufRead, Cursor};
+    use crate::class::code::Instruction;
+    use crate::class::code::Opcode::Nop;
 
     #[test]
     fn read_unknown_attribute() {
@@ -247,8 +249,8 @@ mod test {
             0x00, 0x00, 0x00, 0x28, // Length
             0x00, 0x03, // Max stack
             0x00, 0x01, // Max locals
-            0x00, 0x00, 0x00, 0x0c, // Code length
-            0x2a, 0xb7, 0x00, 0x01, 0x2a, 0x14, 0x00, 0x02, 0xb5, 0x00, 0x04, 0xb1, // Code
+            0x00, 0x00, 0x00, 0x01, // Code length
+            0x00, // Code: nop
             0x00, 0x00, // Exception table length
             // (No exception table)
             0x00, 0x01, // Attributes count
@@ -271,7 +273,8 @@ mod test {
                     attributes: vec![Attribute {
                         name: "LineNumberTable",
                         data: LineNumberTable(vec![(0, 5), (4, 7)]),
-                    }]
+                    }],
+                    instructions: vec![Instruction::new(Nop, vec![])]
                 }),
             }]
         );

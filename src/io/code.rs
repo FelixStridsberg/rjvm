@@ -14,7 +14,7 @@ impl<'r, R: BufRead> CodeReader<'r, R> {
     }
 
     pub fn read_code(&mut self) -> Result<Vec<Instruction>> {
-        let mut byte_count = self.reader.read_u2()?;
+        let mut byte_count = self.reader.read_u4()?;
         let mut code = Vec::new();
 
         loop {
@@ -22,7 +22,7 @@ impl<'r, R: BufRead> CodeReader<'r, R> {
             let operands = self.reader.read_bytes(argc as usize)?;
             code.push(Instruction::new(opcode, operands));
 
-            byte_count -= 1 + argc as u16;
+            byte_count -= 1 + argc as u32;
             if byte_count == 0 {
                 break;
             }
@@ -222,7 +222,7 @@ impl<'r, R: BufRead> CodeReader<'r, R> {
             // 0xc5 => Multianewarray,
             // 0xbb => New,
             // 0xbc => NewArray,
-            // 0x00 => Nop,
+            0x00 => (Nop, 0),
             // 0x57 => Pop,
             // 0x58 => Pop2,
             // 0xb5 => PutField,
@@ -253,7 +253,7 @@ mod test {
     #[test]
     fn read_instructions() {
         let mut data = Cursor::new(vec![
-            0x00, 0x06, // Length
+            0x00, 0x00, 0x00, 0x06, // Length
             0x03, // iconst_0
             0x3c, // istore_1
             0x84, 0x01, 0x01, // iinc 1, 1

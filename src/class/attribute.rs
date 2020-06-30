@@ -1,4 +1,5 @@
 use crate::class::constant::Constant;
+use crate::class::code::Instruction;
 
 #[derive(Debug, PartialEq)]
 pub struct Attribute<'a> {
@@ -20,7 +21,7 @@ pub enum AttributeData<'a> {
 pub struct Code<'a> {
     pub max_stack: u16,
     pub max_locals: u16,
-    // TODO code
     // TODO exception table
     pub attributes: Vec<Attribute<'a>>,
+    pub instructions: Vec<Instruction>,
 }

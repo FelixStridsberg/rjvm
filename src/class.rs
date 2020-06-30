@@ -1,4 +1,5 @@
-use crate::class::attribute::Attribute;
+use crate::class::attribute::{Attribute, Code};
+use crate::class::attribute::AttributeData::CodeInfo;
 
 pub mod attribute;
 pub mod code;
@@ -73,6 +74,28 @@ pub struct MethodInfo<'a> {
     pub name: &'a str,
     pub descriptor: &'a str,
     pub attributes: Vec<Attribute<'a>>,
+}
+
+impl MethodInfo<'_> {
+    pub fn get_attribute(&self, name: &str) -> Option<&Attribute> {
+        for a in &self.attributes {
+            if a.name == name {
+                return Some(a)
+            }
+        }
+        None
+    }
+
+    pub fn get_code(&self) -> Option<&Code> {
+        if let Some(attribute) = self.get_attribute("Code") {
+            match &attribute.data {
+                CodeInfo(c) => Some(c),
+                _ => None
+            }
+        } else {
+            None
+        }
+    }
 }
 
 #[derive(Debug, PartialEq)]
