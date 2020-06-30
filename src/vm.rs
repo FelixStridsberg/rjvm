@@ -33,11 +33,19 @@ pub trait PopOperandFrame<T> {
 impl Frame<'_> {
     pub fn new(stack: usize, locals: usize, constant_pool: &ConstantPool) -> Frame {
         Frame {
-            local_variables: Vec::with_capacity(locals),
+            local_variables: vec![0; locals],
             operand_stack: Vec::with_capacity(stack),
             operand_stack_depth: 0,
             constant_pool,
         }
+    }
+
+    pub fn get_local(&self, index: u16) -> u32 {
+        self.local_variables[index as usize]
+    }
+
+    pub fn set_local(&mut self, index: u16, value: u32) {
+        self.local_variables[index as usize] = value
     }
 
     pub fn push_operand(&mut self, value: Value) {
@@ -50,6 +58,10 @@ impl Frame<'_> {
 
     pub fn pop_operand(&mut self) -> Value {
         if let Some(value) = self.operand_stack.pop() {
+            self.operand_stack_depth -= match value {
+                Long(_) | Double(_) => 2,
+                _ => 1,
+            };
             value
         } else {
             panic!("Tried to pop value from empty stack.");
@@ -69,5 +81,15 @@ mod test {
         frame.push_operand(Value::Boolean(true));
 
         assert_eq!(frame.pop_operand(), Value::Boolean(true));
+    }
+
+    #[test]
+    fn set_local() {
+        let constants = ConstantPool::new(0);
+        let mut frame = Frame::new(0, 2, &constants);
+
+        frame.set_local(1, 13);
+        assert_eq!(frame.get_local(0), 0);
+        assert_eq!(frame.get_local(1), 13);
     }
 }
