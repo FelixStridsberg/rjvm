@@ -11,8 +11,8 @@ pub enum Value {
     Char(char),
     Float(f32),
     Double(f64),
-    Reference, // TODO
-    ReturnAddress, // TODO
+    Reference(i32),
+    ReturnAddress(i32),
 }
 
 pub struct VirtualMachine<'a> {
@@ -152,19 +152,37 @@ impl Frame<'_> {
         }
     }
 
-    pub fn pop_operand_reference(&mut self) -> () {
-        unimplemented!()
+    pub fn pop_operand_reference(&mut self) -> i32 {
+        let boxed = self.operand_stack.pop();
+        if let Some(Reference(value)) = boxed {
+            self.operand_stack_depth -= 1;
+            value
+        } else {
+            panic!(
+                "Tried to pop a double from operand stack, got a {:?}.",
+                boxed
+            )
+        }
     }
 
-    pub fn pop_operand_return_address(&mut self) -> () {
-        unimplemented!()
+    pub fn pop_operand_return_address(&mut self) -> i32 {
+        let boxed = self.operand_stack.pop();
+        if let Some(ReturnAddress(value)) = boxed {
+            self.operand_stack_depth -= 1;
+            value
+        } else {
+            panic!(
+                "Tried to pop a return address from operand stack, got a {:?}.",
+                boxed
+            )
+        }
     }
 }
 
 #[cfg(test)]
 mod test {
     use crate::class::constant::ConstantPool;
-    use crate::vm::{Frame, Value, PopOperandFrame};
+    use crate::vm::{Frame, Value};
 
     #[test]
     fn pop_bool() {
@@ -236,5 +254,23 @@ mod test {
         frame.push_operand(Value::Double(3.14));
 
         assert_eq!(frame.pop_operand_double(), 3.14);
+    }
+
+    #[test]
+    fn pop_reference() {
+        let constants = ConstantPool::new(0);
+        let mut frame = Frame::new(1, 0, &constants);
+        frame.push_operand(Value::Reference(4242));
+
+        assert_eq!(frame.pop_operand_reference(), 4242);
+    }
+
+    #[test]
+    fn pop_return_address() {
+        let constants = ConstantPool::new(0);
+        let mut frame = Frame::new(1, 0, &constants);
+        frame.push_operand(Value::ReturnAddress(1111));
+
+        assert_eq!(frame.pop_operand_return_address(), 1111);
     }
 }
