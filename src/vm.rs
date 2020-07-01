@@ -63,6 +63,11 @@ impl Frame<'_> {
         self.local_variables[index as usize] = value
     }
 
+    pub fn set_local_long(&mut self, index: u16, value: u64) {
+        self.local_variables[index as usize] = (value >> 32) as u32;
+        self.local_variables[(index + 1) as usize] = (value & 0xFFFFFFFF) as u32;
+    }
+
     pub fn push_operand(&mut self, value: Value) {
         self.operand_stack_depth += match value {
             Long(_) | Double(_) => 2,
