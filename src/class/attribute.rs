@@ -1,5 +1,5 @@
-use crate::class::constant::Constant;
 use crate::class::code::Instruction;
+use crate::class::constant::Constant;
 
 #[derive(Debug, PartialEq)]
 pub struct Attribute<'a> {

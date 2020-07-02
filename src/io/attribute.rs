@@ -4,9 +4,9 @@ use crate::class::attribute::AttributeData::{
 use crate::class::attribute::{Attribute, AttributeData, Code};
 use crate::class::constant::ConstantPool;
 use crate::error::Result;
+use crate::io::code::CodeReader;
 use crate::io::ReadBytesExt;
 use std::io::BufRead;
-use crate::io::code::CodeReader;
 
 pub trait AttributeRead {}
 
@@ -116,12 +116,12 @@ mod test {
         CodeInfo, ConstantValue, Exceptions, LineNumberTable, SourceFile, Unknown,
     };
     use crate::class::attribute::{Attribute, Code};
+    use crate::class::code::Instruction;
+    use crate::class::code::Opcode::Nop;
     use crate::class::constant::Constant::*;
     use crate::class::constant::ConstantPool;
     use crate::io::attribute::AttributeReader;
     use std::io::{BufRead, Cursor};
-    use crate::class::code::Instruction;
-    use crate::class::code::Opcode::Nop;
 
     #[test]
     fn read_unknown_attribute() {

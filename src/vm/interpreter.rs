@@ -1,10 +1,10 @@
 mod load_and_store;
 
-use crate::vm::{Frame, Value};
 use crate::class::code::Instruction;
 use crate::class::code::Opcode::*;
-use crate::vm::Value::{Int, Long, Float, Double};
 use crate::vm::interpreter::load_and_store::*;
+use crate::vm::Value::{Double, Float, Int, Long};
+use crate::vm::{Frame, Value};
 
 pub fn interpret(frame: &mut Frame, instructions: &Vec<Instruction>) -> Option<Value> {
     let mut ret = None;
@@ -68,14 +68,13 @@ fn interpret_instruction(frame: &mut Frame, instruction: &Instruction) -> Option
         Fstore2 => store_float_n(frame, 2),
         Fstore3 => store_float_n(frame, 3),
 
-
         Dstore => store_double(frame, &instruction.operands),
         Dstore0 => store_double_n(frame, 0),
         Dstore1 => store_double_n(frame, 1),
         Dstore2 => store_double_n(frame, 2),
         Dstore3 => store_double_n(frame, 3),
 
-        Astore =>  store_reference(frame, &instruction.operands),
+        Astore => store_reference(frame, &instruction.operands),
         Astore0 => store_reference_n(frame, 0),
         Astore1 => store_reference_n(frame, 1),
         Astore2 => store_reference_n(frame, 2),
@@ -109,12 +108,14 @@ fn interpret_instruction(frame: &mut Frame, instruction: &Instruction) -> Option
         Wide => unimplemented!("wide not implemented."),
 
         //
-
         Iinc => iinc(frame, &instruction.operands),
 
         Ireturn => return Some(frame.pop_operand()),
 
-        _ => unimplemented!("Opcode {:?} is not implemented in interpreter", instruction.opcode)
+        _ => unimplemented!(
+            "Opcode {:?} is not implemented in interpreter",
+            instruction.opcode
+        ),
     }
 
     None
@@ -131,10 +132,10 @@ fn iinc(frame: &mut Frame, operands: &Vec<u8>) {
 mod test {
     use crate::class::code::Instruction;
     use crate::class::code::Opcode::*;
-    use crate::vm::Frame;
     use crate::class::constant::ConstantPool;
     use crate::vm::interpreter::interpret;
-    use crate::vm::Value::{Int, Float, Long, Double, Reference};
+    use crate::vm::Frame;
+    use crate::vm::Value::{Double, Float, Int, Long, Reference};
 
     #[test]
     fn iload() {
@@ -146,15 +147,21 @@ mod test {
         frame.set_local(3, 4);
         frame.set_local(5, 5);
 
-        interpret(&mut frame, &vec![
-            Instruction::new(Iload0, vec![]),
-            Instruction::new(Iload1, vec![]),
-            Instruction::new(Iload2, vec![]),
-            Instruction::new(Iload3, vec![]),
-            Instruction::new(Iload, vec![0x05]),
-        ]);
+        interpret(
+            &mut frame,
+            &vec![
+                Instruction::new(Iload0, vec![]),
+                Instruction::new(Iload1, vec![]),
+                Instruction::new(Iload2, vec![]),
+                Instruction::new(Iload3, vec![]),
+                Instruction::new(Iload, vec![0x05]),
+            ],
+        );
 
-        assert_eq!(frame.operand_stack, vec![Int(1), Int(2), Int(3), Int(4), Int(5)]);
+        assert_eq!(
+            frame.operand_stack,
+            vec![Int(1), Int(2), Int(3), Int(4), Int(5)]
+        );
     }
 
     #[test]
@@ -165,19 +172,25 @@ mod test {
         frame.set_local_long(2, 2);
         frame.set_local_long(8, 9);
 
-        interpret(&mut frame, &vec![
-            Instruction::new(Lload0, vec![]),
-            Instruction::new(Lload2, vec![]),
-            Instruction::new(Lload, vec![0x08]),
-        ]);
+        interpret(
+            &mut frame,
+            &vec![
+                Instruction::new(Lload0, vec![]),
+                Instruction::new(Lload2, vec![]),
+                Instruction::new(Lload, vec![0x08]),
+            ],
+        );
 
         frame.set_local_long(1, 4);
         frame.set_local_long(3, 5);
 
-        interpret(&mut frame, &vec![
-            Instruction::new(Lload1, vec![]),
-            Instruction::new(Lload3, vec![]),
-        ]);
+        interpret(
+            &mut frame,
+            &vec![
+                Instruction::new(Lload1, vec![]),
+                Instruction::new(Lload3, vec![]),
+            ],
+        );
 
         assert_eq!(
             frame.operand_stack,
@@ -195,13 +208,16 @@ mod test {
         frame.set_local(3, 4.5_f32.to_bits());
         frame.set_local(4, 5.6_f32.to_bits());
 
-        interpret(&mut frame, &vec![
-            Instruction::new(Fload0, vec![]),
-            Instruction::new(Fload1, vec![]),
-            Instruction::new(Fload2, vec![]),
-            Instruction::new(Fload3, vec![]),
-            Instruction::new(Fload, vec![0x04]),
-        ]);
+        interpret(
+            &mut frame,
+            &vec![
+                Instruction::new(Fload0, vec![]),
+                Instruction::new(Fload1, vec![]),
+                Instruction::new(Fload2, vec![]),
+                Instruction::new(Fload3, vec![]),
+                Instruction::new(Fload, vec![0x04]),
+            ],
+        );
 
         assert_eq!(
             frame.operand_stack,
@@ -217,23 +233,35 @@ mod test {
         frame.set_local_long(2, 2.3_f64.to_bits());
         frame.set_local_long(8, 5.6_f64.to_bits());
 
-        interpret(&mut frame, &vec![
-            Instruction::new(Dload0, vec![]),
-            Instruction::new(Dload2, vec![]),
-            Instruction::new(Dload, vec![0x08]),
-        ]);
+        interpret(
+            &mut frame,
+            &vec![
+                Instruction::new(Dload0, vec![]),
+                Instruction::new(Dload2, vec![]),
+                Instruction::new(Dload, vec![0x08]),
+            ],
+        );
 
         frame.set_local_long(1, 1.1_f64.to_bits());
         frame.set_local_long(3, 4.4_f64.to_bits());
 
-        interpret(&mut frame, &vec![
-            Instruction::new(Dload1, vec![]),
-            Instruction::new(Dload3, vec![]),
-        ]);
+        interpret(
+            &mut frame,
+            &vec![
+                Instruction::new(Dload1, vec![]),
+                Instruction::new(Dload3, vec![]),
+            ],
+        );
 
         assert_eq!(
             frame.operand_stack,
-            vec![Double(1.2), Double(2.3), Double(5.6), Double(1.1), Double(4.4)]
+            vec![
+                Double(1.2),
+                Double(2.3),
+                Double(5.6),
+                Double(1.1),
+                Double(4.4)
+            ]
         );
     }
 
@@ -247,17 +275,26 @@ mod test {
         frame.set_local(3, 4);
         frame.set_local(7, 9);
 
-        interpret(&mut frame, &vec![
-            Instruction::new(Aload0, vec![]),
-            Instruction::new(Aload1, vec![]),
-            Instruction::new(Aload2, vec![]),
-            Instruction::new(Aload3, vec![]),
-            Instruction::new(Aload, vec![0x07]),
-        ]);
+        interpret(
+            &mut frame,
+            &vec![
+                Instruction::new(Aload0, vec![]),
+                Instruction::new(Aload1, vec![]),
+                Instruction::new(Aload2, vec![]),
+                Instruction::new(Aload3, vec![]),
+                Instruction::new(Aload, vec![0x07]),
+            ],
+        );
 
         assert_eq!(
             frame.operand_stack,
-            vec![Reference(1), Reference(2), Reference(3), Reference(4), Reference(9)]
+            vec![
+                Reference(1),
+                Reference(2),
+                Reference(3),
+                Reference(4),
+                Reference(9)
+            ]
         );
     }
 }

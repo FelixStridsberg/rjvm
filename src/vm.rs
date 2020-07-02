@@ -1,7 +1,7 @@
 use crate::class::constant::ConstantPool;
-use crate::vm::Value::*;
 use crate::class::MethodInfo;
 use crate::vm::interpreter::interpret;
+use crate::vm::Value::*;
 
 mod interpreter;
 
@@ -24,10 +24,8 @@ pub struct VirtualMachine<'a> {
 }
 
 impl VirtualMachine<'_> {
-
     pub fn execute_method(constants: &ConstantPool, method: &MethodInfo) {
-        let code = method.get_code()
-            .expect("No Code attribute on method.");
+        let code = method.get_code().expect("No Code attribute on method.");
 
         let mut frame = Frame::new(code.max_stack, code.max_locals, constants);
         interpret(&mut frame, &code.instructions);

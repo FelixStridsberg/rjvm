@@ -1,8 +1,7 @@
 /// Contains implementation of all instructions under:
 /// https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.11.2
-
 use crate::vm::Frame;
-use crate::vm::Value::{Int, Float, Long, Double, Reference};
+use crate::vm::Value::{Double, Float, Int, Long, Reference};
 
 pub fn load_int(frame: &mut Frame, operands: &Vec<u8>) {
     let index = operands[0] as u16;
@@ -66,7 +65,10 @@ pub fn store_int_n(frame: &mut Frame, index: u16) {
     if let Int(value) = operand {
         frame.set_local(index, value as u32);
     } else {
-        panic!("istoreX expected an int value on top of the stack. Got {:?}", operand);
+        panic!(
+            "istoreX expected an int value on top of the stack. Got {:?}",
+            operand
+        );
     }
 }
 

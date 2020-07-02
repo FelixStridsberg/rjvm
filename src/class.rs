@@ -1,5 +1,5 @@
-use crate::class::attribute::{Attribute, Code};
 use crate::class::attribute::AttributeData::CodeInfo;
+use crate::class::attribute::{Attribute, Code};
 
 pub mod attribute;
 pub mod code;
@@ -80,7 +80,7 @@ impl MethodInfo<'_> {
     pub fn get_attribute(&self, name: &str) -> Option<&Attribute> {
         for a in &self.attributes {
             if a.name == name {
-                return Some(a)
+                return Some(a);
             }
         }
         None
@@ -90,7 +90,7 @@ impl MethodInfo<'_> {
         if let Some(attribute) = self.get_attribute("Code") {
             match &attribute.data {
                 CodeInfo(c) => Some(c),
-                _ => None
+                _ => None,
             }
         } else {
             None
