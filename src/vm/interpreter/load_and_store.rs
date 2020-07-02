@@ -1,6 +1,7 @@
+//! Contains implementation of all instructions under:
+//! https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.11.2
+
 use crate::class::constant::Constant;
-/// Contains implementation of all instructions under:
-/// https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.11.2
 use crate::vm::Frame;
 use crate::vm::Value::*;
 
