@@ -132,10 +132,11 @@ fn iinc(frame: &mut Frame, operands: &Vec<u8>) {
 mod test {
     use crate::class::code::Instruction;
     use crate::class::code::Opcode::*;
+    use crate::class::constant::Constant;
     use crate::class::constant::ConstantPool;
     use crate::vm::interpreter::interpret;
     use crate::vm::Frame;
-    use crate::vm::Value::{Double, Float, Int, Long, Reference};
+    use crate::vm::Value::{Double, Float, Int, Long, Reference, ReturnAddress, Short};
 
     #[test]
     fn iload() {
@@ -296,5 +297,214 @@ mod test {
                 Reference(9)
             ]
         );
+    }
+
+    #[test]
+    fn istore() {
+        let constants = ConstantPool::new(0);
+        let mut frame = Frame::new(10, 10, &constants);
+        frame.push_operand(Int(5));
+        frame.push_operand(Int(4));
+        frame.push_operand(Int(3));
+        frame.push_operand(Int(2));
+        frame.push_operand(Int(1));
+
+        interpret(
+            &mut frame,
+            &vec![
+                Instruction::new(Istore0, vec![]),
+                Instruction::new(Istore1, vec![]),
+                Instruction::new(Istore2, vec![]),
+                Instruction::new(Istore3, vec![]),
+                Instruction::new(Istore, vec![0x05]),
+            ],
+        );
+
+        assert_eq!(frame.get_local(0), 1);
+        assert_eq!(frame.get_local(1), 2);
+        assert_eq!(frame.get_local(2), 3);
+        assert_eq!(frame.get_local(3), 4);
+        assert_eq!(frame.get_local(5), 5);
+    }
+
+    #[test]
+    fn lstore() {
+        let constants = ConstantPool::new(0);
+        let mut frame = Frame::new(10, 10, &constants);
+        frame.push_operand(Long(5));
+        frame.push_operand(Long(4));
+        frame.push_operand(Long(3));
+        frame.push_operand(Long(2));
+        frame.push_operand(Long(1));
+
+        interpret(
+            &mut frame,
+            &vec![
+                Instruction::new(Lstore0, vec![]),
+                Instruction::new(Lstore2, vec![]),
+                Instruction::new(Lstore, vec![0x05]),
+            ],
+        );
+
+        assert_eq!(frame.get_local_long(0), 1);
+        assert_eq!(frame.get_local_long(2), 2);
+        assert_eq!(frame.get_local_long(5), 3);
+
+        interpret(
+            &mut frame,
+            &vec![
+                Instruction::new(Lstore1, vec![]),
+                Instruction::new(Lstore3, vec![]),
+            ],
+        );
+
+        assert_eq!(frame.get_local_long(1), 4);
+        assert_eq!(frame.get_local_long(3), 5);
+    }
+
+    #[test]
+    fn fstore() {
+        let constants = ConstantPool::new(0);
+        let mut frame = Frame::new(10, 10, &constants);
+        frame.push_operand(Float(5.1));
+        frame.push_operand(Float(4.1));
+        frame.push_operand(Float(3.1));
+        frame.push_operand(Float(2.1));
+        frame.push_operand(Float(1.1));
+
+        interpret(
+            &mut frame,
+            &vec![
+                Instruction::new(Fstore0, vec![]),
+                Instruction::new(Fstore1, vec![]),
+                Instruction::new(Fstore2, vec![]),
+                Instruction::new(Fstore3, vec![]),
+                Instruction::new(Fstore, vec![0x06]),
+            ],
+        );
+
+        println!("F: {:?}", frame.local_variables);
+
+        assert_eq!(f32::from_bits(frame.get_local(0)), 1.1);
+        assert_eq!(f32::from_bits(frame.get_local(1)), 2.1);
+        assert_eq!(f32::from_bits(frame.get_local(2)), 3.1);
+        assert_eq!(f32::from_bits(frame.get_local(3)), 4.1);
+        assert_eq!(f32::from_bits(frame.get_local(6)), 5.1);
+    }
+
+    #[test]
+    fn dstore() {
+        let constants = ConstantPool::new(0);
+        let mut frame = Frame::new(10, 10, &constants);
+        frame.push_operand(Double(5.2));
+        frame.push_operand(Double(4.2));
+        frame.push_operand(Double(3.2));
+        frame.push_operand(Double(2.2));
+        frame.push_operand(Double(1.2));
+
+        interpret(
+            &mut frame,
+            &vec![
+                Instruction::new(Dstore0, vec![]),
+                Instruction::new(Dstore2, vec![]),
+                Instruction::new(Dstore, vec![0x05]),
+            ],
+        );
+
+        assert_eq!(f64::from_bits(frame.get_local_long(0)), 1.2);
+        assert_eq!(f64::from_bits(frame.get_local_long(2)), 2.2);
+        assert_eq!(f64::from_bits(frame.get_local_long(5)), 3.2);
+
+        interpret(
+            &mut frame,
+            &vec![
+                Instruction::new(Dstore1, vec![]),
+                Instruction::new(Dstore3, vec![]),
+            ],
+        );
+
+        assert_eq!(f64::from_bits(frame.get_local_long(1)), 4.2);
+        assert_eq!(f64::from_bits(frame.get_local_long(3)), 5.2);
+    }
+
+    #[test]
+    fn astore() {
+        let constants = ConstantPool::new(0);
+        let mut frame = Frame::new(10, 10, &constants);
+        frame.push_operand(ReturnAddress(5));
+        frame.push_operand(Reference(4));
+        frame.push_operand(Reference(3));
+        frame.push_operand(Reference(2));
+        frame.push_operand(Reference(1));
+
+        interpret(
+            &mut frame,
+            &vec![
+                Instruction::new(Astore0, vec![]),
+                Instruction::new(Astore1, vec![]),
+                Instruction::new(Astore2, vec![]),
+                Instruction::new(Astore3, vec![]),
+                Instruction::new(Astore, vec![0x05]),
+            ],
+        );
+
+        assert_eq!(frame.get_local(0), 1);
+        assert_eq!(frame.get_local(1), 2);
+        assert_eq!(frame.get_local(2), 3);
+        assert_eq!(frame.get_local(3), 4);
+        assert_eq!(frame.get_local(5), 5);
+    }
+
+    #[test]
+    fn ipush() {
+        let constants = ConstantPool::new(0);
+        let mut frame = Frame::new(10, 10, &constants);
+
+        interpret(
+            &mut frame,
+            &vec![
+                Instruction::new(Bipush, vec![0x05]),
+                Instruction::new(Sipush, vec![0x01, 0x10]),
+            ],
+        );
+
+        assert_eq!(frame.operand_stack, vec![Int(5), Short(272)],)
+    }
+
+    #[test]
+    fn ldc() {
+        let mut constants = ConstantPool::new(2);
+        constants.add(Constant::Integer(10));
+        constants.add(Constant::Float(14.4));
+        constants.add(Constant::Integer(12));
+        constants.add(Constant::Float(14.2));
+        constants.add(Constant::Long(12));
+        constants.add(Constant::Double(47.42));
+
+        let mut frame = Frame::new(10, 10, &constants);
+
+        interpret(
+            &mut frame,
+            &vec![
+                Instruction::new(Ldc, vec![0x01]),
+                Instruction::new(Ldc, vec![0x02]),
+                Instruction::new(LdcW, vec![0x00, 0x03]),
+                Instruction::new(LdcW, vec![0x00, 0x04]),
+                Instruction::new(Ldc2W, vec![0x00, 0x05]),
+                Instruction::new(Ldc2W, vec![0x00, 0x07]),
+            ],
+        );
+
+        assert_eq!(
+            frame.operand_stack,
+            vec![
+                Int(10),
+                Float(14.4),
+                Int(12),
+                Float(14.2),
+                Long(12),
+                Double(47.42)
+            ],
+        )
     }
 }

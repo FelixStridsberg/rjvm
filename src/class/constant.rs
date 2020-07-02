@@ -65,7 +65,6 @@ impl ConstantPool {
     }
 
     pub fn get(&self, index: u16) -> &Constant {
-        println!("Index: {}", index);
         &self.constants[(index - 1) as usize]
     }
 

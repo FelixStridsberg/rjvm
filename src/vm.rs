@@ -57,6 +57,12 @@ impl Frame<'_> {
         self.local_variables[index as usize]
     }
 
+    pub fn get_local_long(&self, index: u16) -> u64 {
+        let i1 = self.local_variables[index as usize] as u64;
+        let i2 = self.local_variables[(index + 1) as usize] as u64;
+        (i1 << 32) | i2
+    }
+
     pub fn set_local(&mut self, index: u16, value: u32) {
         self.local_variables[index as usize] = value
     }
