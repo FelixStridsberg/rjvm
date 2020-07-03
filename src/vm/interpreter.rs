@@ -1,9 +1,11 @@
 mod arithmetic;
+mod conversion;
 mod load_and_store;
 
 use crate::class::code::Instruction;
 use crate::class::code::Opcode::*;
 use crate::vm::interpreter::arithmetic::*;
+use crate::vm::interpreter::conversion::*;
 use crate::vm::interpreter::load_and_store::*;
 use crate::vm::Value::{Double, Float, Int, Long};
 use crate::vm::{Frame, Value};
@@ -167,6 +169,15 @@ fn interpret_instruction(frame: &mut Frame, instruction: &Instruction) -> Option
 
         Lcmp => long_compare(frame),
 
+        // Conversion:
+        I2l => int_to_long(frame),
+        I2f => int_to_float(frame),
+        I2d => int_to_double(frame),
+        L2f => long_to_float(frame),
+        F2d => long_to_double(frame),
+
+
+        ///
         Ireturn => return Some(frame.pop_operand()),
 
         _ => unimplemented!(
@@ -896,5 +907,16 @@ mod test {
                 Int(-1),
             ],
         );
+    }
+
+    #[test]
+    fn conversion() {
+        let constants = ConstantPool::new(2);
+        let mut frame = Frame::new(10, 10, &constants);
+
+        frame.push_operand(Int(100));
+        interpret(&mut frame, &vec![Instruction::new(I2l, vec![])]);
+
+        assert_eq!(frame.pop_operand(), Long(100));
     }
 }

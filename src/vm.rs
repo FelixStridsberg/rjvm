@@ -91,6 +91,34 @@ impl Frame<'_> {
             panic!("Tried to pop value from empty stack.");
         }
     }
+
+    pub fn pop_operand_int(&mut self) -> i32 {
+        match self.pop_operand() {
+            Int(i) => i,
+            op => panic!("Expected int to pop, found {:?}", op),
+        }
+    }
+
+    pub fn pop_operand_long(&mut self) -> i64 {
+        match self.pop_operand() {
+            Long(l) => l,
+            op => panic!("Expected long to pop, found {:?}", op),
+        }
+    }
+
+    pub fn pop_operand_float(&mut self) -> f32 {
+        match self.pop_operand() {
+            Float(f) => f,
+            op => panic!("Expected float to pop, found {:?}", op),
+        }
+    }
+
+    pub fn pop_operand_double(&mut self) -> f64 {
+        match self.pop_operand() {
+            Double(d) => d,
+            op => panic!("Expected double to pop, found {:?}", op),
+        }
+    }
 }
 
 #[cfg(test)]
