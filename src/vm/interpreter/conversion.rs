@@ -75,3 +75,82 @@ pub fn double_to_float(frame: &mut Frame) {
     let double = frame.pop_operand_double();
     frame.push_operand(Float(double as f32));
 }
+
+
+#[cfg(test)]
+mod test {
+    use crate::class::constant::ConstantPool;
+    use crate::vm::Frame;
+    use crate::vm::interpreter::interpret;
+    use crate::class::code::Instruction;
+    use crate::vm::Value::*;
+    use crate::class::code::Opcode::*;
+
+    #[test]
+    fn conversion() {
+        let constants = ConstantPool::new(2);
+        let mut frame = Frame::new(10, 10, &constants);
+
+        // Widening conversions
+        frame.push_operand(Int(100));
+        interpret(&mut frame, &vec![Instruction::new(I2l, vec![])]);
+        assert_eq!(frame.pop_operand(), Long(100));
+
+        frame.push_operand(Int(100));
+        interpret(&mut frame, &vec![Instruction::new(I2f, vec![])]);
+        assert_eq!(frame.pop_operand(), Float(100.0));
+
+        frame.push_operand(Int(100));
+        interpret(&mut frame, &vec![Instruction::new(I2d, vec![])]);
+        assert_eq!(frame.pop_operand(), Double(100.0));
+
+        frame.push_operand(Long(1337));
+        interpret(&mut frame, &vec![Instruction::new(L2f, vec![])]);
+        assert_eq!(frame.pop_operand(), Float(1337.0));
+
+        frame.push_operand(Long(13372));
+        interpret(&mut frame, &vec![Instruction::new(L2d, vec![])]);
+        assert_eq!(frame.pop_operand(), Double(13372.0));
+
+        frame.push_operand(Float(1000.0));
+        interpret(&mut frame, &vec![Instruction::new(F2d, vec![])]);
+        assert_eq!(frame.pop_operand(), Double(1000.0));
+
+        // Narrowing conversions
+        frame.push_operand(Int(0x101));
+        interpret(&mut frame, &vec![Instruction::new(I2b, vec![])]);
+        assert_eq!(frame.pop_operand(), Byte(1));
+
+        frame.push_operand(Int(65));
+        interpret(&mut frame, &vec![Instruction::new(I2c, vec![])]);
+        assert_eq!(frame.pop_operand(), Char('A'));
+
+        frame.push_operand(Int(65));
+        interpret(&mut frame, &vec![Instruction::new(I2s, vec![])]);
+        assert_eq!(frame.pop_operand(), Short(65));
+
+        frame.push_operand(Long(62));
+        interpret(&mut frame, &vec![Instruction::new(L2i, vec![])]);
+        assert_eq!(frame.pop_operand(), Int(62));
+
+        frame.push_operand(Float(1234.58));
+        interpret(&mut frame, &vec![Instruction::new(F2i, vec![])]);
+        assert_eq!(frame.pop_operand(), Int(1234));
+
+        frame.push_operand(Float(1234.58));
+        interpret(&mut frame, &vec![Instruction::new(F2l, vec![])]);
+        assert_eq!(frame.pop_operand(), Long(1234));
+
+        frame.push_operand(Double(1234.58));
+        interpret(&mut frame, &vec![Instruction::new(D2i, vec![])]);
+        assert_eq!(frame.pop_operand(), Int(1234));
+
+        frame.push_operand(Double(1234.58));
+        interpret(&mut frame, &vec![Instruction::new(D2l, vec![])]);
+        assert_eq!(frame.pop_operand(), Long(1234));
+
+        frame.push_operand(Double(1234.58));
+        interpret(&mut frame, &vec![Instruction::new(D2f, vec![])]);
+        assert_eq!(frame.pop_operand(), Float(1234.58));
+    }
+}
