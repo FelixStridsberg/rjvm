@@ -190,7 +190,6 @@ pub fn push_null(_frame: &mut Frame) {
     unimplemented!();
 }
 
-
 #[cfg(test)]
 mod test {
     use crate::class::code::Instruction;

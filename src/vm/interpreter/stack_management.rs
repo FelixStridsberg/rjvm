@@ -118,15 +118,14 @@ pub fn swap_operand(frame: &mut Frame) {
     frame.push_operand(value2);
 }
 
-
 #[cfg(test)]
 mod test {
-    use crate::class::constant::ConstantPool;
-    use crate::vm::Frame;
-    use crate::vm::interpreter::interpret;
     use crate::class::code::Instruction;
-    use crate::vm::Value::*;
     use crate::class::code::Opcode::*;
+    use crate::class::constant::ConstantPool;
+    use crate::vm::interpreter::interpret;
+    use crate::vm::Frame;
+    use crate::vm::Value::*;
 
     #[test]
     fn stack_management() {
@@ -148,8 +147,7 @@ mod test {
         );
         assert_eq!(frame.operand_stack, vec![]);
 
-
-        frame.operand_stack = vec!(Int(21));
+        frame.operand_stack = vec![Int(21)];
         interpret(&mut frame, &vec![Instruction::new(Dup, vec![])]);
         assert_eq!(frame.operand_stack, vec![Int(21), Int(21)]);
 
@@ -167,7 +165,10 @@ mod test {
 
         frame.operand_stack = vec![Int(3), Int(2), Int(1)];
         interpret(&mut frame, &vec![Instruction::new(Dup2X1, vec![])]);
-        assert_eq!(frame.operand_stack, vec![Int(2), Int(1), Int(3), Int(2), Int(1)]);
+        assert_eq!(
+            frame.operand_stack,
+            vec![Int(2), Int(1), Int(3), Int(2), Int(1)]
+        );
 
         frame.operand_stack = vec![Long(2), Long(1)];
         interpret(&mut frame, &vec![Instruction::new(Dup2X1, vec![])]);
@@ -181,11 +182,12 @@ mod test {
         interpret(&mut frame, &vec![Instruction::new(DupX2, vec![])]);
         assert_eq!(frame.operand_stack, vec![Long(1), Long(2), Long(1)]);
 
-
-
         frame.operand_stack = vec![Int(4), Int(3), Int(2), Int(1)];
         interpret(&mut frame, &vec![Instruction::new(Dup2X2, vec![])]);
-        assert_eq!(frame.operand_stack, vec![Int(2), Int(1), Int(4), Int(3), Int(2), Int(1)]);
+        assert_eq!(
+            frame.operand_stack,
+            vec![Int(2), Int(1), Int(4), Int(3), Int(2), Int(1)]
+        );
 
         frame.operand_stack = vec![Int(3), Int(2), Long(1)];
         interpret(&mut frame, &vec![Instruction::new(Dup2X2, vec![])]);
@@ -193,12 +195,14 @@ mod test {
 
         frame.operand_stack = vec![Long(3), Int(2), Int(1)];
         interpret(&mut frame, &vec![Instruction::new(Dup2X2, vec![])]);
-        assert_eq!(frame.operand_stack, vec![Int(2), Int(1), Long(3), Int(2), Int(1)]);
+        assert_eq!(
+            frame.operand_stack,
+            vec![Int(2), Int(1), Long(3), Int(2), Int(1)]
+        );
 
         frame.operand_stack = vec![Long(2), Long(1)];
         interpret(&mut frame, &vec![Instruction::new(Dup2X2, vec![])]);
         assert_eq!(frame.operand_stack, vec![Long(1), Long(2), Long(1)]);
-
 
         frame.operand_stack = vec![Long(2), Long(1)];
         interpret(&mut frame, &vec![Instruction::new(Swap, vec![])]);

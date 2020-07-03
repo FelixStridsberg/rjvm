@@ -247,15 +247,14 @@ fn compare<O: PartialOrd>(value1: O, value2: O) -> i32 {
     }
 }
 
-
 #[cfg(test)]
 mod test {
-    use crate::class::constant::ConstantPool;
-    use crate::vm::Frame;
-    use crate::vm::interpreter::interpret;
     use crate::class::code::Instruction;
-    use crate::vm::Value::*;
     use crate::class::code::Opcode::*;
+    use crate::class::constant::ConstantPool;
+    use crate::vm::interpreter::interpret;
+    use crate::vm::Frame;
+    use crate::vm::Value::*;
 
     #[test]
     fn add() {

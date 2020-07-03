@@ -76,15 +76,14 @@ pub fn double_to_float(frame: &mut Frame) {
     frame.push_operand(Float(double as f32));
 }
 
-
 #[cfg(test)]
 mod test {
-    use crate::class::constant::ConstantPool;
-    use crate::vm::Frame;
-    use crate::vm::interpreter::interpret;
     use crate::class::code::Instruction;
-    use crate::vm::Value::*;
     use crate::class::code::Opcode::*;
+    use crate::class::constant::ConstantPool;
+    use crate::vm::interpreter::interpret;
+    use crate::vm::Frame;
+    use crate::vm::Value::*;
 
     #[test]
     fn conversion() {

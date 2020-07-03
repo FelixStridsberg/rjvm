@@ -23,7 +23,7 @@ impl Value {
     pub fn get_category(&self) -> u8 {
         match self {
             Long(_) | Double(_) => 2,
-            _ => 1
+            _ => 1,
         }
     }
 }
