@@ -62,6 +62,14 @@ impl Frame<'_> {
         }
     }
 
+    pub fn set_operand_stack(&mut self, stack: Vec<Value>) {
+        self.operand_stack_depth = stack
+            .as_slice()
+            .iter()
+            .fold(0, |sum, i| sum + i.get_category() as u32);
+        self.operand_stack = stack;
+    }
+
     pub fn get_local(&self, index: u16) -> u32 {
         self.local_variables[index as usize]
     }

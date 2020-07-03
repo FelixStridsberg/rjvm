@@ -256,245 +256,341 @@ mod test {
     use crate::vm::Frame;
     use crate::vm::Value::*;
 
+    macro_rules! test_command {
+        (
+            start_stack [$($stack:expr),*],
+            command $command:expr,
+            final_stack [$($expect:expr),*]
+        ) => {{
+            let constants = ConstantPool::new(2);
+            let mut frame = Frame::new(10, 10, &constants);
+            frame.set_operand_stack(vec![$($stack),*]);
+            interpret(&mut frame, &vec![Instruction::new($command, vec![])]);
+            assert_eq!(frame.operand_stack, vec![$($expect),*]);
+        }}
+    }
+
     #[test]
-    fn add() {
-        let constants = ConstantPool::new(2);
-        let mut frame = Frame::new(10, 10, &constants);
-
-        frame.push_operand(Int(1));
-        frame.push_operand(Int(2));
-        interpret(&mut frame, &vec![Instruction::new(Iadd, vec![])]);
-
-        frame.push_operand(Long(3));
-        frame.push_operand(Long(4));
-        interpret(&mut frame, &vec![Instruction::new(Ladd, vec![])]);
-
-        frame.push_operand(Float(1.0));
-        frame.push_operand(Float(2.2));
-        interpret(&mut frame, &vec![Instruction::new(Fadd, vec![])]);
-
-        frame.push_operand(Double(3.1));
-        frame.push_operand(Double(4.0));
-        interpret(&mut frame, &vec![Instruction::new(Dadd, vec![])]);
-
-        assert_eq!(
-            frame.operand_stack,
-            vec![Int(3), Long(7), Float(3.2), Double(7.1)]
+    fn iadd() {
+        test_command!(
+            start_stack [Int(1), Int(2)],
+            command Iadd,
+            final_stack [Int(3)]
         );
     }
 
     #[test]
-    fn sub() {
-        let constants = ConstantPool::new(2);
-        let mut frame = Frame::new(10, 10, &constants);
-
-        frame.push_operand(Int(3));
-        frame.push_operand(Int(2));
-        interpret(&mut frame, &vec![Instruction::new(Isub, vec![])]);
-
-        frame.push_operand(Long(2));
-        frame.push_operand(Long(4));
-        interpret(&mut frame, &vec![Instruction::new(Lsub, vec![])]);
-
-        frame.push_operand(Float(1.0));
-        frame.push_operand(Float(2.2));
-        interpret(&mut frame, &vec![Instruction::new(Fsub, vec![])]);
-
-        frame.push_operand(Double(3.0));
-        frame.push_operand(Double(4.0));
-        interpret(&mut frame, &vec![Instruction::new(Dsub, vec![])]);
-
-        assert_eq!(
-            frame.operand_stack,
-            vec![Int(-1), Long(2), Float(1.2), Double(1.0)]
+    fn ladd() {
+        test_command!(
+            start_stack [Long(3), Long(4)],
+            command Ladd,
+            final_stack [Long(7)]
         );
     }
 
     #[test]
-    fn mul() {
-        let constants = ConstantPool::new(2);
-        let mut frame = Frame::new(10, 10, &constants);
-
-        frame.push_operand(Int(1));
-        frame.push_operand(Int(2));
-        interpret(&mut frame, &vec![Instruction::new(Imul, vec![])]);
-
-        frame.push_operand(Long(3));
-        frame.push_operand(Long(4));
-        interpret(&mut frame, &vec![Instruction::new(Lmul, vec![])]);
-
-        frame.push_operand(Float(1.0));
-        frame.push_operand(Float(2.2));
-        interpret(&mut frame, &vec![Instruction::new(Fmul, vec![])]);
-
-        frame.push_operand(Double(3.1));
-        frame.push_operand(Double(4.0));
-        interpret(&mut frame, &vec![Instruction::new(Dmul, vec![])]);
-
-        assert_eq!(
-            frame.operand_stack,
-            vec![Int(2), Long(12), Float(2.2), Double(12.4)]
+    fn fadd() {
+        test_command!(
+            start_stack [Float(1.0), Float(2.2)],
+            command Fadd,
+            final_stack [Float(3.2)]
         );
     }
 
     #[test]
-    fn div() {
-        let constants = ConstantPool::new(2);
-        let mut frame = Frame::new(10, 10, &constants);
-
-        frame.push_operand(Int(2));
-        frame.push_operand(Int(4));
-        interpret(&mut frame, &vec![Instruction::new(Idiv, vec![])]);
-
-        frame.push_operand(Long(3));
-        frame.push_operand(Long(4));
-        interpret(&mut frame, &vec![Instruction::new(Ldiv, vec![])]);
-
-        frame.push_operand(Float(1.1));
-        frame.push_operand(Float(2.2));
-        interpret(&mut frame, &vec![Instruction::new(Fdiv, vec![])]);
-
-        frame.push_operand(Double(4.0));
-        frame.push_operand(Double(3.1));
-        interpret(&mut frame, &vec![Instruction::new(Ddiv, vec![])]);
-
-        assert_eq!(
-            frame.operand_stack,
-            vec![Int(2), Long(1), Float(2.0), Double(0.775)]
+    fn dadd() {
+        test_command!(
+            start_stack [Double(3.1), Double(4.0)],
+            command Dadd,
+            final_stack [Double(7.1)]
         );
     }
 
     #[test]
-    fn rem() {
-        let constants = ConstantPool::new(2);
-        let mut frame = Frame::new(10, 10, &constants);
-
-        frame.push_operand(Int(2));
-        frame.push_operand(Int(4));
-        interpret(&mut frame, &vec![Instruction::new(Irem, vec![])]);
-
-        frame.push_operand(Long(3));
-        frame.push_operand(Long(4));
-        interpret(&mut frame, &vec![Instruction::new(Lrem, vec![])]);
-
-        frame.push_operand(Float(1.1));
-        frame.push_operand(Float(2.2));
-        interpret(&mut frame, &vec![Instruction::new(Frem, vec![])]);
-
-        frame.push_operand(Double(4.0));
-        frame.push_operand(Double(3.1));
-        interpret(&mut frame, &vec![Instruction::new(Drem, vec![])]);
-
-        assert_eq!(
-            frame.operand_stack,
-            vec![Int(0), Long(1), Float(0.0), Double(3.1)]
+    fn isub() {
+        test_command!(
+            start_stack [Int(3), Int(2)],
+            command Isub,
+            final_stack [Int(-1)]
         );
     }
 
     #[test]
-    fn neg() {
-        let constants = ConstantPool::new(2);
-        let mut frame = Frame::new(10, 10, &constants);
-
-        frame.push_operand(Int(2));
-        interpret(&mut frame, &vec![Instruction::new(Ineg, vec![])]);
-
-        frame.push_operand(Long(3));
-        interpret(&mut frame, &vec![Instruction::new(Lneg, vec![])]);
-
-        frame.push_operand(Float(1.1));
-        interpret(&mut frame, &vec![Instruction::new(Fneg, vec![])]);
-
-        frame.push_operand(Double(4.0));
-        interpret(&mut frame, &vec![Instruction::new(Dneg, vec![])]);
-
-        assert_eq!(
-            frame.operand_stack,
-            vec![Int(-2), Long(-3), Float(-1.1), Double(-4.0)]
+    fn lsub() {
+        test_command!(
+            start_stack [Long(2), Long(4)],
+            command Lsub,
+            final_stack [Long(2)]
         );
     }
 
     #[test]
-    fn shift() {
-        let constants = ConstantPool::new(2);
-        let mut frame = Frame::new(10, 10, &constants);
-
-        frame.push_operand(Int(1));
-        frame.push_operand(Int(0x08));
-        interpret(&mut frame, &vec![Instruction::new(Ishl, vec![])]);
-
-        frame.push_operand(Int(2));
-        frame.push_operand(Int(-0x01));
-        interpret(&mut frame, &vec![Instruction::new(Ishr, vec![])]);
-
-        frame.push_operand(Int(2));
-        frame.push_operand(Int(-0x01));
-        interpret(&mut frame, &vec![Instruction::new(Iushr, vec![])]);
-
-        frame.push_operand(Long(1));
-        frame.push_operand(Long(0x08));
-        interpret(&mut frame, &vec![Instruction::new(Lshl, vec![])]);
-
-        frame.push_operand(Long(2));
-        frame.push_operand(Long(-0x01));
-        interpret(&mut frame, &vec![Instruction::new(Lshr, vec![])]);
-
-        frame.push_operand(Long(63));
-        frame.push_operand(Long(-1));
-        interpret(&mut frame, &vec![Instruction::new(Lushr, vec![])]);
-
-        assert_eq!(
-            frame.operand_stack,
-            vec![
-                Int(0x10),
-                Int(-1),
-                Int(1073741823),
-                Long(0x10),
-                Long(-1),
-                Long(8589934591)
-            ]
+    fn fsub() {
+        test_command!(
+            start_stack [Float(1.0), Float(2.2)],
+            command Fsub,
+            final_stack [Float(1.2)]
         );
     }
 
     #[test]
-    fn bitwise() {
-        let constants = ConstantPool::new(2);
-        let mut frame = Frame::new(10, 10, &constants);
+    fn dsub() {
+        test_command!(
+            start_stack [Double(3.0), Double(4.0)],
+            command Dsub,
+            final_stack [Double(1.0)]
+        );
+    }
 
-        frame.push_operand(Int(0xf0));
-        frame.push_operand(Int(0x0f));
-        interpret(&mut frame, &vec![Instruction::new(Ior, vec![])]);
+    #[test]
+    fn imul() {
+        test_command!(
+            start_stack [Int(1), Int(2)],
+            command Imul,
+            final_stack [Int(2)]
+        );
+    }
 
-        frame.push_operand(Long(0xf000));
-        frame.push_operand(Long(0x0fff));
-        interpret(&mut frame, &vec![Instruction::new(Lor, vec![])]);
+    #[test]
+    fn lmul() {
+        test_command!(
+            start_stack [Long(3), Long(4)],
+            command Lmul,
+            final_stack [Long(12)]
+        );
+    }
 
-        frame.push_operand(Int(0x30));
-        frame.push_operand(Int(0xff));
-        interpret(&mut frame, &vec![Instruction::new(Iand, vec![])]);
+    #[test]
+    fn fmul() {
+        test_command!(
+            start_stack [Float(1.0), Float(2.2)],
+            command Fmul,
+            final_stack [Float(2.2)]
+        );
+    }
 
-        frame.push_operand(Long(0xfc00));
-        frame.push_operand(Long(0x0fff));
-        interpret(&mut frame, &vec![Instruction::new(Land, vec![])]);
+    #[test]
+    fn dmul() {
+        test_command!(
+            start_stack [Double(3.1), Double(4.0)],
+            command Dmul,
+            final_stack [Double(12.4)]
+        );
+    }
 
-        frame.push_operand(Int(0x30));
-        frame.push_operand(Int(0xff));
-        interpret(&mut frame, &vec![Instruction::new(Ixor, vec![])]);
+    #[test]
+    fn idiv() {
+        test_command!(
+            start_stack [Int(2), Int(4)],
+            command Idiv,
+            final_stack [Int(2)]
+        );
+    }
 
-        frame.push_operand(Long(0xfc00));
-        frame.push_operand(Long(0x0fff));
-        interpret(&mut frame, &vec![Instruction::new(Lxor, vec![])]);
+    #[test]
+    fn ldiv() {
+        test_command!(
+            start_stack [Long(3), Long(4)],
+            command Ldiv,
+            final_stack [Long(1)]
+        );
+    }
 
-        assert_eq!(
-            frame.operand_stack,
-            vec![
-                Int(0xff),
-                Long(0xffff),
-                Int(0x30),
-                Long(0x0c00),
-                Int(0xcf),
-                Long(0xf3ff)
-            ],
+    #[test]
+    fn fdiv() {
+        test_command!(
+            start_stack [Float(1.1), Float(2.2)],
+            command Fdiv,
+            final_stack [Float(2.0)]
+        );
+    }
+
+    #[test]
+    fn ddiv() {
+        test_command!(
+            start_stack [Double(4.0), Double(3.1)],
+            command Ddiv,
+            final_stack [Double(0.775)]
+        );
+    }
+
+    #[test]
+    fn irem() {
+        test_command!(
+            start_stack [Int(2), Int(4)],
+            command Irem,
+            final_stack [Int(0)]
+        );
+    }
+
+    #[test]
+    fn lrem() {
+        test_command!(
+            start_stack [Long(3), Long(4)],
+            command Lrem,
+            final_stack [Long(1)]
+        );
+    }
+
+    #[test]
+    fn frem() {
+        test_command!(
+            start_stack [Float(1.1), Float(2.2)],
+            command Frem,
+            final_stack [Float(0.0)]
+        );
+    }
+
+    #[test]
+    fn drem() {
+        test_command!(
+            start_stack [Double(4.0), Double(3.1)],
+            command Drem,
+            final_stack [Double(3.1)]
+        );
+    }
+
+    #[test]
+    fn ineg() {
+        test_command!(
+            start_stack [Int(2)],
+            command Ineg,
+            final_stack [Int(-2)]
+        );
+    }
+
+    #[test]
+    fn lneg() {
+        test_command!(
+            start_stack [Long(3)],
+            command Lneg,
+            final_stack [Long(-3)]
+        );
+    }
+
+    #[test]
+    fn fneg() {
+        test_command!(
+            start_stack [Float(1.1)],
+            command Fneg,
+            final_stack [Float(-1.1)]
+        );
+    }
+
+    #[test]
+    fn dneg() {
+        test_command!(
+            start_stack [Double(4.0)],
+            command Dneg,
+            final_stack [Double(-4.0)]
+        );
+    }
+
+    #[test]
+    fn ishl() {
+        test_command!(
+            start_stack [Int(1), Int(0x08)],
+            command Ishl,
+            final_stack [Int(0x10)]
+        );
+    }
+
+    #[test]
+    fn ishr() {
+        test_command!(
+            start_stack [Int(2), Int(-0x01)],
+            command Ishr,
+            final_stack [Int(-1)]
+        );
+    }
+
+    #[test]
+    fn iushr() {
+        test_command!(
+            start_stack [Int(2), Int(-0x01)],
+            command Iushr,
+            final_stack [Int(1073741823)]
+        );
+    }
+
+    #[test]
+    fn lshl() {
+        test_command!(
+            start_stack [Long(1), Long(0x08)],
+            command Lshl,
+            final_stack [Long(0x10)]
+        );
+    }
+
+    #[test]
+    fn lshr() {
+        test_command!(
+            start_stack [Long(2), Long(-0x01)],
+            command Lshr,
+            final_stack [Long(-1)]
+        );
+    }
+
+    #[test]
+    fn lushr() {
+        test_command!(
+            start_stack [Long(63), Long(-1)],
+            command Lushr,
+            final_stack [Long(8589934591)]
+        );
+    }
+
+    #[test]
+    fn ior() {
+        test_command!(
+            start_stack [Int(0xf0), Int(0x0f)],
+            command Ior,
+            final_stack [Int(0xff)]
+        );
+    }
+
+    #[test]
+    fn lor() {
+        test_command!(
+            start_stack [Long(0xf000), Long(0x0fff)],
+            command Lor,
+            final_stack [Long(0xffff)]
+        );
+    }
+
+    #[test]
+    fn iand() {
+        test_command!(
+            start_stack [Int(0x30), Int(0xff)],
+            command Iand,
+            final_stack [Int(0x30)]
+        );
+    }
+
+    #[test]
+    fn land() {
+        test_command!(
+            start_stack [Long(0xfc00), Long(0x0fff)],
+            command Land,
+            final_stack [Long(0x0c00)]
+        );
+    }
+
+    #[test]
+    fn ixor() {
+        test_command!(
+            start_stack [Int(0x30), Int(0xff)],
+            command Ixor,
+            final_stack [Int(0xcf)]
+        );
+    }
+
+    #[test]
+    fn lxor() {
+        test_command!(
+            start_stack [Long(0xfc00), Long(0x0fff)],
+            command Lxor,
+            final_stack [Long(0xf3ff)]
         );
     }
 
@@ -510,89 +606,138 @@ mod test {
     }
 
     #[test]
-    fn cmp() {
-        let constants = ConstantPool::new(2);
-        let mut frame = Frame::new(10, 10, &constants);
+    fn dcmpg_lesser() {
+        test_command!(
+            start_stack [Double(100.0), Double(-10.0)],
+            command Dcmpg,
+            final_stack [Int(-1)]
+        );
+    }
 
-        frame.push_operand(Double(100.0));
-        frame.push_operand(Double(-10.0));
-        interpret(&mut frame, &vec![Instruction::new(Dcmpg, vec![])]);
+    #[test]
+    fn dcmpl_lesser() {
+        test_command!(
+            start_stack [Double(100.0), Double(-10.0)],
+            command Dcmpl,
+            final_stack [Int(-1)]
+        );
+    }
 
-        frame.push_operand(Double(100.0));
-        frame.push_operand(Double(-10.0));
-        interpret(&mut frame, &vec![Instruction::new(Dcmpl, vec![])]);
+    #[test]
+    fn dcmpg_equal() {
+        test_command!(
+            start_stack [Double(10.0), Double(10.0)],
+            command Dcmpg,
+            final_stack [Int(0)]
+        );
+    }
 
-        frame.push_operand(Double(10.0));
-        frame.push_operand(Double(10.0));
-        interpret(&mut frame, &vec![Instruction::new(Dcmpg, vec![])]);
+    #[test]
+    fn dcmpl_equal() {
+        test_command!(
+            start_stack [Double(10.0), Double(10.0)],
+            command Dcmpl,
+            final_stack [Int(0)]
+        );
+    }
 
-        frame.push_operand(Double(10.0));
-        frame.push_operand(Double(10.0));
-        interpret(&mut frame, &vec![Instruction::new(Dcmpl, vec![])]);
+    #[test]
+    fn dcmpg_greater() {
+        test_command!(
+            start_stack [Double(10.0), Double(100.0)],
+            command Dcmpg,
+            final_stack [Int(1)]
+        );
+    }
 
-        frame.push_operand(Double(-10.0));
-        frame.push_operand(Double(100.0));
-        interpret(&mut frame, &vec![Instruction::new(Dcmpg, vec![])]);
+    #[test]
+    fn dcmpl_greater() {
+        test_command!(
+            start_stack [Double(10.0), Double(100.0)],
+            command Dcmpl,
+            final_stack [Int(1)]
+        );
+    }
 
-        frame.push_operand(Double(-10.0));
-        frame.push_operand(Double(100.0));
-        interpret(&mut frame, &vec![Instruction::new(Dcmpl, vec![])]);
+    #[test]
+    fn fcmpg_lesser() {
+        test_command!(
+            start_stack [Float(100.0), Float(-10.0)],
+            command Fcmpg,
+            final_stack [Int(-1)]
+        );
+    }
 
-        frame.push_operand(Float(100.0));
-        frame.push_operand(Float(-10.0));
-        interpret(&mut frame, &vec![Instruction::new(Fcmpg, vec![])]);
+    #[test]
+    fn fcmpl_lesser() {
+        test_command!(
+            start_stack [Float(100.0), Float(-10.0)],
+            command Fcmpl,
+            final_stack [Int(-1)]
+        );
+    }
 
-        frame.push_operand(Float(100.0));
-        frame.push_operand(Float(-10.0));
-        interpret(&mut frame, &vec![Instruction::new(Fcmpl, vec![])]);
+    #[test]
+    fn fcmpg_equal() {
+        test_command!(
+            start_stack [Float(10.0), Float(10.0)],
+            command Fcmpg,
+            final_stack [Int(0)]
+        );
+    }
 
-        frame.push_operand(Float(10.0));
-        frame.push_operand(Float(10.0));
-        interpret(&mut frame, &vec![Instruction::new(Fcmpg, vec![])]);
+    #[test]
+    fn fcmpl_equal() {
+        test_command!(
+            start_stack [Float(10.0), Float(10.0)],
+            command Fcmpl,
+            final_stack [Int(0)]
+        );
+    }
 
-        frame.push_operand(Float(10.0));
-        frame.push_operand(Float(10.0));
-        interpret(&mut frame, &vec![Instruction::new(Fcmpl, vec![])]);
+    #[test]
+    fn fcmpg_greater() {
+        test_command!(
+            start_stack [Float(10.0), Float(100.0)],
+            command Fcmpg,
+            final_stack [Int(1)]
+        );
+    }
 
-        frame.push_operand(Float(-10.0));
-        frame.push_operand(Float(100.0));
-        interpret(&mut frame, &vec![Instruction::new(Fcmpg, vec![])]);
+    #[test]
+    fn fcmpl_greater() {
+        test_command!(
+            start_stack [Float(10.0), Float(100.0)],
+            command Fcmpl,
+            final_stack [Int(1)]
+        );
+    }
 
-        frame.push_operand(Float(-10.0));
-        frame.push_operand(Float(100.0));
-        interpret(&mut frame, &vec![Instruction::new(Fcmpl, vec![])]);
+    #[test]
+    fn lcmp_lesser() {
+        test_command!(
+            start_stack [Long(10), Long(100)],
+            command Lcmp,
+            final_stack [Int(1)]
+        );
+    }
 
-        frame.push_operand(Long(10));
-        frame.push_operand(Long(100));
-        interpret(&mut frame, &vec![Instruction::new(Lcmp, vec![])]);
+    #[test]
+    fn lcmp_equal() {
+        test_command!(
+            start_stack [Long(50), Long(50)],
+            command Lcmp,
+            final_stack [Int(0)]
+        );
+    }
 
-        frame.push_operand(Long(50));
-        frame.push_operand(Long(50));
-        interpret(&mut frame, &vec![Instruction::new(Lcmp, vec![])]);
-
-        frame.push_operand(Long(100));
-        frame.push_operand(Long(10));
-        interpret(&mut frame, &vec![Instruction::new(Lcmp, vec![])]);
-
-        assert_eq!(
-            frame.operand_stack,
-            vec![
-                Int(-1),
-                Int(-1),
-                Int(0),
-                Int(0),
-                Int(1),
-                Int(1),
-                Int(-1),
-                Int(-1),
-                Int(0),
-                Int(0),
-                Int(1),
-                Int(1),
-                Int(1),
-                Int(0),
-                Int(-1),
-            ],
+    #[test]
+    fn lcmp_greater() {
+        test_command!(
+            start_stack [Long(100), Long(10)],
+            command Lcmp,
+            final_stack [Int(-1)]
         );
     }
 }
+
