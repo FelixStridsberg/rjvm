@@ -128,84 +128,146 @@ mod test {
     use crate::vm::Value::*;
 
     #[test]
-    fn stack_management() {
-        let constants = ConstantPool::new(2);
-        let mut frame = Frame::new(10, 10, &constants);
-        frame.operand_stack_depth = 100;
-
-        frame.operand_stack = vec![Int(32)];
-        interpret(&mut frame, &vec![Instruction::new(Pop, vec![])]);
-        assert_eq!(frame.operand_stack, vec![]);
-
-        frame.operand_stack = vec![Int(32), Int(32), Long(32)];
-        interpret(
-            &mut frame,
-            &vec![
-                Instruction::new(Pop2, vec![]),
-                Instruction::new(Pop2, vec![]),
-            ],
+    fn pop() {
+        test_command!(
+            start_stack [Int(32)],
+            command Pop,
+            final_stack []
         );
-        assert_eq!(frame.operand_stack, vec![]);
+    }
 
-        frame.operand_stack = vec![Int(21)];
-        interpret(&mut frame, &vec![Instruction::new(Dup, vec![])]);
-        assert_eq!(frame.operand_stack, vec![Int(21), Int(21)]);
-
-        frame.operand_stack = vec![Long(21)];
-        interpret(&mut frame, &vec![Instruction::new(Dup2, vec![])]);
-        assert_eq!(frame.operand_stack, vec![Long(21), Long(21)]);
-
-        frame.operand_stack = vec![Int(2), Int(1)];
-        interpret(&mut frame, &vec![Instruction::new(Dup2, vec![])]);
-        assert_eq!(frame.operand_stack, vec![Int(2), Int(1), Int(2), Int(1)]);
-
-        frame.operand_stack = vec![Int(2), Int(1)];
-        interpret(&mut frame, &vec![Instruction::new(DupX1, vec![])]);
-        assert_eq!(frame.operand_stack, vec![Int(1), Int(2), Int(1)]);
-
-        frame.operand_stack = vec![Int(3), Int(2), Int(1)];
-        interpret(&mut frame, &vec![Instruction::new(Dup2X1, vec![])]);
-        assert_eq!(
-            frame.operand_stack,
-            vec![Int(2), Int(1), Int(3), Int(2), Int(1)]
+    #[test]
+    fn pop2() {
+        test_command!(
+            start_stack [Int(32), Int(32)],
+            command Pop2,
+            final_stack []
         );
+    }
 
-        frame.operand_stack = vec![Long(2), Long(1)];
-        interpret(&mut frame, &vec![Instruction::new(Dup2X1, vec![])]);
-        assert_eq!(frame.operand_stack, vec![Long(1), Long(2), Long(1)]);
-
-        frame.operand_stack = vec![Int(3), Int(2), Int(1)];
-        interpret(&mut frame, &vec![Instruction::new(DupX2, vec![])]);
-        assert_eq!(frame.operand_stack, vec![Int(1), Int(3), Int(2), Int(1)]);
-
-        frame.operand_stack = vec![Long(2), Long(1)];
-        interpret(&mut frame, &vec![Instruction::new(DupX2, vec![])]);
-        assert_eq!(frame.operand_stack, vec![Long(1), Long(2), Long(1)]);
-
-        frame.operand_stack = vec![Int(4), Int(3), Int(2), Int(1)];
-        interpret(&mut frame, &vec![Instruction::new(Dup2X2, vec![])]);
-        assert_eq!(
-            frame.operand_stack,
-            vec![Int(2), Int(1), Int(4), Int(3), Int(2), Int(1)]
+    #[test]
+    fn pop2_long() {
+        test_command!(
+            start_stack [Double(32.0)],
+            command Pop2,
+            final_stack []
         );
+    }
 
-        frame.operand_stack = vec![Int(3), Int(2), Long(1)];
-        interpret(&mut frame, &vec![Instruction::new(Dup2X2, vec![])]);
-        assert_eq!(frame.operand_stack, vec![Long(1), Int(3), Int(2), Long(1)]);
-
-        frame.operand_stack = vec![Long(3), Int(2), Int(1)];
-        interpret(&mut frame, &vec![Instruction::new(Dup2X2, vec![])]);
-        assert_eq!(
-            frame.operand_stack,
-            vec![Int(2), Int(1), Long(3), Int(2), Int(1)]
+    #[test]
+    fn dup() {
+        test_command!(
+            start_stack [Int(21)],
+            command Dup,
+            final_stack [Int(21), Int(21)]
         );
+    }
 
-        frame.operand_stack = vec![Long(2), Long(1)];
-        interpret(&mut frame, &vec![Instruction::new(Dup2X2, vec![])]);
-        assert_eq!(frame.operand_stack, vec![Long(1), Long(2), Long(1)]);
+    #[test]
+    fn dup2() {
+        test_command!(
+            start_stack [Long(21)],
+            command Dup2,
+            final_stack [Long(21), Long(21)]
+        );
+    }
 
-        frame.operand_stack = vec![Long(2), Long(1)];
-        interpret(&mut frame, &vec![Instruction::new(Swap, vec![])]);
-        assert_eq!(frame.operand_stack, vec![Long(1), Long(2)]);
+    #[test]
+    fn dup2_short() {
+        test_command!(
+            start_stack [Int(2), Int(1)],
+            command Dup2,
+            final_stack [Int(2), Int(1), Int(2), Int(1)]
+        );
+    }
+
+    #[test]
+    fn dup_x1() {
+        test_command!(
+            start_stack [Int(2), Int(1)],
+            command DupX1,
+            final_stack [Int(1), Int(2), Int(1)]
+        );
+    }
+
+    #[test]
+    fn dup2_x1() {
+        test_command!(
+            start_stack [Int(3), Int(2), Int(1)],
+            command Dup2X1,
+            final_stack [Int(2), Int(1), Int(3), Int(2), Int(1)]
+        );
+    }
+
+    #[test]
+    fn dup2_x1_long() {
+        test_command!(
+            start_stack [Long(2), Long(1)],
+            command Dup2X1,
+            final_stack [Long(1), Long(2), Long(1)]
+        );
+    }
+
+    #[test]
+    fn dup_x2() {
+        test_command!(
+            start_stack [Int(3), Int(2), Int(1)],
+            command DupX2,
+            final_stack [Int(1), Int(3), Int(2), Int(1)]
+        );
+    }
+
+    #[test]
+    fn dup_x2_long() {
+        test_command!(
+            start_stack [Long(2), Long(1)],
+            command DupX2,
+            final_stack [Long(1), Long(2), Long(1)]
+        );
+    }
+
+    #[test]
+    fn dup2_x2_short_short() {
+        test_command!(
+            start_stack [Int(4), Int(3), Int(2), Int(1)],
+            command Dup2X2,
+            final_stack [Int(2), Int(1), Int(4), Int(3), Int(2), Int(1)]
+        );
+    }
+
+    #[test]
+    fn dup2_x2_short_long() {
+        test_command!(
+            start_stack [Int(3), Int(2), Long(1)],
+            command Dup2X2,
+            final_stack [Long(1), Int(3), Int(2), Long(1)]
+        );
+    }
+
+    #[test]
+    fn dup2_x2_long_short() {
+        test_command!(
+            start_stack [Long(3), Int(2), Int(1)],
+            command Dup2X2,
+            final_stack [Int(2), Int(1), Long(3), Int(2), Int(1)]
+        );
+    }
+
+    #[test]
+    fn dup2_x2_long_long() {
+        test_command!(
+            start_stack [Long(2), Long(1)],
+            command Dup2X2,
+            final_stack [Long(1), Long(2), Long(1)]
+        );
+    }
+
+    #[test]
+    fn swap() {
+        test_command!(
+            start_stack [Long(2), Long(1)],
+            command Swap,
+            final_stack [Long(1), Long(2)]
+        );
     }
 }
