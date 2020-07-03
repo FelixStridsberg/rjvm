@@ -5,7 +5,7 @@ use crate::vm::Value::*;
 
 mod interpreter;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Value {
     Boolean(bool),
     Byte(u8),
@@ -17,6 +17,15 @@ pub enum Value {
     Double(f64),
     Reference(i32),
     ReturnAddress(i32),
+}
+
+impl Value {
+    pub fn get_category(&self) -> u8 {
+        match self {
+            Long(_) | Double(_) => 2,
+            _ => 1
+        }
+    }
 }
 
 pub struct VirtualMachine<'a> {

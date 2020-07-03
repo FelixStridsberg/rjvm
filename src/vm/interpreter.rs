@@ -1,12 +1,14 @@
 mod arithmetic;
 mod conversion;
 mod load_and_store;
+mod stack_management;
 
 use crate::class::code::Instruction;
 use crate::class::code::Opcode::*;
 use crate::vm::interpreter::arithmetic::*;
 use crate::vm::interpreter::conversion::*;
 use crate::vm::interpreter::load_and_store::*;
+use crate::vm::interpreter::stack_management::*;
 use crate::vm::Value::{Double, Float, Int, Long};
 use crate::vm::{Frame, Value};
 
@@ -187,10 +189,26 @@ fn interpret_instruction(frame: &mut Frame, instruction: &Instruction) -> Option
         D2l => double_to_long(frame),
         D2f => double_to_float(frame),
 
+        // Object creation and manipulation:
+        // TODO
 
-        //
+        // Operand stack management:
+        Pop => pop_operand(frame),
+        Pop2 => pop_operand_long(frame),
+        Dup => duplicate_operand(frame),
+        Dup2 => duplicate_operand_long(frame),
+        DupX1 => duplicate_operand_back1(frame),
+        Dup2X1 => duplicate_operand_long_back1(frame),
+        DupX2 => duplicate_operand_back2(frame),
+        Dup2X2 => duplicate_operand_long_back2(frame),
+        Swap => swap_operand(frame),
+
+        // Control transfer:
+        // TODO
         Ireturn => return Some(frame.pop_operand()),
 
+        // Throwing exceptions:
+        // TODO
         _ => unimplemented!(
             "Opcode {:?} is not implemented in interpreter",
             instruction.opcode
@@ -950,7 +968,6 @@ mod test {
         interpret(&mut frame, &vec![Instruction::new(F2d, vec![])]);
         assert_eq!(frame.pop_operand(), Double(1000.0));
 
-
         // Narrowing conversions
         frame.push_operand(Int(0x101));
         interpret(&mut frame, &vec![Instruction::new(I2b, vec![])]);
@@ -987,5 +1004,82 @@ mod test {
         frame.push_operand(Double(1234.58));
         interpret(&mut frame, &vec![Instruction::new(D2f, vec![])]);
         assert_eq!(frame.pop_operand(), Float(1234.58));
+    }
+
+    #[test]
+    fn stack_management() {
+        let constants = ConstantPool::new(2);
+        let mut frame = Frame::new(10, 10, &constants);
+        frame.operand_stack_depth = 100;
+
+        frame.operand_stack = vec![Int(32)];
+        interpret(&mut frame, &vec![Instruction::new(Pop, vec![])]);
+        assert_eq!(frame.operand_stack, vec![]);
+
+        frame.operand_stack = vec![Int(32), Int(32), Long(32)];
+        interpret(
+            &mut frame,
+            &vec![
+                Instruction::new(Pop2, vec![]),
+                Instruction::new(Pop2, vec![]),
+            ],
+        );
+        assert_eq!(frame.operand_stack, vec![]);
+
+
+        frame.operand_stack = vec!(Int(21));
+        interpret(&mut frame, &vec![Instruction::new(Dup, vec![])]);
+        assert_eq!(frame.operand_stack, vec![Int(21), Int(21)]);
+
+        frame.operand_stack = vec![Long(21)];
+        interpret(&mut frame, &vec![Instruction::new(Dup2, vec![])]);
+        assert_eq!(frame.operand_stack, vec![Long(21), Long(21)]);
+
+        frame.operand_stack = vec![Int(2), Int(1)];
+        interpret(&mut frame, &vec![Instruction::new(Dup2, vec![])]);
+        assert_eq!(frame.operand_stack, vec![Int(2), Int(1), Int(2), Int(1)]);
+
+        frame.operand_stack = vec![Int(2), Int(1)];
+        interpret(&mut frame, &vec![Instruction::new(DupX1, vec![])]);
+        assert_eq!(frame.operand_stack, vec![Int(1), Int(2), Int(1)]);
+
+        frame.operand_stack = vec![Int(3), Int(2), Int(1)];
+        interpret(&mut frame, &vec![Instruction::new(Dup2X1, vec![])]);
+        assert_eq!(frame.operand_stack, vec![Int(2), Int(1), Int(3), Int(2), Int(1)]);
+
+        frame.operand_stack = vec![Long(2), Long(1)];
+        interpret(&mut frame, &vec![Instruction::new(Dup2X1, vec![])]);
+        assert_eq!(frame.operand_stack, vec![Long(1), Long(2), Long(1)]);
+
+        frame.operand_stack = vec![Int(3), Int(2), Int(1)];
+        interpret(&mut frame, &vec![Instruction::new(DupX2, vec![])]);
+        assert_eq!(frame.operand_stack, vec![Int(1), Int(3), Int(2), Int(1)]);
+
+        frame.operand_stack = vec![Long(2), Long(1)];
+        interpret(&mut frame, &vec![Instruction::new(DupX2, vec![])]);
+        assert_eq!(frame.operand_stack, vec![Long(1), Long(2), Long(1)]);
+
+
+
+        frame.operand_stack = vec![Int(4), Int(3), Int(2), Int(1)];
+        interpret(&mut frame, &vec![Instruction::new(Dup2X2, vec![])]);
+        assert_eq!(frame.operand_stack, vec![Int(2), Int(1), Int(4), Int(3), Int(2), Int(1)]);
+
+        frame.operand_stack = vec![Int(3), Int(2), Long(1)];
+        interpret(&mut frame, &vec![Instruction::new(Dup2X2, vec![])]);
+        assert_eq!(frame.operand_stack, vec![Long(1), Int(3), Int(2), Long(1)]);
+
+        frame.operand_stack = vec![Long(3), Int(2), Int(1)];
+        interpret(&mut frame, &vec![Instruction::new(Dup2X2, vec![])]);
+        assert_eq!(frame.operand_stack, vec![Int(2), Int(1), Long(3), Int(2), Int(1)]);
+
+        frame.operand_stack = vec![Long(2), Long(1)];
+        interpret(&mut frame, &vec![Instruction::new(Dup2X2, vec![])]);
+        assert_eq!(frame.operand_stack, vec![Long(1), Long(2), Long(1)]);
+
+
+        frame.operand_stack = vec![Long(2), Long(1)];
+        interpret(&mut frame, &vec![Instruction::new(Swap, vec![])]);
+        assert_eq!(frame.operand_stack, vec![Long(1), Long(2)]);
     }
 }
