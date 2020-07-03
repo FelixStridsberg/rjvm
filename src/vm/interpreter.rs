@@ -1,3 +1,6 @@
+#[macro_use]
+mod test;
+
 mod arithmetic;
 mod conversion;
 mod load_and_store;
