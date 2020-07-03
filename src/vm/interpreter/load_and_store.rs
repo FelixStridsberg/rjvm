@@ -5,7 +5,7 @@ use crate::class::constant::Constant;
 use crate::vm::Frame;
 use crate::vm::Value::*;
 
-pub fn load_int(frame: &mut Frame, operands: &Vec<u8>) {
+pub fn load_int(frame: &mut Frame, operands: &[u8]) {
     let index = operands[0] as u16;
     load_int_n(frame, index);
 }
@@ -15,7 +15,7 @@ pub fn load_int_n(frame: &mut Frame, index: u16) {
     frame.push_operand(Int(int));
 }
 
-pub fn load_long(frame: &mut Frame, operands: &Vec<u8>) {
+pub fn load_long(frame: &mut Frame, operands: &[u8]) {
     let index = operands[0] as u16;
     load_long_n(frame, index);
 }
@@ -26,7 +26,7 @@ pub fn load_long_n(frame: &mut Frame, index: u16) {
     frame.push_operand(Long(i1 << 32 | i2));
 }
 
-pub fn load_float(frame: &mut Frame, operands: &Vec<u8>) {
+pub fn load_float(frame: &mut Frame, operands: &[u8]) {
     let index = operands[0] as u16;
     load_float_n(frame, index);
 }
@@ -36,7 +36,7 @@ pub fn load_float_n(frame: &mut Frame, index: u16) {
     frame.push_operand(Float(f32::from_bits(bits)));
 }
 
-pub fn load_double(frame: &mut Frame, operands: &Vec<u8>) {
+pub fn load_double(frame: &mut Frame, operands: &[u8]) {
     let index = operands[0] as u16;
     load_double_n(frame, index);
 }
@@ -48,7 +48,7 @@ pub fn load_double_n(frame: &mut Frame, index: u16) {
     frame.push_operand(Double(f64::from_bits(bits)));
 }
 
-pub fn load_reference(frame: &mut Frame, operands: &Vec<u8>) {
+pub fn load_reference(frame: &mut Frame, operands: &[u8]) {
     let index = operands[0] as u16;
     load_reference_n(frame, index);
 }
@@ -58,7 +58,7 @@ pub fn load_reference_n(frame: &mut Frame, index: u16) {
     frame.push_operand(Reference(int));
 }
 
-pub fn store_int(frame: &mut Frame, operands: &Vec<u8>) {
+pub fn store_int(frame: &mut Frame, operands: &[u8]) {
     let index = operands[0] as u16;
     store_int_n(frame, index);
 }
@@ -75,7 +75,7 @@ pub fn store_int_n(frame: &mut Frame, index: u16) {
     }
 }
 
-pub fn store_long(frame: &mut Frame, operands: &Vec<u8>) {
+pub fn store_long(frame: &mut Frame, operands: &[u8]) {
     let index = operands[0] as u16;
     store_long_n(frame, index);
 }
@@ -92,7 +92,7 @@ pub fn store_long_n(frame: &mut Frame, index: u16) {
     }
 }
 
-pub fn store_float(frame: &mut Frame, operands: &Vec<u8>) {
+pub fn store_float(frame: &mut Frame, operands: &[u8]) {
     let index = operands[0] as u16;
     store_float_n(frame, index);
 }
@@ -109,7 +109,7 @@ pub fn store_float_n(frame: &mut Frame, index: u16) {
     }
 }
 
-pub fn store_double(frame: &mut Frame, operands: &Vec<u8>) {
+pub fn store_double(frame: &mut Frame, operands: &[u8]) {
     let index = operands[0] as u16;
     store_double_n(frame, index);
 }
@@ -126,7 +126,7 @@ pub fn store_double_n(frame: &mut Frame, index: u16) {
     }
 }
 
-pub fn store_reference(frame: &mut Frame, operands: &Vec<u8>) {
+pub fn store_reference(frame: &mut Frame, operands: &[u8]) {
     let index = operands[0] as u16;
     store_reference_n(frame, index);
 }
@@ -143,22 +143,22 @@ pub fn store_reference_n(frame: &mut Frame, index: u16) {
     frame.set_local(index, value as u32);
 }
 
-pub fn push_byte(frame: &mut Frame, operands: &Vec<u8>) {
+pub fn push_byte(frame: &mut Frame, operands: &[u8]) {
     frame.push_operand(Int(operands[0] as i32));
 }
 
-pub fn push_short(frame: &mut Frame, operands: &Vec<u8>) {
+pub fn push_short(frame: &mut Frame, operands: &[u8]) {
     let b1 = operands[0] as i16;
     let b2 = operands[1] as i16;
     frame.push_operand(Short((b1 << 8) | b2));
 }
 
-pub fn push_constant(frame: &mut Frame, operands: &Vec<u8>) {
+pub fn push_constant(frame: &mut Frame, operands: &[u8]) {
     let index = operands[0] as u16;
     push_constant_index(frame, index);
 }
 
-pub fn push_constant_wide(frame: &mut Frame, operands: &Vec<u8>) {
+pub fn push_constant_wide(frame: &mut Frame, operands: &[u8]) {
     let index_b1 = operands[0] as u16;
     let index_b2 = operands[1] as u16;
     push_constant_index(frame, (index_b1 << 2) | index_b2);
@@ -173,7 +173,7 @@ fn push_constant_index(frame: &mut Frame, index: u16) {
     }
 }
 
-pub fn push_constant_long(frame: &mut Frame, operands: &Vec<u8>) {
+pub fn push_constant_long(frame: &mut Frame, operands: &[u8]) {
     let index_b1 = operands[0] as u16;
     let index_b2 = operands[1] as u16;
     let index = (index_b1 << 2) | index_b2;

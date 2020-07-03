@@ -196,7 +196,7 @@ pub fn long_bitwise_exclusive_or(frame: &mut Frame) {
     frame.push_operand(Long(value1 ^ value2));
 }
 
-pub fn int_increase(frame: &mut Frame, operands: &Vec<u8>) {
+pub fn int_increase(frame: &mut Frame, operands: &[u8]) {
     let index = operands[0] as u16;
     let constant = operands[1] as u32;
     let value = frame.get_local(index);

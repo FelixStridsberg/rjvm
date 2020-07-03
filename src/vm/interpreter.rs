@@ -12,7 +12,7 @@ use crate::vm::interpreter::stack_management::*;
 use crate::vm::Value::{Double, Float, Int, Long};
 use crate::vm::{Frame, Value};
 
-pub fn interpret(frame: &mut Frame, instructions: &Vec<Instruction>) -> Option<Value> {
+pub fn interpret(frame: &mut Frame, instructions: &[Instruction]) -> Option<Value> {
     let mut ret = None;
 
     // TODO implement PC
