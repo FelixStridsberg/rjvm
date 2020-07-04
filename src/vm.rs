@@ -41,7 +41,9 @@ impl VirtualMachine<'_> {
     }
 }
 
+#[derive(Debug)]
 pub struct Frame<'a> {
+    pc: u32,
     local_variables: Vec<u32>,
     operand_stack: Vec<Value>,
     operand_stack_depth: u32,
@@ -55,6 +57,7 @@ pub trait PopOperandFrame<T> {
 impl Frame<'_> {
     pub fn new(stack: u16, locals: u16, constant_pool: &ConstantPool) -> Frame {
         Frame {
+            pc: 0,
             local_variables: vec![0; locals as usize],
             operand_stack: Vec::with_capacity(stack as usize),
             operand_stack_depth: 0,

@@ -19,8 +19,8 @@ pub fn interpret(frame: &mut Frame, instructions: &[Instruction]) -> Option<Valu
     let mut ret = None;
 
     // TODO implement PC
-    for i in instructions {
-        ret = interpret_instruction(frame, i);
+    while frame.pc < instructions.len() as u32 {
+        ret = interpret_instruction(frame, &instructions[frame.pc as usize]);
     }
 
     ret
@@ -212,11 +212,14 @@ fn interpret_instruction(frame: &mut Frame, instruction: &Instruction) -> Option
 
         // Throwing exceptions:
         // TODO
+
+        OperationSpacer => panic!("Tried to parse operation as instruction in {:?}", frame),
         _ => unimplemented!(
             "Opcode {:?} is not implemented in interpreter",
             instruction.opcode
         ),
     }
 
+    frame.pc += instruction.len();
     None
 }

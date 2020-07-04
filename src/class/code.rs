@@ -8,6 +8,14 @@ impl Instruction {
     pub fn new(opcode: Opcode, operands: Vec<u8>) -> Self {
         Instruction { opcode, operands }
     }
+
+    pub fn operation_spacer() -> Self {
+        Self::new(Opcode::OperationSpacer, vec![])
+    }
+
+    pub fn len(&self) -> u32 {
+        1 + self.operands.len() as u32
+    }
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -214,7 +222,7 @@ pub enum Opcode {
     Swap,
     TableSwitch,
     Wide,
-    ImpDep1,
     ImpDep2,
     BreakPoint,
+    OperationSpacer, // Used to mark operations in code array
 }
