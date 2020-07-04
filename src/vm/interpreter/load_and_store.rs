@@ -263,11 +263,10 @@ mod test {
         );
     }
 
-    /*
     #[test]
     fn lload1() {
         test_command!(
-            start_locals: [0xff, 0x00, 0x02],
+            start_locals_long: { 1 => 2 },
             command: Lload1,
             final_stack: [Long(2)],
         );
@@ -276,7 +275,7 @@ mod test {
     #[test]
     fn lload2() {
         test_command!(
-            start_locals: [0xff, 0xff, 0x00, 0x03],
+            start_locals_long: { 2 => 3 },
             command: Lload2,
             final_stack: [Long(3)],
         );
@@ -285,11 +284,11 @@ mod test {
     #[test]
     fn lload3() {
         test_command!(
-            start_locals: [0xff, 0xff, 0xff, 0x00, 0x04],
+            start_locals_long: { 3 => 4 },
             command: Lload3,
             final_stack: [Long(4)],
         );
-    } */
+    }
 
     #[test]
     fn fload() {
