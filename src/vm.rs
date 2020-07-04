@@ -70,6 +70,10 @@ impl Frame<'_> {
         self.operand_stack = stack;
     }
 
+    pub fn set_locals(&mut self, locals: Vec<u32>) {
+        self.local_variables = locals;
+    }
+
     pub fn get_local(&self, index: u16) -> u32 {
         self.local_variables[index as usize]
     }

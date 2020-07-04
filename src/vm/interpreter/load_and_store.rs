@@ -202,28 +202,46 @@ mod test {
 
     #[test]
     fn iload() {
-        let constants = ConstantPool::new(0);
-        let mut frame = Frame::new(10, 10, &constants);
-        frame.set_local(0, 1);
-        frame.set_local(1, 2);
-        frame.set_local(2, 3);
-        frame.set_local(3, 4);
-        frame.set_local(5, 5);
-
-        interpret(
-            &mut frame,
-            &vec![
-                Instruction::new(Iload0, vec![]),
-                Instruction::new(Iload1, vec![]),
-                Instruction::new(Iload2, vec![]),
-                Instruction::new(Iload3, vec![]),
-                Instruction::new(Iload, vec![0x05]),
-            ],
+        test_command!(
+            start_locals [0x01, 0x02, 0x03, 0x04, 0x05, 0x06],
+            command Iload, [0x05],
+            final_stack [Int(6)]
         );
+    }
 
-        assert_eq!(
-            frame.operand_stack,
-            vec![Int(1), Int(2), Int(3), Int(4), Int(5)]
+    #[test]
+    fn iload0() {
+        test_command!(
+            start_locals [0x01],
+            command Iload0,
+            final_stack [Int(1)]
+        );
+    }
+
+    #[test]
+    fn iload1() {
+        test_command!(
+            start_locals [0x01, 0x02],
+            command Iload1,
+            final_stack [Int(2)]
+        );
+    }
+
+    #[test]
+    fn iload2() {
+        test_command!(
+            start_locals [0x01, 0x02, 0x03],
+            command Iload2,
+            final_stack [Int(3)]
+        );
+    }
+
+    #[test]
+    fn iload3() {
+        test_command!(
+            start_locals [0x01, 0x02, 0x03, 0x04],
+            command Iload3,
+            final_stack [Int(4)]
         );
     }
 
