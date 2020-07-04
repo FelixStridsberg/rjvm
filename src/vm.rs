@@ -17,6 +17,7 @@ pub enum Value {
     Double(f64),
     Reference(i32),
     ReturnAddress(i32),
+    Null,
 }
 
 impl Value {

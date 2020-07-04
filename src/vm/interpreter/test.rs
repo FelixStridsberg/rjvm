@@ -2,10 +2,12 @@
 macro_rules! test_command {
         (
             $(constants: [$($constant:expr),*],)?
+            $(start_pc: $start_pc:expr,)?
             $(start_stack: [$($stack:expr),*],)?
             $(start_locals: {$($local_idx:expr => $local_value:expr),*},)?
             $(start_locals_long: {$($local_l_idx:expr => $local_l_value:expr),*},)?
             command: $command:expr $(;[$($operands:expr),*])?,
+            $(final_pc: $final_pc:expr,)?
             $(final_stack: [$($expect_stack:expr),*],)?
             $(final_locals: {$($expect_local_idx:expr => $expected_local:expr),*},)?
             $(final_locals_long: {$($expect_local_l_idx:expr => $expected_local_l:expr),*},)?
@@ -15,15 +17,19 @@ macro_rules! test_command {
             $($(_constants.add($constant);)*)?
 
             let mut frame = Frame::new(10, 10, &_constants);
+            $(frame.pc = $start_pc;)?
             $(frame.set_operand_stack(vec![$($stack),*]);)?
 
             $($(frame.set_local($local_idx, $local_value);)*)?
             $($(frame.set_local_long($local_l_idx, $local_l_value);)*)?
 
             // Execute
-            interpret(&mut frame, &vec![Instruction::new($command, vec![$($($operands),*)?])]);
+            interpret_instruction(&mut frame, &Instruction::new($command, vec![$($($operands),*)?]));
 
             // Assert
+
+            $(assert_eq!(frame.pc, $final_pc, "Expecting frame pc to be equal to final_pc."))?
+
             $(
                 assert_eq!(
                     frame.operand_stack,

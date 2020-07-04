@@ -2,6 +2,7 @@
 mod test;
 
 mod arithmetic;
+mod control_transfer;
 mod conversion;
 mod load_and_store;
 mod stack_management;
@@ -9,6 +10,7 @@ mod stack_management;
 use crate::class::code::Instruction;
 use crate::class::code::Opcode::*;
 use crate::vm::interpreter::arithmetic::*;
+use crate::vm::interpreter::control_transfer::*;
 use crate::vm::interpreter::conversion::*;
 use crate::vm::interpreter::load_and_store::*;
 use crate::vm::interpreter::stack_management::*;
@@ -18,7 +20,6 @@ use crate::vm::{Frame, Value};
 pub fn interpret(frame: &mut Frame, instructions: &[Instruction]) -> Option<Value> {
     let mut ret = None;
 
-    // TODO implement PC
     while frame.pc < instructions.len() as u32 {
         ret = interpret_instruction(frame, &instructions[frame.pc as usize]);
     }
@@ -26,7 +27,9 @@ pub fn interpret(frame: &mut Frame, instructions: &[Instruction]) -> Option<Valu
     ret
 }
 
-fn interpret_instruction(frame: &mut Frame, instruction: &Instruction) -> Option<Value> {
+pub fn interpret_instruction(frame: &mut Frame, instruction: &Instruction) -> Option<Value> {
+    let mut offset = None;
+
     match &instruction.opcode {
         // Load and store:
         Iload => load_int(frame, &instruction.operands),
@@ -207,6 +210,16 @@ fn interpret_instruction(frame: &mut Frame, instruction: &Instruction) -> Option
         Swap => swap_operand(frame),
 
         // Control transfer:
+        IfEq => offset = if_equals(frame, &instruction.operands),
+        IfNe => offset = if_not_equals(frame, &instruction.operands),
+        IfLt => offset = if_less_than(frame, &instruction.operands),
+        IfLe => offset = if_less_than_inclusive(frame, &instruction.operands),
+        IfGt => offset = if_greater_than(frame, &instruction.operands),
+        IfGe => offset = if_greater_than_inclusive(frame, &instruction.operands),
+        IfNull => offset = if_null(frame, &instruction.operands),
+        IfNonNull => offset = if_non_null(frame, &instruction.operands),
+
+
         // TODO
         Ireturn => return Some(frame.pop_operand()),
 
@@ -220,6 +233,11 @@ fn interpret_instruction(frame: &mut Frame, instruction: &Instruction) -> Option
         ),
     }
 
-    frame.pc += instruction.len();
+    if let Some(i) = offset {
+        frame.pc = (frame.pc as i32 + i) as u32;
+    } else {
+        frame.pc += instruction.len();
+    }
+
     None
 }

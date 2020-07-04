@@ -252,7 +252,7 @@ mod test {
     use crate::class::code::Instruction;
     use crate::class::code::Opcode::*;
     use crate::class::constant::ConstantPool;
-    use crate::vm::interpreter::interpret;
+    use crate::vm::interpreter::interpret_instruction;
     use crate::vm::Frame;
     use crate::vm::Value::*;
 
