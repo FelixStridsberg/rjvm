@@ -203,45 +203,45 @@ mod test {
     #[test]
     fn iload() {
         test_command!(
-            start_locals [0x01, 0x02, 0x03, 0x04, 0x05, 0x06],
-            command Iload, [0x05],
-            final_stack [Int(6)]
+            start_locals: [0x01, 0x02, 0x03, 0x04, 0x05, 0x06],
+            command: Iload; [0x05],
+            final_stack: [Int(6)],
         );
     }
 
     #[test]
     fn iload0() {
         test_command!(
-            start_locals [0x01],
-            command Iload0,
-            final_stack [Int(1)]
+            start_locals: [0x01],
+            command: Iload0,
+            final_stack: [Int(1)],
         );
     }
 
     #[test]
     fn iload1() {
         test_command!(
-            start_locals [0x01, 0x02],
-            command Iload1,
-            final_stack [Int(2)]
+            start_locals: [0x01, 0x02],
+            command: Iload1,
+            final_stack: [Int(2)],
         );
     }
 
     #[test]
     fn iload2() {
         test_command!(
-            start_locals [0x01, 0x02, 0x03],
-            command Iload2,
-            final_stack [Int(3)]
+            start_locals: [0x01, 0x02, 0x03],
+            command: Iload2,
+            final_stack: [Int(3)],
         );
     }
 
     #[test]
     fn iload3() {
         test_command!(
-            start_locals [0x01, 0x02, 0x03, 0x04],
-            command Iload3,
-            final_stack [Int(4)]
+            start_locals: [0x01, 0x02, 0x03, 0x04],
+            command: Iload3,
+            final_stack: [Int(4)],
         );
     }
 

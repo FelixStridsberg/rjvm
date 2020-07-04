@@ -1,10 +1,10 @@
 #[macro_export]
 macro_rules! test_command {
         (
-            $(start_stack [$($stack:expr),*],)?
-            $(start_locals [$($locals:expr),*],)?
-            command $command:expr, $([$($operands:expr),*],)?
-            final_stack [$($expect:expr),*]
+            $(start_stack: [$($stack:expr),*],)?
+            $(start_locals: [$($locals:expr),*],)?
+            command: $command:expr $(;[$($operands:expr),*])?,
+            final_stack: [$($expect:expr),*],
         ) => {{
             let constants = ConstantPool::new(2);
             let mut frame = Frame::new(10, 10, &constants);
