@@ -582,13 +582,11 @@ mod test {
 
     #[test]
     fn iinc() {
-        let constants = ConstantPool::new(2);
-        let mut frame = Frame::new(10, 10, &constants);
-        frame.set_local(1, 0x0a);
-
-        interpret(&mut frame, &vec![Instruction::new(Iinc, vec![0x01, 0x06])]);
-
-        assert_eq!(frame.get_local(1), 0x10);
+        test_command!(
+            start_locals: [0x00, 0x0a],
+            command: Iinc; [0x01, 0x06],
+            final_locals: [0x00, 0x10],
+        );
     }
 
     #[test]
