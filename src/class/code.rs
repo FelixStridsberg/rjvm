@@ -13,7 +13,7 @@ impl Instruction {
         Self::new(Opcode::OperationSpacer, vec![])
     }
 
-    pub fn len(&self) -> u32 {
+    pub fn size(&self) -> u32 {
         1 + self.operands.len() as u32
     }
 }

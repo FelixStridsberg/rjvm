@@ -5,6 +5,7 @@ mod arithmetic;
 mod control_transfer;
 mod conversion;
 mod load_and_store;
+mod method_invocation_and_return;
 mod stack_management;
 
 use crate::class::code::Instruction;
@@ -14,20 +15,40 @@ use crate::vm::interpreter::control_transfer::*;
 use crate::vm::interpreter::conversion::*;
 use crate::vm::interpreter::load_and_store::*;
 use crate::vm::interpreter::stack_management::*;
-use crate::vm::Value::{Double, Float, Int, Long};
+use crate::vm::Value::{Double, Float, Int, Long, Reference};
 use crate::vm::{Frame, Value};
+use crate::vm::interpreter::Result::Continue;
 
-pub fn interpret(frame: &mut Frame, instructions: &[Instruction]) -> Option<Value> {
-    let mut ret = None;
-
-    while frame.pc < instructions.len() as u32 {
-        ret = interpret_instruction(frame, &instructions[frame.pc as usize]);
-    }
-
-    ret
+pub (crate) enum Result {
+    Return(Option<Value>),
+    Continue,
 }
 
-pub fn interpret_instruction(frame: &mut Frame, instruction: &Instruction) -> Option<Value> {
+impl Result {
+    fn unwrap(self) -> Option<Value> {
+        match self {
+            Result::Return(d) => d,
+            _ => panic!("Tried to unwrap `Continue` result."),
+        }
+    }
+
+    fn is_return(&self) -> bool {
+        match self {
+            Result::Return(_) => true,
+            Result::Continue => false
+        }
+    }
+}
+
+pub fn interpret(frame: &mut Frame, instructions: &[Instruction]) -> Option<Value> {
+    let mut ret = Continue;
+    while !ret.is_return() {
+        ret = interpret_instruction(frame, &instructions[frame.pc as usize]);
+    }
+    ret.unwrap()
+}
+
+pub(crate) fn interpret_instruction(frame: &mut Frame, instruction: &Instruction) -> Result {
     let mut offset = None;
 
     match &instruction.opcode {
@@ -238,12 +259,16 @@ pub fn interpret_instruction(frame: &mut Frame, instruction: &Instruction) -> Op
         JsrW => offset = jump_subroutine_wide(frame, &instruction.operands),
         Ret => offset = return_from_subroutine(frame, &instruction.operands),
 
+        // Method invocation and return
         // TODO
-        Ireturn => return Some(frame.pop_operand()),
+        Ireturn => return Result::Return(Some(Int(frame.pop_operand_int()))),
+        Lreturn => return Result::Return(Some(Long(frame.pop_operand_long()))),
+        Freturn => return Result::Return(Some(Float(frame.pop_operand_float()))),
+        Dreturn => return Result::Return(Some(Double(frame.pop_operand_double()))),
+        Areturn => return Result::Return(Some(Reference(frame.pop_operand_reference()))),
 
         // Throwing exceptions:
         // TODO
-
         OperationSpacer => panic!("Tried to parse operation as instruction in {:?}", frame),
         _ => unimplemented!(
             "Opcode {:?} is not implemented in interpreter",
@@ -254,8 +279,8 @@ pub fn interpret_instruction(frame: &mut Frame, instruction: &Instruction) -> Op
     if let Some(i) = offset {
         frame.pc = (frame.pc as i32 + i) as u32;
     } else {
-        frame.pc += instruction.len();
+        frame.pc += instruction.size();
     }
 
-    None
+    Continue
 }

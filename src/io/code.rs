@@ -208,7 +208,7 @@ impl<'r, R: BufRead> CodeReader<'r, R> {
             0x21 => (Lload3, 0),
             0x69 => (Lmul, 0),
             0x75 => (Lneg, 0),
-//            0xab => (LookupSwitch, variable)
+            //            0xab => (LookupSwitch, variable)
             0x81 => (Lor, 0),
             0x71 => (Lrem, 0),
             0xad => (Lreturn, 0),

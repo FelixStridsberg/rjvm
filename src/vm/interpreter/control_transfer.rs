@@ -1,5 +1,5 @@
-use crate::vm::{Frame, Value};
 use crate::vm::Value::ReturnAddress;
+use crate::vm::{Frame, Value};
 
 pub fn if_equals(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
     if frame.pop_operand_int() == 0 {
@@ -52,14 +52,14 @@ pub fn if_greater_than_inclusive(frame: &mut Frame, operands: &[u8]) -> Option<i
 pub fn if_null(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
     match frame.pop_operand() {
         Value::Null => Some(offset(operands)),
-        _ => None
+        _ => None,
     }
 }
 
 pub fn if_non_null(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
     match frame.pop_operand() {
         Value::Null => None,
-        _ => Some(offset(operands))
+        _ => Some(offset(operands)),
     }
 }
 
@@ -166,7 +166,6 @@ pub fn return_from_subroutine(frame: &mut Frame, operands: &[u8]) -> Option<i32>
     let offset = frame.get_local(index) as i32;
     Some(offset)
 }
-
 
 fn offset(bytes: &[u8]) -> i32 {
     (bytes[0] as i32) << 8 | bytes[1] as i32
