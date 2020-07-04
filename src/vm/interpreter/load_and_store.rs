@@ -203,7 +203,7 @@ mod test {
     #[test]
     fn iload() {
         test_command!(
-            start_locals: [0x01, 0x02, 0x03, 0x04, 0x05, 0x06],
+            start_locals: { 5 => 6 },
             command: Iload; [0x05],
             final_stack: [Int(6)],
         );
@@ -212,7 +212,7 @@ mod test {
     #[test]
     fn iload0() {
         test_command!(
-            start_locals: [0x01],
+            start_locals: { 0 => 1 },
             command: Iload0,
             final_stack: [Int(1)],
         );
@@ -221,7 +221,7 @@ mod test {
     #[test]
     fn iload1() {
         test_command!(
-            start_locals: [0x01, 0x02],
+            start_locals: { 1 => 2 },
             command: Iload1,
             final_stack: [Int(2)],
         );
@@ -230,7 +230,7 @@ mod test {
     #[test]
     fn iload2() {
         test_command!(
-            start_locals: [0x01, 0x02, 0x03],
+            start_locals: { 2 => 3 },
             command: Iload2,
             final_stack: [Int(3)],
         );
@@ -239,7 +239,7 @@ mod test {
     #[test]
     fn iload3() {
         test_command!(
-            start_locals: [0x01, 0x02, 0x03, 0x04],
+            start_locals: { 3 => 4 },
             command: Iload3,
             final_stack: [Int(4)],
         );
@@ -248,7 +248,7 @@ mod test {
     #[test]
     fn lload() {
         test_command!(
-            start_locals: [0xff, 0xff, 0xff, 0xff, 0x00, 0x08],
+            start_locals_long: { 4 => 8 },
             command: Lload; [0x04],
             final_stack: [Long(8)],
         );
@@ -257,12 +257,13 @@ mod test {
     #[test]
     fn lload0() {
         test_command!(
-            start_locals: [0x00, 0x01],
+            start_locals_long: { 0 => 1 },
             command: Lload0,
             final_stack: [Long(1)],
         );
     }
 
+    /*
     #[test]
     fn lload1() {
         test_command!(
@@ -288,12 +289,12 @@ mod test {
             command: Lload3,
             final_stack: [Long(4)],
         );
-    }
+    } */
 
     #[test]
     fn fload() {
         test_command!(
-            start_locals: [0x01, 0x02, 0x03, 0x04, 0x05, 6.8_f32.to_bits()],
+            start_locals: { 5 => 6.8_f32.to_bits() },
             command: Fload; [0x05],
             final_stack: [Float(6.8)],
         );
@@ -302,7 +303,7 @@ mod test {
     #[test]
     fn fload0() {
         test_command!(
-            start_locals: [1.2_f32.to_bits()],
+            start_locals: { 0 => 1.2_f32.to_bits() },
             command: Fload0,
             final_stack: [Float(1.2)],
         );
@@ -311,7 +312,7 @@ mod test {
     #[test]
     fn fload1() {
         test_command!(
-            start_locals: [0x01, 2.3_f32.to_bits()],
+            start_locals: { 1 => 2.3_f32.to_bits() },
             command: Fload1,
             final_stack: [Float(2.3)],
         );
@@ -320,7 +321,7 @@ mod test {
     #[test]
     fn fload2() {
         test_command!(
-            start_locals: [0x01, 0x02, 3.4_f32.to_bits()],
+            start_locals: { 2 => 3.4_f32.to_bits() },
             command: Fload2,
             final_stack: [Float(3.4)],
         );
@@ -329,7 +330,7 @@ mod test {
     #[test]
     fn fload3() {
         test_command!(
-            start_locals: [0x01, 0x02, 0x03, 4.5_f32.to_bits()],
+            start_locals: { 3 => 4.5_f32.to_bits() },
             command: Fload3,
             final_stack: [Float(4.5)],
         );
@@ -337,9 +338,8 @@ mod test {
 
     #[test]
     fn dload() {
-        let (b1, b2) = split_double(5.6);
         test_command!(
-            start_locals: [0xff, 0xff, 0xff, 0xff, b1, b2],
+            start_locals_long: { 4 => 5.6_f64.to_bits() },
             command: Dload; [0x04],
             final_stack: [Double(5.6)],
         );
@@ -347,9 +347,8 @@ mod test {
 
     #[test]
     fn dload0() {
-        let (b1, b2) = split_double(1.2);
         test_command!(
-            start_locals: [b1, b2],
+            start_locals_long: { 0 => 1.2_f64.to_bits() },
             command: Dload0,
             final_stack: [Double(1.2)],
         );
@@ -357,9 +356,8 @@ mod test {
 
     #[test]
     fn dload1() {
-        let (b1, b2) = split_double(2.3);
         test_command!(
-            start_locals: [0xff, b1, b2],
+            start_locals_long: { 1 => 2.3_f64.to_bits() },
             command: Dload1,
             final_stack: [Double(2.3)],
         );
@@ -367,9 +365,8 @@ mod test {
 
     #[test]
     fn dload2() {
-        let (b1, b2) = split_double(3.4);
         test_command!(
-            start_locals: [0xff, 0xff, b1, b2],
+            start_locals_long: { 2 => 3.4_f64.to_bits() },
             command: Dload2,
             final_stack: [Double(3.4)],
         );
@@ -377,9 +374,8 @@ mod test {
 
     #[test]
     fn dload3() {
-        let (b1, b2) = split_double(4.5);
         test_command!(
-            start_locals: [0xff, 0xff, 0xff, b1, b2],
+            start_locals_long: { 3 => 4.5_f64.to_bits() },
             command: Dload3,
             final_stack: [Double(4.5)],
         );
@@ -388,7 +384,7 @@ mod test {
     #[test]
     fn aload() {
         test_command!(
-            start_locals: [0x01, 0x02, 0x03, 0x04, 0x05, 0x06],
+            start_locals: { 5 => 6 },
             command: Aload; [0x05],
             final_stack: [Reference(6)],
         );
@@ -397,7 +393,7 @@ mod test {
     #[test]
     fn aload0() {
         test_command!(
-            start_locals: [0x01],
+            start_locals: { 0 => 1 },
             command: Aload0,
             final_stack: [Reference(1)],
         );
@@ -406,7 +402,7 @@ mod test {
     #[test]
     fn aload1() {
         test_command!(
-            start_locals: [0x01, 0x02],
+            start_locals: { 1 => 2 },
             command: Aload1,
             final_stack: [Reference(2)],
         );
@@ -415,7 +411,7 @@ mod test {
     #[test]
     fn aload2() {
         test_command!(
-            start_locals: [0x01, 0x02, 0x03],
+            start_locals: { 2 => 3 },
             command: Aload2,
             final_stack: [Reference(3)],
         );
@@ -424,7 +420,7 @@ mod test {
     #[test]
     fn aload3() {
         test_command!(
-            start_locals: [0x01, 0x02, 0x03, 0x04],
+            start_locals: { 3 => 4 },
             command: Aload3,
             final_stack: [Reference(4)],
         );
@@ -432,215 +428,296 @@ mod test {
 
     #[test]
     fn istore() {
-        let constants = ConstantPool::new(0);
-        let mut frame = Frame::new(10, 10, &constants);
-        frame.push_operand(Int(5));
-        frame.push_operand(Int(4));
-        frame.push_operand(Int(3));
-        frame.push_operand(Int(2));
-        frame.push_operand(Int(1));
-
-        interpret(
-            &mut frame,
-            &vec![
-                Instruction::new(Istore0, vec![]),
-                Instruction::new(Istore1, vec![]),
-                Instruction::new(Istore2, vec![]),
-                Instruction::new(Istore3, vec![]),
-                Instruction::new(Istore, vec![0x05]),
-            ],
+        test_command!(
+            start_stack: [Int(0), Int(0), Int(0), Int(0), Int(0), Int(10)],
+            command: Istore; [0x05],
+            final_locals: { 5 => 10 },
         );
+    }
 
-        assert_eq!(frame.get_local(0), 1);
-        assert_eq!(frame.get_local(1), 2);
-        assert_eq!(frame.get_local(2), 3);
-        assert_eq!(frame.get_local(3), 4);
-        assert_eq!(frame.get_local(5), 5);
+    #[test]
+    fn istore0() {
+        test_command!(
+            start_stack: [Int(1)],
+            command: Istore0,
+            final_locals: { 0 => 1 },
+        );
+    }
+
+    #[test]
+    fn istore1() {
+        test_command!(
+            start_stack: [Int(2)],
+            command: Istore1,
+            final_locals: { 1 => 2 },
+        );
+    }
+
+    #[test]
+    fn istore2() {
+        test_command!(
+            start_stack: [Int(3)],
+            command: Istore2,
+            final_locals: { 2 => 3 },
+        );
+    }
+
+    #[test]
+    fn istore3() {
+        test_command!(
+            start_stack: [Int(4)],
+            command: Istore3,
+            final_locals: { 3 => 4 },
+        );
     }
 
     #[test]
     fn lstore() {
-        let constants = ConstantPool::new(0);
-        let mut frame = Frame::new(10, 10, &constants);
-        frame.push_operand(Long(5));
-        frame.push_operand(Long(4));
-        frame.push_operand(Long(3));
-        frame.push_operand(Long(2));
-        frame.push_operand(Long(1));
-
-        interpret(
-            &mut frame,
-            &vec![
-                Instruction::new(Lstore0, vec![]),
-                Instruction::new(Lstore2, vec![]),
-                Instruction::new(Lstore, vec![0x05]),
-            ],
+        test_command!(
+            start_stack: [Int(0), Int(0), Int(0), Int(0), Int(0), Long(10)],
+            command: Lstore; [0x05],
+            final_locals_long: { 5 => 10 },
         );
+    }
 
-        assert_eq!(frame.get_local_long(0), 1);
-        assert_eq!(frame.get_local_long(2), 2);
-        assert_eq!(frame.get_local_long(5), 3);
-
-        interpret(
-            &mut frame,
-            &vec![
-                Instruction::new(Lstore1, vec![]),
-                Instruction::new(Lstore3, vec![]),
-            ],
+    #[test]
+    fn lstore0() {
+        test_command!(
+            start_stack: [Long(1)],
+            command: Lstore0,
+            final_locals_long: { 0 => 1 },
         );
+    }
 
-        assert_eq!(frame.get_local_long(1), 4);
-        assert_eq!(frame.get_local_long(3), 5);
+    #[test]
+    fn lstore1() {
+        test_command!(
+            start_stack: [Long(2)],
+            command: Lstore1,
+            final_locals_long: { 1 => 2 },
+        );
+    }
+
+    #[test]
+    fn lstore2() {
+        test_command!(
+            start_stack: [Long(3)],
+            command: Lstore2,
+            final_locals_long: { 2 => 3 },
+        );
+    }
+
+    #[test]
+    fn lstore3() {
+        test_command!(
+            start_stack: [Long(4)],
+            command: Lstore3,
+            final_locals_long: { 3 => 4 },
+        );
     }
 
     #[test]
     fn fstore() {
-        let constants = ConstantPool::new(0);
-        let mut frame = Frame::new(10, 10, &constants);
-        frame.push_operand(Float(5.1));
-        frame.push_operand(Float(4.1));
-        frame.push_operand(Float(3.1));
-        frame.push_operand(Float(2.1));
-        frame.push_operand(Float(1.1));
-
-        interpret(
-            &mut frame,
-            &vec![
-                Instruction::new(Fstore0, vec![]),
-                Instruction::new(Fstore1, vec![]),
-                Instruction::new(Fstore2, vec![]),
-                Instruction::new(Fstore3, vec![]),
-                Instruction::new(Fstore, vec![0x06]),
-            ],
+        test_command!(
+            start_stack: [Int(0), Int(0), Int(0), Int(0), Int(0), Float(5.1)],
+            command: Fstore; [0x05],
+            final_locals: { 5 => 5.1_f32.to_bits() },
         );
+    }
 
-        println!("F: {:?}", frame.local_variables);
+    #[test]
+    fn fstore0() {
+        test_command!(
+            start_stack: [Float(1.1)],
+            command: Fstore0,
+            final_locals: { 0 => 1.1_f32.to_bits() },
+        );
+    }
 
-        assert_eq!(f32::from_bits(frame.get_local(0)), 1.1);
-        assert_eq!(f32::from_bits(frame.get_local(1)), 2.1);
-        assert_eq!(f32::from_bits(frame.get_local(2)), 3.1);
-        assert_eq!(f32::from_bits(frame.get_local(3)), 4.1);
-        assert_eq!(f32::from_bits(frame.get_local(6)), 5.1);
+    #[test]
+    fn fstore1() {
+        test_command!(
+            start_stack: [Float(2.2)],
+            command: Fstore1,
+            final_locals: { 1 => 2.2_f32.to_bits() },
+        );
+    }
+
+    #[test]
+    fn fstore2() {
+        test_command!(
+            start_stack: [Float(3.3)],
+            command: Fstore2,
+            final_locals: { 2 => 3.3_f32.to_bits() },
+        );
+    }
+
+    #[test]
+    fn fstore3() {
+        test_command!(
+            start_stack: [Float(4.4)],
+            command: Fstore3,
+            final_locals: { 3 => 4.4_f32.to_bits() },
+        );
     }
 
     #[test]
     fn dstore() {
-        let constants = ConstantPool::new(0);
-        let mut frame = Frame::new(10, 10, &constants);
-        frame.push_operand(Double(5.2));
-        frame.push_operand(Double(4.2));
-        frame.push_operand(Double(3.2));
-        frame.push_operand(Double(2.2));
-        frame.push_operand(Double(1.2));
-
-        interpret(
-            &mut frame,
-            &vec![
-                Instruction::new(Dstore0, vec![]),
-                Instruction::new(Dstore2, vec![]),
-                Instruction::new(Dstore, vec![0x05]),
-            ],
+        test_command!(
+            start_stack: [Int(0), Int(0), Int(0), Int(0), Int(0), Double(5.1)],
+            command: Dstore; [0x05],
+            final_locals_long: { 5 => 5.1_f64.to_bits() },
         );
+    }
 
-        assert_eq!(f64::from_bits(frame.get_local_long(0)), 1.2);
-        assert_eq!(f64::from_bits(frame.get_local_long(2)), 2.2);
-        assert_eq!(f64::from_bits(frame.get_local_long(5)), 3.2);
-
-        interpret(
-            &mut frame,
-            &vec![
-                Instruction::new(Dstore1, vec![]),
-                Instruction::new(Dstore3, vec![]),
-            ],
+    #[test]
+    fn dstore0() {
+        test_command!(
+            start_stack: [Double(1.1)],
+            command: Dstore0,
+            final_locals_long: { 0 => 1.1_f64.to_bits() },
         );
+    }
 
-        assert_eq!(f64::from_bits(frame.get_local_long(1)), 4.2);
-        assert_eq!(f64::from_bits(frame.get_local_long(3)), 5.2);
+    #[test]
+    fn dstore1() {
+        test_command!(
+            start_stack: [Double(2.2)],
+            command: Dstore1,
+            final_locals_long: { 1 => 2.2_f64.to_bits() },
+        );
+    }
+
+    #[test]
+    fn dstore2() {
+        test_command!(
+            start_stack: [Double(3.3)],
+            command: Dstore2,
+            final_locals_long: { 2 => 3.3_f64.to_bits() },
+        );
+    }
+
+    #[test]
+    fn dstore3() {
+        test_command!(
+            start_stack: [Double(4.4)],
+            command: Dstore3,
+            final_locals_long: { 3 => 4.4_f64.to_bits() },
+        );
     }
 
     #[test]
     fn astore() {
-        let constants = ConstantPool::new(0);
-        let mut frame = Frame::new(10, 10, &constants);
-        frame.push_operand(ReturnAddress(5));
-        frame.push_operand(Reference(4));
-        frame.push_operand(Reference(3));
-        frame.push_operand(Reference(2));
-        frame.push_operand(Reference(1));
-
-        interpret(
-            &mut frame,
-            &vec![
-                Instruction::new(Astore0, vec![]),
-                Instruction::new(Astore1, vec![]),
-                Instruction::new(Astore2, vec![]),
-                Instruction::new(Astore3, vec![]),
-                Instruction::new(Astore, vec![0x05]),
-            ],
+        test_command!(
+            start_stack: [Int(0), Int(0), Int(0), Int(0), Int(0), ReturnAddress(10)],
+            command: Astore; [0x05],
+            final_locals: { 5 => 10 },
         );
-
-        assert_eq!(frame.get_local(0), 1);
-        assert_eq!(frame.get_local(1), 2);
-        assert_eq!(frame.get_local(2), 3);
-        assert_eq!(frame.get_local(3), 4);
-        assert_eq!(frame.get_local(5), 5);
     }
 
     #[test]
-    fn ipush() {
-        let constants = ConstantPool::new(0);
-        let mut frame = Frame::new(10, 10, &constants);
-
-        interpret(
-            &mut frame,
-            &vec![
-                Instruction::new(Bipush, vec![0x05]),
-                Instruction::new(Sipush, vec![0x01, 0x10]),
-            ],
+    fn astore0() {
+        test_command!(
+            start_stack: [Reference(1)],
+            command: Astore0,
+            final_locals: { 0 => 1 },
         );
-
-        assert_eq!(frame.operand_stack, vec![Int(5), Short(272)],)
     }
 
     #[test]
-    fn ldc() {
-        let mut constants = ConstantPool::new(2);
-        constants.add(Constant::Integer(10));
-        constants.add(Constant::Float(14.4));
-        constants.add(Constant::Integer(12));
-        constants.add(Constant::Float(14.2));
-        constants.add(Constant::Long(12));
-        constants.add(Constant::Double(47.42));
-
-        let mut frame = Frame::new(10, 10, &constants);
-
-        interpret(
-            &mut frame,
-            &vec![
-                Instruction::new(Ldc, vec![0x01]),
-                Instruction::new(Ldc, vec![0x02]),
-                Instruction::new(LdcW, vec![0x00, 0x03]),
-                Instruction::new(LdcW, vec![0x00, 0x04]),
-                Instruction::new(Ldc2W, vec![0x00, 0x05]),
-                Instruction::new(Ldc2W, vec![0x00, 0x07]),
-            ],
+    fn astore1() {
+        test_command!(
+            start_stack: [Reference(2)],
+            command: Astore1,
+            final_locals: { 1 => 2 },
         );
-
-        assert_eq!(
-            frame.operand_stack,
-            vec![
-                Int(10),
-                Float(14.4),
-                Int(12),
-                Float(14.2),
-                Long(12),
-                Double(47.42)
-            ],
-        )
     }
 
-    fn split_double(d: f64) -> (u32, u32) {
-        let bits = d.to_bits();
-        ((bits >> 32) as u32, (bits & 0xFFFF_FFFF) as u32)
+    #[test]
+    fn astore2() {
+        test_command!(
+            start_stack: [Reference(3)],
+            command: Astore2,
+            final_locals: { 2 => 3 },
+        );
+    }
+
+    #[test]
+    fn astore3() {
+        test_command!(
+            start_stack: [Reference(4)],
+            command: Astore3,
+            final_locals: { 3 => 4 },
+        );
+    }
+
+    #[test]
+    fn bipush() {
+        test_command!(
+            command: Bipush; [0x05],
+            final_stack: [Int(5)],
+        );
+    }
+
+    #[test]
+    fn sipush() {
+        test_command!(
+            command: Sipush; [0x01, 0x10],
+            final_stack: [Short(272)],
+        );
+    }
+
+    #[test]
+    fn ldc_int() {
+        test_command!(
+            constants: [Constant::Integer(10)],
+            command: Ldc; [0x01],
+            final_stack: [Int(10)],
+        );
+    }
+
+    #[test]
+    fn ldc_float() {
+        test_command!(
+            constants: [Constant::Float(10.1)],
+            command: Ldc; [0x01],
+            final_stack: [Float(10.1)],
+        );
+    }
+
+    #[test]
+    fn ldc_w_int() {
+        test_command!(
+            constants: [Constant::Integer(10)],
+            command: LdcW; [0x00, 0x01],
+            final_stack: [Int(10)],
+        );
+    }
+
+    #[test]
+    fn ldc_w_float() {
+        test_command!(
+            constants: [Constant::Float(10.1)],
+            command: LdcW; [0x00, 0x01],
+            final_stack: [Float(10.1)],
+        );
+    }
+
+    #[test]
+    fn ldc2_w_long() {
+        test_command!(
+            constants: [Constant::Long(10)],
+            command: Ldc2W; [0x00, 0x01],
+            final_stack: [Long(10)],
+        );
+    }
+
+    #[test]
+    fn ldc2_w_double() {
+        test_command!(
+            constants: [Constant::Double(10.1)],
+            command: Ldc2W; [0x00, 0x01],
+            final_stack: [Double(10.1)],
+        );
     }
 }

@@ -583,9 +583,9 @@ mod test {
     #[test]
     fn iinc() {
         test_command!(
-            start_locals: [0x00, 0x0a],
+            start_locals: {1 => 0x0a},
             command: Iinc; [0x01, 0x06],
-            final_locals: [0x00, 0x10],
+            final_locals: {1 => 0x10},
         );
     }
 
