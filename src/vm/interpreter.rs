@@ -219,6 +219,24 @@ pub fn interpret_instruction(frame: &mut Frame, instruction: &Instruction) -> Op
         IfNull => offset = if_null(frame, &instruction.operands),
         IfNonNull => offset = if_non_null(frame, &instruction.operands),
 
+        IfIcmpEq => offset = if_int_equals(frame, &instruction.operands),
+        IfIcmpNe => offset = if_int_not_equals(frame, &instruction.operands),
+        IfIcmpLt => offset = if_int_less_than(frame, &instruction.operands),
+        IfIcmpLe => offset = if_int_less_than_inclusive(frame, &instruction.operands),
+        IfIcmpGt => offset = if_int_greater_than(frame, &instruction.operands),
+        IfIcmpGe => offset = if_int_greater_than_inclusive(frame, &instruction.operands),
+
+        IfAcmpEq => offset = if_reference_equals(frame, &instruction.operands),
+        IfAcmpNe => offset = if_reference_not_equals(frame, &instruction.operands),
+
+        TableSwitch => panic!("TableSwitch not implemented"),
+        LookupSwitch => panic!("LookupSwitch not implemented"),
+
+        Goto => offset = goto(&instruction.operands),
+        GotoW => offset = goto_wide(&instruction.operands),
+        Jsr => offset = jump_subroutine(frame, &instruction.operands),
+        JsrW => offset = jump_subroutine_wide(frame, &instruction.operands),
+        Ret => offset = return_from_subroutine(frame, &instruction.operands),
 
         // TODO
         Ireturn => return Some(frame.pop_operand()),

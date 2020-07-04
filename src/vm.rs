@@ -144,6 +144,13 @@ impl Frame<'_> {
             op => panic!("Expected double to pop, found {:?}", op),
         }
     }
+
+    pub fn pop_operand_reference(&mut self) -> i32 {
+        match self.pop_operand() {
+            Reference(i) => i,
+            op => panic!("Expected reference to pop, found {:?}", op),
+        }
+    }
 }
 
 #[cfg(test)]

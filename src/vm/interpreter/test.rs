@@ -28,7 +28,7 @@ macro_rules! test_command {
 
             // Assert
 
-            $(assert_eq!(frame.pc, $final_pc, "Expecting frame pc to be equal to final_pc."))?
+            $(assert_eq!(frame.pc, $final_pc, "Expecting frame pc to be equal to final_pc.");)?
 
             $(
                 assert_eq!(
