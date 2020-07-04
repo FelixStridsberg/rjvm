@@ -247,135 +247,186 @@ mod test {
 
     #[test]
     fn lload() {
-        let constants = ConstantPool::new(0);
-        let mut frame = Frame::new(10, 10, &constants);
-        frame.set_local_long(0, 1);
-        frame.set_local_long(2, 2);
-        frame.set_local_long(8, 9);
-
-        interpret(
-            &mut frame,
-            &vec![
-                Instruction::new(Lload0, vec![]),
-                Instruction::new(Lload2, vec![]),
-                Instruction::new(Lload, vec![0x08]),
-            ],
+        test_command!(
+            start_locals: [0xff, 0xff, 0xff, 0xff, 0x00, 0x08],
+            command: Lload; [0x04],
+            final_stack: [Long(8)],
         );
+    }
 
-        frame.set_local_long(1, 4);
-        frame.set_local_long(3, 5);
-
-        interpret(
-            &mut frame,
-            &vec![
-                Instruction::new(Lload1, vec![]),
-                Instruction::new(Lload3, vec![]),
-            ],
+    #[test]
+    fn lload0() {
+        test_command!(
+            start_locals: [0x00, 0x01],
+            command: Lload0,
+            final_stack: [Long(1)],
         );
+    }
 
-        assert_eq!(
-            frame.operand_stack,
-            vec![Long(1), Long(2), Long(9), Long(4), Long(5)]
+    #[test]
+    fn lload1() {
+        test_command!(
+            start_locals: [0xff, 0x00, 0x02],
+            command: Lload1,
+            final_stack: [Long(2)],
+        );
+    }
+
+    #[test]
+    fn lload2() {
+        test_command!(
+            start_locals: [0xff, 0xff, 0x00, 0x03],
+            command: Lload2,
+            final_stack: [Long(3)],
+        );
+    }
+
+    #[test]
+    fn lload3() {
+        test_command!(
+            start_locals: [0xff, 0xff, 0xff, 0x00, 0x04],
+            command: Lload3,
+            final_stack: [Long(4)],
         );
     }
 
     #[test]
     fn fload() {
-        let constants = ConstantPool::new(0);
-        let mut frame = Frame::new(10, 10, &constants);
-        frame.set_local(0, 1.2_f32.to_bits());
-        frame.set_local(1, 2.3_f32.to_bits());
-        frame.set_local(2, 3.4_f32.to_bits());
-        frame.set_local(3, 4.5_f32.to_bits());
-        frame.set_local(4, 5.6_f32.to_bits());
-
-        interpret(
-            &mut frame,
-            &vec![
-                Instruction::new(Fload0, vec![]),
-                Instruction::new(Fload1, vec![]),
-                Instruction::new(Fload2, vec![]),
-                Instruction::new(Fload3, vec![]),
-                Instruction::new(Fload, vec![0x04]),
-            ],
+        test_command!(
+            start_locals: [0x01, 0x02, 0x03, 0x04, 0x05, 6.8_f32.to_bits()],
+            command: Fload; [0x05],
+            final_stack: [Float(6.8)],
         );
+    }
 
-        assert_eq!(
-            frame.operand_stack,
-            vec![Float(1.2), Float(2.3), Float(3.4), Float(4.5), Float(5.6)]
+    #[test]
+    fn fload0() {
+        test_command!(
+            start_locals: [1.2_f32.to_bits()],
+            command: Fload0,
+            final_stack: [Float(1.2)],
+        );
+    }
+
+    #[test]
+    fn fload1() {
+        test_command!(
+            start_locals: [0x01, 2.3_f32.to_bits()],
+            command: Fload1,
+            final_stack: [Float(2.3)],
+        );
+    }
+
+    #[test]
+    fn fload2() {
+        test_command!(
+            start_locals: [0x01, 0x02, 3.4_f32.to_bits()],
+            command: Fload2,
+            final_stack: [Float(3.4)],
+        );
+    }
+
+    #[test]
+    fn fload3() {
+        test_command!(
+            start_locals: [0x01, 0x02, 0x03, 4.5_f32.to_bits()],
+            command: Fload3,
+            final_stack: [Float(4.5)],
         );
     }
 
     #[test]
     fn dload() {
-        let constants = ConstantPool::new(0);
-        let mut frame = Frame::new(10, 10, &constants);
-        frame.set_local_long(0, 1.2_f64.to_bits());
-        frame.set_local_long(2, 2.3_f64.to_bits());
-        frame.set_local_long(8, 5.6_f64.to_bits());
-
-        interpret(
-            &mut frame,
-            &vec![
-                Instruction::new(Dload0, vec![]),
-                Instruction::new(Dload2, vec![]),
-                Instruction::new(Dload, vec![0x08]),
-            ],
+        let (b1, b2) = split_double(5.6);
+        test_command!(
+            start_locals: [0xff, 0xff, 0xff, 0xff, b1, b2],
+            command: Dload; [0x04],
+            final_stack: [Double(5.6)],
         );
+    }
 
-        frame.set_local_long(1, 1.1_f64.to_bits());
-        frame.set_local_long(3, 4.4_f64.to_bits());
-
-        interpret(
-            &mut frame,
-            &vec![
-                Instruction::new(Dload1, vec![]),
-                Instruction::new(Dload3, vec![]),
-            ],
+    #[test]
+    fn dload0() {
+        let (b1, b2) = split_double(1.2);
+        test_command!(
+            start_locals: [b1, b2],
+            command: Dload0,
+            final_stack: [Double(1.2)],
         );
+    }
 
-        assert_eq!(
-            frame.operand_stack,
-            vec![
-                Double(1.2),
-                Double(2.3),
-                Double(5.6),
-                Double(1.1),
-                Double(4.4)
-            ]
+    #[test]
+    fn dload1() {
+        let (b1, b2) = split_double(2.3);
+        test_command!(
+            start_locals: [0xff, b1, b2],
+            command: Dload1,
+            final_stack: [Double(2.3)],
+        );
+    }
+
+    #[test]
+    fn dload2() {
+        let (b1, b2) = split_double(3.4);
+        test_command!(
+            start_locals: [0xff, 0xff, b1, b2],
+            command: Dload2,
+            final_stack: [Double(3.4)],
+        );
+    }
+
+    #[test]
+    fn dload3() {
+        let (b1, b2) = split_double(4.5);
+        test_command!(
+            start_locals: [0xff, 0xff, 0xff, b1, b2],
+            command: Dload3,
+            final_stack: [Double(4.5)],
         );
     }
 
     #[test]
     fn aload() {
-        let constants = ConstantPool::new(0);
-        let mut frame = Frame::new(10, 10, &constants);
-        frame.set_local(0, 1);
-        frame.set_local(1, 2);
-        frame.set_local(2, 3);
-        frame.set_local(3, 4);
-        frame.set_local(7, 9);
-
-        interpret(
-            &mut frame,
-            &vec![
-                Instruction::new(Aload0, vec![]),
-                Instruction::new(Aload1, vec![]),
-                Instruction::new(Aload2, vec![]),
-                Instruction::new(Aload3, vec![]),
-                Instruction::new(Aload, vec![0x07]),
-            ],
+        test_command!(
+            start_locals: [0x01, 0x02, 0x03, 0x04, 0x05, 0x06],
+            command: Aload; [0x05],
+            final_stack: [Reference(6)],
         );
+    }
 
-        assert_eq!(
-            frame.operand_stack,
-            vec![
-                Reference(1),
-                Reference(2),
-                Reference(3),
-                Reference(4),
-                Reference(9)
-            ]
+    #[test]
+    fn aload0() {
+        test_command!(
+            start_locals: [0x01],
+            command: Aload0,
+            final_stack: [Reference(1)],
+        );
+    }
+
+    #[test]
+    fn aload1() {
+        test_command!(
+            start_locals: [0x01, 0x02],
+            command: Aload1,
+            final_stack: [Reference(2)],
+        );
+    }
+
+    #[test]
+    fn aload2() {
+        test_command!(
+            start_locals: [0x01, 0x02, 0x03],
+            command: Aload2,
+            final_stack: [Reference(3)],
+        );
+    }
+
+    #[test]
+    fn aload3() {
+        test_command!(
+            start_locals: [0x01, 0x02, 0x03, 0x04],
+            command: Aload3,
+            final_stack: [Reference(4)],
         );
     }
 
@@ -586,5 +637,10 @@ mod test {
                 Double(47.42)
             ],
         )
+    }
+
+    fn split_double(d: f64) -> (u32, u32) {
+        let bits = d.to_bits();
+        ((bits >> 32) as u32, (bits & 0xFFFF_FFFF) as u32)
     }
 }
