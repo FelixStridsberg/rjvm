@@ -1,10 +1,11 @@
-use crate::class::constant::ConstantPool;
-use crate::class::{MethodInfo, Class};
-use crate::vm::interpreter::interpret_instruction;
-use crate::vm::Value::*;
 use crate::class::code::Instruction;
+use crate::class::constant::Constant::{ClassRef, MethodRef, NameAndType};
+use crate::class::constant::ConstantPool;
+use crate::class::Class;
+use crate::vm::interpreter::interpret_instruction;
 use crate::vm::interpreter::State::*;
-use crate::class::constant::Constant::{MethodRef, ClassRef, NameAndType};
+use crate::vm::Value::*;
+use std::collections::HashMap;
 
 mod interpreter;
 
@@ -33,7 +34,13 @@ impl Value {
 
     pub fn get_int_value(&self) -> u32 {
         match self {
-            Boolean(b) => if *b { 1 } else { 0 },
+            Boolean(b) => {
+                if *b {
+                    1
+                } else {
+                    0
+                }
+            }
             Byte(b) => *b as u32,
             Short(s) => *s as u32,
             Char(c) => *c as u32,
@@ -46,8 +53,8 @@ impl Value {
 
     pub fn get_long_value(&self) -> u64 {
         match self {
-            | Long(l) => *l as u64,
-            | Double(d) => (*d).to_bits(),
+            Long(l) => *l as u64,
+            Double(d) => (*d).to_bits(),
             _ => panic!("Tried to get long value of {:?}", self),
         }
     }
@@ -55,19 +62,30 @@ impl Value {
 
 pub struct VirtualMachine<'a> {
     stack: Vec<Frame<'a>>,
+    class_register: HashMap<String, Class>,
 }
 
 impl VirtualMachine<'_> {
     pub fn new() -> Self {
-        VirtualMachine { stack: Vec::new() }
+        VirtualMachine {
+            stack: Vec::new(),
+            class_register: HashMap::new(),
+        }
+    }
+
+    pub fn register_class(&mut self, class: Class) {
+        self.class_register.insert(class.this_class.clone(), class);
     }
 
     pub fn invoke_static_method(
-        &mut self,
-        class: &Class,
-        method: &MethodInfo,
-        args: Vec<Value>
+        &self,
+        class_name: &str,
+        method_name: &str,
+        args: Vec<Value>,
     ) -> Option<Value> {
+        let class = self.class_register.get(class_name).expect("Unknown class");
+        let method = class.find_public_static_method(method_name).unwrap();
+
         let code = method.get_code().expect("No Code attribute on method.");
         let mut frame = Frame::new(code.max_stack, code.max_locals, &class.constants);
 
@@ -85,17 +103,17 @@ impl VirtualMachine<'_> {
         self.interpret(&mut frame, &code.instructions)
     }
 
-    pub fn interpret(&mut self, frame: &mut Frame, instructions: &[Instruction]) -> Option<Value> {
+    pub fn interpret(&self, frame: &mut Frame, instructions: &[Instruction]) -> Option<Value> {
         loop {
             match interpret_instruction(frame, &instructions[frame.pc as usize]) {
-                Running => {},
+                Running => {}
                 Returned(value) => return value,
                 InvokedStatic(index) => self.invoke_static(frame, index),
             }
         }
     }
 
-    fn invoke_static(&mut self, frame: &mut Frame, index: u16) {
+    fn invoke_static(&self, frame: &mut Frame, index: u16) {
         let method_ref = frame.constant_pool.get(index);
 
         match method_ref {
@@ -107,11 +125,15 @@ impl VirtualMachine<'_> {
                     println!("name: {:?}", frame.constant_pool.get(*name_idx));
                     println!("type: {:?}", frame.constant_pool.get(*type_idx));
                 }
-            },
+            }
             _ => panic!(""),
         }
 
-        panic!("Invoked static at index {:?}: {:?}", index, frame.constant_pool.get(index));
+        panic!(
+            "Invoked static at index {:?}: {:?}",
+            index,
+            frame.constant_pool.get(index)
+        );
     }
 }
 

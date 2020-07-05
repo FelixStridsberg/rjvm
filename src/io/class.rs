@@ -10,14 +10,14 @@ use crate::error::ErrorKind::ParseError;
 use crate::error::{Error, Result};
 use crate::io::attribute::AttributeReader;
 use crate::io::ReadBytesExt;
+use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
-use std::fs::File;
 
 const SIGNATURE: &[u8] = &[0xCA, 0xFE, 0xBA, 0xBE];
 
 pub struct ClassReader<R: BufRead> {
-    reader: R
+    reader: R,
 }
 
 impl ClassReader<BufReader<File>> {
@@ -37,8 +37,12 @@ impl<R: BufRead> ClassReader<R> {
         let version = self.read_version()?;
         let constants = self.read_constants()?;
         let access_flags = self.read_access_flags()?;
-        let this_class = constants.get_class_info_name(self.reader.read_u2()?).to_owned();
-        let super_class = constants.get_class_info_name(self.reader.read_u2()?).to_owned();
+        let this_class = constants
+            .get_class_info_name(self.reader.read_u2()?)
+            .to_owned();
+        let super_class = constants
+            .get_class_info_name(self.reader.read_u2()?)
+            .to_owned();
         let interfaces = self.read_interfaces(&constants)?;
         let fields = self.read_fields(&constants)?;
         let methods = self.read_methods(&constants)?;
@@ -138,7 +142,11 @@ impl<R: BufRead> ClassReader<R> {
         let mut indexes = Vec::with_capacity(len as usize);
 
         for _ in 0..len {
-            indexes.push(constants.get_class_info_name(self.reader.read_u2()?).to_owned())
+            indexes.push(
+                constants
+                    .get_class_info_name(self.reader.read_u2()?)
+                    .to_owned(),
+            )
         }
         Ok(indexes)
     }

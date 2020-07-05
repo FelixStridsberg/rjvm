@@ -59,7 +59,11 @@ impl<'r, 'c, R: BufRead> AttributeReader<'r, 'c, R> {
         let mut exceptions = Vec::with_capacity(exception_count as usize);
 
         for _ in 0..exception_count {
-            exceptions.push(self.constants.get_class_info_name(self.reader.read_u2()?).to_owned());
+            exceptions.push(
+                self.constants
+                    .get_class_info_name(self.reader.read_u2()?)
+                    .to_owned(),
+            );
         }
 
         Ok(Exceptions(exceptions))
@@ -280,10 +284,7 @@ mod test {
         );
     }
 
-    fn read_attributes<R: BufRead>(
-        r: &mut R,
-        constants: &ConstantPool,
-    ) -> Vec<Attribute> {
+    fn read_attributes<R: BufRead>(r: &mut R, constants: &ConstantPool) -> Vec<Attribute> {
         let mut reader = AttributeReader::new(r, &constants);
         reader.read_attributes().unwrap()
     }
