@@ -1,7 +1,11 @@
 use crate::class::constant::ConstantPool;
-use crate::class::MethodInfo;
-use crate::vm::interpreter::interpret;
+use crate::class::{MethodInfo, Class};
+use crate::vm::interpreter::{interpret_instruction, State};
 use crate::vm::Value::*;
+use crate::class::code::Instruction;
+use crate::vm::interpreter::State::*;
+use crate::class::constant::Constant::{MethodRef, ClassRef, NameAndType};
+use bitflags::_core::iter::Map;
 
 mod interpreter;
 
@@ -60,7 +64,7 @@ impl VirtualMachine<'_> {
     }
 
     pub fn invoke_static_method(
-        &self,
+        &mut self,
         constants: &ConstantPool,
         method: &MethodInfo,
         args: Vec<Value>
@@ -79,7 +83,36 @@ impl VirtualMachine<'_> {
             }
         }
 
-        interpret(&mut frame, &code.instructions)
+        self.interpret(&mut frame, &code.instructions)
+    }
+
+    pub fn interpret(&mut self, frame: &mut Frame, instructions: &[Instruction]) -> Option<Value> {
+        loop {
+            match interpret_instruction(frame, &instructions[frame.pc as usize]) {
+                Running => {},
+                Returned(value) => return value,
+                InvokedStatic(index) => self.invoke_static(frame, index),
+            }
+        }
+    }
+
+    fn invoke_static(&mut self, frame: &mut Frame, index: u16) {
+        let method_ref = frame.constant_pool.get(index);
+
+        match method_ref {
+            MethodRef(class_index, name_type_index) => {
+                if let ClassRef(class) = frame.constant_pool.get(*class_index) {
+                    println!("class: {:?}", frame.constant_pool.get(*class));
+                }
+                if let NameAndType(name_idx, type_idx) = frame.constant_pool.get(*name_type_index) {
+                    println!("name: {:?}", frame.constant_pool.get(*name_idx));
+                    println!("type: {:?}", frame.constant_pool.get(*type_idx));
+                }
+            },
+            _ => panic!(""),
+        }
+
+        panic!("Invoked static at index {:?}: {:?}", index, frame.constant_pool.get(index));
     }
 }
 

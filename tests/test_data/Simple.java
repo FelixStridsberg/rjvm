@@ -17,4 +17,8 @@ public class Simple {
     public static long add_long(long a, long b) {
         return a + b;
     }
+
+    public static int add_nested(int a, int b) {
+        return add(a, b);
+    }
 }

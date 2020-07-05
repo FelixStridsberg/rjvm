@@ -15,45 +15,19 @@ use crate::vm::interpreter::control_transfer::*;
 use crate::vm::interpreter::conversion::*;
 use crate::vm::interpreter::load_and_store::*;
 use crate::vm::interpreter::stack_management::*;
-use crate::vm::interpreter::Result::Continue;
+use crate::vm::interpreter::State::*;
 use crate::vm::Value::{Double, Float, Int, Long, Reference};
 use crate::vm::{Frame, Value};
 
-pub(crate) enum Result {
-    Return(Option<Value>),
-    Continue,
+pub(crate) enum State {
+    Running,
+    Returned(Option<Value>),
+    InvokedStatic(u16),
 }
 
-impl Result {
-    fn unwrap(self) -> Option<Value> {
-        match self {
-            Result::Return(d) => d,
-            _ => panic!("Tried to unwrap `Continue` result."),
-        }
-    }
-
-    fn is_return(&self) -> bool {
-        match self {
-            Result::Return(_) => true,
-            Result::Continue => false,
-        }
-    }
-}
-
-pub fn interpret(frame: &mut Frame, instructions: &[Instruction]) -> Option<Value> {
-    let mut ret = Continue;
-    while !ret.is_return() {
-        ret = interpret_instruction(frame, &instructions[frame.pc as usize]);
-    }
-    ret.unwrap()
-}
-
-pub(crate) fn interpret_instruction(frame: &mut Frame, instruction: &Instruction) -> Result {
+pub(crate) fn interpret_instruction(frame: &mut Frame, instruction: &Instruction) -> State {
     let mut offset = None;
 
-    println!("Locals: {:?}", frame.local_variables);
-    println!("Stack: {:?}", frame.operand_stack);
-    println!("Instruction: {:?}", instruction);
     match &instruction.opcode {
         // Load and store:
         Iload => load_int(frame, &instruction.operands),
@@ -264,12 +238,14 @@ pub(crate) fn interpret_instruction(frame: &mut Frame, instruction: &Instruction
 
         // Method invocation and return
         // TODO
-        Return => return Result::Return(None),
-        Ireturn => return Result::Return(Some(Int(frame.pop_operand_int()))),
-        Lreturn => return Result::Return(Some(Long(frame.pop_operand_long()))),
-        Freturn => return Result::Return(Some(Float(frame.pop_operand_float()))),
-        Dreturn => return Result::Return(Some(Double(frame.pop_operand_double()))),
-        Areturn => return Result::Return(Some(Reference(frame.pop_operand_reference()))),
+        Return => return Returned(None),
+        Ireturn => return Returned(Some(Int(frame.pop_operand_int()))),
+        Lreturn => return Returned(Some(Long(frame.pop_operand_long()))),
+        Freturn => return Returned(Some(Float(frame.pop_operand_float()))),
+        Dreturn => return Returned(Some(Double(frame.pop_operand_double()))),
+        Areturn => return Returned(Some(Reference(frame.pop_operand_reference()))),
+
+        Invokestatic => return InvokedStatic(reference(&instruction.operands)),
 
         // Throwing exceptions:
         // TODO
@@ -286,5 +262,9 @@ pub(crate) fn interpret_instruction(frame: &mut Frame, instruction: &Instruction
         frame.pc += instruction.size();
     }
 
-    Continue
+    Running
+}
+
+fn reference(operands: &[u8]) -> u16 {
+    (operands[0] as u16) << 8 | operands[1] as u16
 }

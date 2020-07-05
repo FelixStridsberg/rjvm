@@ -19,7 +19,7 @@ fn invoke_static_simple_no_args() -> Result<()> {
 
     // public static void no_args()
     let method = class.find_public_static_method("no_args").unwrap();
-    let vm = VirtualMachine::new();
+    let mut vm = VirtualMachine::new();
     let return_value = vm.invoke_static_method(&constants, method, vec![]);
     assert_eq!(return_value, Some(Int(1)));
     Ok(())
@@ -31,7 +31,7 @@ fn invoke_static_simple_add() -> Result<()> {
 
     // public static int add(int a, int b)
     let method = class.find_public_static_method("add").unwrap();
-    let vm = VirtualMachine::new();
+    let mut vm = VirtualMachine::new();
     let return_value = vm.invoke_static_method(&constants, method, vec![Int(1), Int(5)]);
     assert_eq!(return_value, Some(Int(6)));
     Ok(())
@@ -43,8 +43,20 @@ fn invoke_static_simple_add_long() -> Result<()> {
 
     // public static int add(int a, int b)
     let method = class.find_public_static_method("add_long").unwrap();
-    let vm = VirtualMachine::new();
+    let mut vm = VirtualMachine::new();
     let return_value = vm.invoke_static_method(&constants, method, vec![Long(1), Long(5)]);
     assert_eq!(return_value, Some(Long(6)));
+    Ok(())
+}
+
+#[test]
+fn invoke_static_nested() -> Result<()> {
+    read_class!(constants, class, "./tests/test_data/Simple.class");
+
+    // public static int add(int a, int b)
+    let method = class.find_public_static_method("add_nested").unwrap();
+    let mut vm = VirtualMachine::new();
+    let return_value = vm.invoke_static_method(&constants, method, vec![Int(1), Int(5)]);
+    assert_eq!(return_value, Some(Int(6)));
     Ok(())
 }
