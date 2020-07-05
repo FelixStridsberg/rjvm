@@ -10,13 +10,24 @@ use crate::error::ErrorKind::ParseError;
 use crate::error::{Error, Result};
 use crate::io::attribute::AttributeReader;
 use crate::io::ReadBytesExt;
-use std::io::BufRead;
+use std::io::{BufRead, BufReader};
+use std::path::Path;
+use std::fs::File;
 
 const SIGNATURE: &[u8] = &[0xCA, 0xFE, 0xBA, 0xBE];
 
 pub struct ClassReader<R: BufRead> {
     reader: R,
     version: Option<Version>,
+}
+
+impl ClassReader<BufReader<File>> {
+    pub fn open<P: AsRef<Path>>(path: P) -> Result<Self> {
+        let file = File::open(path)?;
+        let mut reader = ClassReader::new(BufReader::new(file));
+        reader.verify_meta()?;
+        Ok(reader)
+    }
 }
 
 impl<R: BufRead> ClassReader<R> {
