@@ -27,6 +27,27 @@ impl Value {
             _ => 1,
         }
     }
+
+    pub fn get_int_value(&self) -> u32 {
+        match self {
+            Boolean(b) => if *b { 1 } else { 0 },
+            Byte(b) => *b as u32,
+            Short(s) => *s as u32,
+            Char(c) => *c as u32,
+            Float(f) => (*f).to_bits(),
+            Null => 0,
+            Int(i) | Reference(i) | ReturnAddress(i) => *i as u32,
+            _ => panic!("Tried to get int value of {:?}", self),
+        }
+    }
+
+    pub fn get_long_value(&self) -> u64 {
+        match self {
+            | Long(l) => *l as u64,
+            | Double(d) => (*d).to_bits(),
+            _ => panic!("Tried to get long value of {:?}", self),
+        }
+    }
 }
 
 pub struct VirtualMachine<'a> {
@@ -34,11 +55,31 @@ pub struct VirtualMachine<'a> {
 }
 
 impl VirtualMachine<'_> {
-    pub fn execute_method(constants: &ConstantPool, method: &MethodInfo) {
-        let code = method.get_code().expect("No Code attribute on method.");
+    pub fn new() -> Self {
+        VirtualMachine { stack: Vec::new() }
+    }
 
+    pub fn invoke_static_method(
+        &self,
+        constants: &ConstantPool,
+        method: &MethodInfo,
+        args: Vec<Value>
+    ) -> Option<Value> {
+        let code = method.get_code().expect("No Code attribute on method.");
         let mut frame = Frame::new(code.max_stack, code.max_locals, constants);
-        interpret(&mut frame, &code.instructions);
+
+        let mut index = 0;
+        for arg in args {
+            if arg.get_category() == 1 {
+                frame.set_local(index, arg.get_int_value());
+                index += 1;
+            } else {
+                frame.set_local_long(index, arg.get_long_value());
+                index += 2;
+            }
+        }
+
+        interpret(&mut frame, &code.instructions)
     }
 }
 

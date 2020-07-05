@@ -15,11 +15,11 @@ use crate::vm::interpreter::control_transfer::*;
 use crate::vm::interpreter::conversion::*;
 use crate::vm::interpreter::load_and_store::*;
 use crate::vm::interpreter::stack_management::*;
+use crate::vm::interpreter::Result::Continue;
 use crate::vm::Value::{Double, Float, Int, Long, Reference};
 use crate::vm::{Frame, Value};
-use crate::vm::interpreter::Result::Continue;
 
-pub (crate) enum Result {
+pub(crate) enum Result {
     Return(Option<Value>),
     Continue,
 }
@@ -35,7 +35,7 @@ impl Result {
     fn is_return(&self) -> bool {
         match self {
             Result::Return(_) => true,
-            Result::Continue => false
+            Result::Continue => false,
         }
     }
 }
@@ -51,6 +51,9 @@ pub fn interpret(frame: &mut Frame, instructions: &[Instruction]) -> Option<Valu
 pub(crate) fn interpret_instruction(frame: &mut Frame, instruction: &Instruction) -> Result {
     let mut offset = None;
 
+    println!("Locals: {:?}", frame.local_variables);
+    println!("Stack: {:?}", frame.operand_stack);
+    println!("Instruction: {:?}", instruction);
     match &instruction.opcode {
         // Load and store:
         Iload => load_int(frame, &instruction.operands),
@@ -261,6 +264,7 @@ pub(crate) fn interpret_instruction(frame: &mut Frame, instruction: &Instruction
 
         // Method invocation and return
         // TODO
+        Return => return Result::Return(None),
         Ireturn => return Result::Return(Some(Int(frame.pop_operand_int()))),
         Lreturn => return Result::Return(Some(Long(frame.pop_operand_long()))),
         Freturn => return Result::Return(Some(Float(frame.pop_operand_float()))),

@@ -62,6 +62,16 @@ pub struct Class<'a> {
     pub attributes: Vec<Attribute<'a>>,
 }
 
+impl Class<'_> {
+    pub fn find_public_static_method(&self, name: &str) -> Option<&MethodInfo> {
+        self.methods.iter().find(|m| {
+            m.name.ends_with(name)
+                && m.access_flags
+                    .contains(MethodAccessFlags::ACC_PUBLIC | MethodAccessFlags::ACC_STATIC)
+        })
+    }
+}
+
 #[derive(Debug, Eq, PartialEq)]
 pub struct Version {
     pub minor: u16,
