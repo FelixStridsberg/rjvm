@@ -2,7 +2,7 @@ use crate::class::constant::Constant::{ClassRef, Double, Long, Utf8, NOOP};
 
 type Index = u16;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum MethodHandleKind {
     GetField,
     GetStatic,
@@ -15,7 +15,7 @@ pub enum MethodHandleKind {
     InvokeInterface,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Constant {
     Utf8(String),
     Integer(i32),

@@ -17,48 +17,36 @@ use std::fs::File;
 const SIGNATURE: &[u8] = &[0xCA, 0xFE, 0xBA, 0xBE];
 
 pub struct ClassReader<R: BufRead> {
-    reader: R,
-    version: Option<Version>,
+    reader: R
 }
 
 impl ClassReader<BufReader<File>> {
     pub fn open<P: AsRef<Path>>(path: P) -> Result<Self> {
         let file = File::open(path)?;
-        let mut reader = ClassReader::new(BufReader::new(file));
-        reader.verify_meta()?;
-        Ok(reader)
+        Ok(ClassReader::new(BufReader::new(file)))
     }
 }
 
 impl<R: BufRead> ClassReader<R> {
     pub fn new(reader: R) -> Self {
-        ClassReader {
-            reader,
-            version: None,
-        }
+        ClassReader { reader }
     }
 
-    pub fn verify_meta(&mut self) -> Result<()> {
+    pub fn read_class(mut self) -> Result<Class> {
         self.read_signature()?;
-        self.version = Some(self.read_version()?);
-        Ok(())
-    }
-
-    pub fn read_constant_pool(&mut self) -> Result<ConstantPool> {
-        Ok(self.read_constants()?)
-    }
-
-    pub fn read_class(mut self, constants: &ConstantPool) -> Result<Class> {
+        let version = self.read_version()?;
+        let constants = self.read_constants()?;
         let access_flags = self.read_access_flags()?;
-        let this_class = constants.get_class_info_name(self.reader.read_u2()?);
-        let super_class = constants.get_class_info_name(self.reader.read_u2()?);
-        let interfaces = self.read_interfaces(constants)?;
-        let fields = self.read_fields(constants)?;
-        let methods = self.read_methods(constants)?;
-        let attributes = self.read_attributes(constants)?;
+        let this_class = constants.get_class_info_name(self.reader.read_u2()?).to_owned();
+        let super_class = constants.get_class_info_name(self.reader.read_u2()?).to_owned();
+        let interfaces = self.read_interfaces(&constants)?;
+        let fields = self.read_fields(&constants)?;
+        let methods = self.read_methods(&constants)?;
+        let attributes = self.read_attributes(&constants)?;
 
         Ok(Class {
-            version: self.version.unwrap(),
+            version,
+            constants,
             access_flags,
             this_class,
             super_class,
@@ -69,7 +57,11 @@ impl<R: BufRead> ClassReader<R> {
         })
     }
 
-    fn read_fields<'a>(&mut self, constants: &'a ConstantPool) -> Result<Vec<FieldInfo<'a>>> {
+    pub fn read_constant_pool(&mut self) -> Result<ConstantPool> {
+        Ok(self.read_constants()?)
+    }
+
+    fn read_fields(&mut self, constants: &ConstantPool) -> Result<Vec<FieldInfo>> {
         let len = self.reader.read_u2()?;
         let mut fields = Vec::with_capacity(len as usize);
         for _ in 0..len {
@@ -78,15 +70,15 @@ impl<R: BufRead> ClassReader<R> {
         Ok(fields)
     }
 
-    fn read_attributes<'a>(&mut self, constants: &'a ConstantPool) -> Result<Vec<Attribute<'a>>> {
+    fn read_attributes(&mut self, constants: &ConstantPool) -> Result<Vec<Attribute>> {
         let mut attribute_reader = AttributeReader::new(&mut self.reader, constants);
         Ok(attribute_reader.read_attributes()?)
     }
 
-    fn read_field<'a>(&mut self, constants: &'a ConstantPool) -> Result<FieldInfo<'a>> {
+    fn read_field(&mut self, constants: &ConstantPool) -> Result<FieldInfo> {
         let access_flags = FieldAccessFlags::from_bits(self.reader.read_u2()?).unwrap();
-        let name = constants.get_utf8(self.reader.read_u2()?);
-        let descriptor = constants.get_utf8(self.reader.read_u2()?);
+        let name = constants.get_utf8(self.reader.read_u2()?).to_owned();
+        let descriptor = constants.get_utf8(self.reader.read_u2()?).to_owned();
         let attributes = self.read_attributes(constants)?;
 
         Ok(FieldInfo {
@@ -97,7 +89,7 @@ impl<R: BufRead> ClassReader<R> {
         })
     }
 
-    fn read_methods<'a>(&mut self, constants: &'a ConstantPool) -> Result<Vec<MethodInfo<'a>>> {
+    fn read_methods(&mut self, constants: &ConstantPool) -> Result<Vec<MethodInfo>> {
         let len = self.reader.read_u2()?;
         let mut fields = Vec::with_capacity(len as usize);
         for _ in 0..len {
@@ -106,10 +98,10 @@ impl<R: BufRead> ClassReader<R> {
         Ok(fields)
     }
 
-    fn read_method<'a>(&mut self, constants: &'a ConstantPool) -> Result<MethodInfo<'a>> {
+    fn read_method(&mut self, constants: &ConstantPool) -> Result<MethodInfo> {
         let access_flags = MethodAccessFlags::from_bits(self.reader.read_u2()?).unwrap();
-        let name = constants.get_utf8(self.reader.read_u2()?);
-        let descriptor = constants.get_utf8(self.reader.read_u2()?);
+        let name = constants.get_utf8(self.reader.read_u2()?).to_owned();
+        let descriptor = constants.get_utf8(self.reader.read_u2()?).to_owned();
         let attributes = self.read_attributes(constants)?;
 
         Ok(MethodInfo {
@@ -141,12 +133,12 @@ impl<R: BufRead> ClassReader<R> {
         Ok(Version { minor, major })
     }
 
-    fn read_interfaces<'a>(&mut self, constants: &'a ConstantPool) -> Result<Vec<&'a str>> {
+    fn read_interfaces(&mut self, constants: &ConstantPool) -> Result<Vec<String>> {
         let len = self.reader.read_u2()?;
         let mut indexes = Vec::with_capacity(len as usize);
 
         for _ in 0..len {
-            indexes.push(constants.get_class_info_name(self.reader.read_u2()?))
+            indexes.push(constants.get_class_info_name(self.reader.read_u2()?).to_owned())
         }
         Ok(indexes)
     }
@@ -456,10 +448,10 @@ mod test {
             indexes,
             vec![FieldInfo {
                 access_flags: FieldAccessFlags::ACC_PRIVATE,
-                name: "field_name",
-                descriptor: "description",
+                name: "field_name".to_owned(),
+                descriptor: "description".to_owned(),
                 attributes: vec![Attribute {
-                    name: "attribute",
+                    name: "attribute".to_owned(),
                     data: Unknown(vec![0x01, 0x02])
                 }]
             }]
@@ -489,10 +481,10 @@ mod test {
             indexes,
             vec![MethodInfo {
                 access_flags: MethodAccessFlags::ACC_PRIVATE,
-                name: "method_name",
-                descriptor: "descriptor",
+                name: "method_name".to_owned(),
+                descriptor: "descriptor".to_owned(),
                 attributes: vec![Attribute {
-                    name: "attribute",
+                    name: "attribute".to_owned(),
                     data: Unknown(vec![0x01, 0x02])
                 }]
             }]

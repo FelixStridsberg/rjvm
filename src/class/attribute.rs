@@ -2,26 +2,26 @@ use crate::class::code::Instruction;
 use crate::class::constant::Constant;
 
 #[derive(Debug, PartialEq)]
-pub struct Attribute<'a> {
-    pub name: &'a str,
-    pub data: AttributeData<'a>,
+pub struct Attribute {
+    pub name: String,
+    pub data: AttributeData,
 }
 
 #[derive(Debug, PartialEq)]
-pub enum AttributeData<'a> {
-    SourceFile(&'a str),
+pub enum AttributeData {
+    SourceFile(String),
     LineNumberTable(Vec<(u16, u16)>),
-    CodeInfo(Code<'a>),
-    ConstantValue(&'a Constant),
-    Exceptions(Vec<&'a str>),
+    CodeInfo(Code),
+    ConstantValue(Constant),
+    Exceptions(Vec<String>),
     Unknown(Vec<u8>),
 }
 
 #[derive(Debug, PartialEq)]
-pub struct Code<'a> {
+pub struct Code {
     pub max_stack: u16,
     pub max_locals: u16,
     // TODO exception table
-    pub attributes: Vec<Attribute<'a>>,
+    pub attributes: Vec<Attribute>,
     pub instructions: Vec<Instruction>,
 }

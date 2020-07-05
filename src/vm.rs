@@ -1,11 +1,10 @@
 use crate::class::constant::ConstantPool;
 use crate::class::{MethodInfo, Class};
-use crate::vm::interpreter::{interpret_instruction, State};
+use crate::vm::interpreter::interpret_instruction;
 use crate::vm::Value::*;
 use crate::class::code::Instruction;
 use crate::vm::interpreter::State::*;
 use crate::class::constant::Constant::{MethodRef, ClassRef, NameAndType};
-use bitflags::_core::iter::Map;
 
 mod interpreter;
 
@@ -65,12 +64,12 @@ impl VirtualMachine<'_> {
 
     pub fn invoke_static_method(
         &mut self,
-        constants: &ConstantPool,
+        class: &Class,
         method: &MethodInfo,
         args: Vec<Value>
     ) -> Option<Value> {
         let code = method.get_code().expect("No Code attribute on method.");
-        let mut frame = Frame::new(code.max_stack, code.max_locals, constants);
+        let mut frame = Frame::new(code.max_stack, code.max_locals, &class.constants);
 
         let mut index = 0;
         for arg in args {

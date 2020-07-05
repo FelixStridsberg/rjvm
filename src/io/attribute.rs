@@ -20,7 +20,7 @@ impl<'r, 'c, R: BufRead> AttributeReader<'r, 'c, R> {
         AttributeReader { reader, constants }
     }
 
-    pub fn read_attributes(&mut self) -> Result<Vec<Attribute<'c>>> {
+    pub fn read_attributes(&mut self) -> Result<Vec<Attribute>> {
         let attribute_len = self.reader.read_u2()? as usize;
         let mut attributes = Vec::with_capacity(attribute_len);
         for _ in 0..attribute_len {
@@ -29,10 +29,10 @@ impl<'r, 'c, R: BufRead> AttributeReader<'r, 'c, R> {
         Ok(attributes)
     }
 
-    fn read_attribute_info(&mut self) -> Result<Attribute<'c>> {
-        let name = self.constants.get_utf8(self.reader.read_u2()?);
+    fn read_attribute_info(&mut self) -> Result<Attribute> {
+        let name = self.constants.get_utf8(self.reader.read_u2()?).to_owned();
         let len = self.reader.read_u4()? as usize;
-        let data = match name {
+        let data = match &name[..] {
             "SourceFile" => self.read_source_file_attribute()?,
             "LineNumberTable" => self.read_line_number_table_attribute()?,
             "Code" => self.read_code_attribute()?,
@@ -44,28 +44,28 @@ impl<'r, 'c, R: BufRead> AttributeReader<'r, 'c, R> {
         Ok(Attribute { name, data })
     }
 
-    fn read_source_file_attribute(&mut self) -> Result<AttributeData<'c>> {
+    fn read_source_file_attribute(&mut self) -> Result<AttributeData> {
         let name_index = self.reader.read_u2()?;
-        Ok(SourceFile(self.constants.get_utf8(name_index)))
+        Ok(SourceFile(self.constants.get_utf8(name_index).to_owned()))
     }
 
-    fn read_constant_value_attribute(&mut self) -> Result<AttributeData<'c>> {
+    fn read_constant_value_attribute(&mut self) -> Result<AttributeData> {
         let value_index = self.reader.read_u2()?;
-        Ok(ConstantValue(self.constants.get(value_index)))
+        Ok(ConstantValue((*self.constants.get(value_index)).clone()))
     }
 
-    fn read_exceptions_attribute(&mut self) -> Result<AttributeData<'c>> {
+    fn read_exceptions_attribute(&mut self) -> Result<AttributeData> {
         let exception_count = self.reader.read_u2()?;
         let mut exceptions = Vec::with_capacity(exception_count as usize);
 
         for _ in 0..exception_count {
-            exceptions.push(self.constants.get_class_info_name(self.reader.read_u2()?));
+            exceptions.push(self.constants.get_class_info_name(self.reader.read_u2()?).to_owned());
         }
 
         Ok(Exceptions(exceptions))
     }
 
-    fn read_code_attribute(&mut self) -> Result<AttributeData<'c>> {
+    fn read_code_attribute(&mut self) -> Result<AttributeData> {
         let max_stack = self.reader.read_u2()?;
         let max_locals = self.reader.read_u2()?;
 
@@ -88,7 +88,7 @@ impl<'r, 'c, R: BufRead> AttributeReader<'r, 'c, R> {
         }))
     }
 
-    fn read_line_number_table_attribute(&mut self) -> Result<AttributeData<'c>> {
+    fn read_line_number_table_attribute(&mut self) -> Result<AttributeData> {
         let length = self.reader.read_u2()?;
         let mut table = Vec::with_capacity(length as usize);
         for _ in 0..length {
@@ -99,7 +99,7 @@ impl<'r, 'c, R: BufRead> AttributeReader<'r, 'c, R> {
         Ok(LineNumberTable(table))
     }
 
-    fn read_unknown_attribute(&mut self, len: usize) -> Result<AttributeData<'c>> {
+    fn read_unknown_attribute(&mut self, len: usize) -> Result<AttributeData> {
         let mut info = Vec::with_capacity(len);
         unsafe {
             info.set_len(len);
@@ -138,7 +138,7 @@ mod test {
         assert_eq!(
             read_attributes(&mut data, &constants),
             vec![Attribute {
-                name: "Unknown attribute",
+                name: "Unknown attribute".to_owned(),
                 data: Unknown(vec![0x01, 0x02])
             }]
         );
@@ -160,8 +160,8 @@ mod test {
         assert_eq!(
             read_attributes(&mut data, &constants),
             vec![Attribute {
-                name: "SourceFile",
-                data: SourceFile("file.java"),
+                name: "SourceFile".to_owned(),
+                data: SourceFile("file.java".to_owned()),
             }]
         );
     }
@@ -185,7 +185,7 @@ mod test {
         assert_eq!(
             read_attributes(&mut data, &constants),
             vec![Attribute {
-                name: "LineNumberTable",
+                name: "LineNumberTable".to_owned(),
                 data: LineNumberTable(vec![(0, 5), (4, 7)]),
             }]
         );
@@ -207,8 +207,8 @@ mod test {
         assert_eq!(
             read_attributes(&mut data, &constants),
             vec![Attribute {
-                name: "ConstantValue",
-                data: ConstantValue(&Long(10)),
+                name: "ConstantValue".to_owned(),
+                data: ConstantValue(Long(10)),
             }]
         );
     }
@@ -231,8 +231,8 @@ mod test {
         assert_eq!(
             read_attributes(&mut data, &constants),
             vec![Attribute {
-                name: "Exceptions",
-                data: Exceptions(vec!["java/lang/Exception"]),
+                name: "Exceptions".to_owned(),
+                data: Exceptions(vec!["java/lang/Exception".to_owned()]),
             }]
         );
     }
@@ -266,12 +266,12 @@ mod test {
         assert_eq!(
             read_attributes(&mut data, &constants),
             vec![Attribute {
-                name: "Code",
+                name: "Code".to_owned(),
                 data: CodeInfo(Code {
                     max_stack: 3,
                     max_locals: 1,
                     attributes: vec![Attribute {
-                        name: "LineNumberTable",
+                        name: "LineNumberTable".to_owned(),
                         data: LineNumberTable(vec![(0, 5), (4, 7)]),
                     }],
                     instructions: vec![Instruction::new(Nop, vec![])]
@@ -280,10 +280,10 @@ mod test {
         );
     }
 
-    fn read_attributes<'a, R: BufRead>(
+    fn read_attributes<R: BufRead>(
         r: &mut R,
-        constants: &'a ConstantPool,
-    ) -> Vec<Attribute<'a>> {
+        constants: &ConstantPool,
+    ) -> Vec<Attribute> {
         let mut reader = AttributeReader::new(r, &constants);
         reader.read_attributes().unwrap()
     }

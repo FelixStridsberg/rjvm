@@ -1,5 +1,6 @@
 use crate::class::attribute::AttributeData::CodeInfo;
 use crate::class::attribute::{Attribute, Code};
+use crate::class::constant::ConstantPool;
 
 pub mod attribute;
 pub mod code;
@@ -51,18 +52,19 @@ bitflags! {
 }
 
 #[derive(Debug)]
-pub struct Class<'a> {
+pub struct Class {
     pub version: Version,
+    pub constants: ConstantPool,
     pub access_flags: ClassAccessFlags,
-    pub this_class: &'a str,
-    pub super_class: &'a str,
-    pub interfaces: Vec<&'a str>,
-    pub fields: Vec<FieldInfo<'a>>,
-    pub methods: Vec<MethodInfo<'a>>,
-    pub attributes: Vec<Attribute<'a>>,
+    pub this_class: String,
+    pub super_class: String,
+    pub interfaces: Vec<String>,
+    pub fields: Vec<FieldInfo>,
+    pub methods: Vec<MethodInfo>,
+    pub attributes: Vec<Attribute>,
 }
 
-impl Class<'_> {
+impl Class {
     pub fn find_public_static_method(&self, name: &str) -> Option<&MethodInfo> {
         self.methods.iter().find(|m| {
             m.name.ends_with(name)
@@ -79,17 +81,17 @@ pub struct Version {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct MethodInfo<'a> {
+pub struct MethodInfo {
     pub access_flags: MethodAccessFlags,
-    pub name: &'a str,
-    pub descriptor: &'a str,
-    pub attributes: Vec<Attribute<'a>>,
+    pub name: String,
+    pub descriptor: String,
+    pub attributes: Vec<Attribute>,
 }
 
-impl MethodInfo<'_> {
+impl MethodInfo {
     pub fn get_attribute(&self, name: &str) -> Option<&Attribute> {
         for a in &self.attributes {
-            if a.name == name {
+            if &a.name == name {
                 return Some(a);
             }
         }
@@ -109,9 +111,9 @@ impl MethodInfo<'_> {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct FieldInfo<'a> {
+pub struct FieldInfo {
     pub access_flags: FieldAccessFlags,
-    pub name: &'a str,
-    pub descriptor: &'a str,
-    pub attributes: Vec<Attribute<'a>>,
+    pub name: String,
+    pub descriptor: String,
+    pub attributes: Vec<Attribute>,
 }
