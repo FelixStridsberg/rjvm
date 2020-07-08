@@ -16,7 +16,8 @@ macro_rules! test_command {
             let mut _constants = ConstantPool::new(2);
             $($(_constants.add($constant);)*)?
 
-            let mut frame = Frame::new(10, 10, &_constants);
+            let code = crate::class::attribute::Code::new(10, 10, vec![], vec![]);
+            let mut frame = Frame::new(&code, &_constants);
             $(frame.pc = $start_pc;)?
             $(frame.set_operand_stack(vec![$($stack),*]);)?
 

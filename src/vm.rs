@@ -1,11 +1,13 @@
-use crate::class::code::Instruction;
 use crate::class::constant::Constant::{ClassRef, MethodRef, NameAndType};
 use crate::class::constant::ConstantPool;
 use crate::class::Class;
-use crate::vm::interpreter::interpret_instruction;
+use crate::vm::interpreter::{interpret_instruction, State};
 use crate::vm::interpreter::State::*;
 use crate::vm::Value::*;
+use crate::error::Result;
 use std::collections::HashMap;
+use crate::class::attribute::Code;
+use crate::io::class::ClassReader;
 
 mod interpreter;
 
@@ -60,30 +62,71 @@ impl Value {
     }
 }
 
-pub struct VirtualMachine<'a> {
-    stack: Vec<Frame<'a>>,
+pub type ClassRegister = HashMap<String, Class>;
+
+pub struct VirtualMachine {
     class_register: HashMap<String, Class>,
 }
 
-impl VirtualMachine<'_> {
+impl VirtualMachine {
     pub fn new() -> Self {
         VirtualMachine {
-            stack: Vec::new(),
             class_register: HashMap::new(),
         }
     }
 
-    pub fn register_class(&mut self, class: Class) {
+    pub fn register_class(&mut self, filename: &str) -> Result<()> {
+        let class = ClassReader::from_file(filename)?;
         self.class_register.insert(class.this_class.clone(), class);
+
+        Ok(())
     }
 
-    pub fn invoke_static_method(
-        &self,
+    pub fn run(&mut self, class_name: &str, method_name: &str, _args: Vec<Value>) {
+        let class = self.class_register.get(class_name).expect("Unknown class");
+        let method = class.find_public_static_method(method_name).unwrap();
+
+        let code = method.get_code().expect("No Code attribute on method.");
+
+        let mut stack = Vec::new();
+        stack.push(Frame::new(&code, &class.constants));
+
+
+        loop {
+            let mut frame = stack.pop().unwrap();
+
+            match Self::interpret(&mut frame) {
+                Returned(_value) => {
+                    panic!("Returned!")
+                },
+                InvokedStatic(_index) => {
+                    panic!("Invoked!")
+                    //Self::invoke_static(&mut frame, index)
+                },
+                _ => panic!("don't know what it did")
+            }
+        }
+    }
+
+    fn interpret(frame: &mut Frame) -> State {
+        loop {
+            let instructions = &frame.code.instructions[frame.pc as usize];
+            match interpret_instruction(frame, instructions) {
+                Running => {},
+                state => return state,
+            }
+        }
+    }
+
+    /*
+    pub fn invoke_static_entry_point(
+        &mut self,
+        class_register: &mut ClassRegister,
         class_name: &str,
         method_name: &str,
         args: Vec<Value>,
     ) -> Option<Value> {
-        let class = self.class_register.get(class_name).expect("Unknown class");
+        let class = class_register.get(class_name).expect("Unknown class");
         let method = class.find_public_static_method(method_name).unwrap();
 
         let code = method.get_code().expect("No Code attribute on method.");
@@ -100,20 +143,19 @@ impl VirtualMachine<'_> {
             }
         }
 
-        self.interpret(&mut frame, &code.instructions)
-    }
-
-    pub fn interpret(&self, frame: &mut Frame, instructions: &[Instruction]) -> Option<Value> {
         loop {
-            match interpret_instruction(frame, &instructions[frame.pc as usize]) {
+            let instructions = &code.instructions[frame.pc as usize];
+            match interpret_instruction(&mut frame, instructions) {
                 Running => {}
                 Returned(value) => return value,
-                InvokedStatic(index) => self.invoke_static(frame, index),
+                InvokedStatic(index) => Self::invoke_static(&mut frame, index),
             }
         }
-    }
 
-    fn invoke_static(&self, frame: &mut Frame, index: u16) {
+//        Self::execute_frame(&mut frame, &code, class_register)
+    }*/
+
+    fn invoke_static(frame: &mut Frame, index: u16) {
         let method_ref = frame.constant_pool.get(index);
 
         match method_ref {
@@ -144,6 +186,7 @@ pub struct Frame<'a> {
     operand_stack: Vec<Value>,
     operand_stack_depth: u32,
     constant_pool: &'a ConstantPool,
+    code: &'a Code,
 }
 
 pub trait PopOperandFrame<T> {
@@ -151,12 +194,13 @@ pub trait PopOperandFrame<T> {
 }
 
 impl Frame<'_> {
-    pub fn new(stack: u16, locals: u16, constant_pool: &ConstantPool) -> Frame {
+    pub fn new<'a>(code: &'a Code, constant_pool: &'a ConstantPool) -> Frame<'a> {
         Frame {
             pc: 0,
-            local_variables: vec![0; locals as usize],
-            operand_stack: Vec::with_capacity(stack as usize),
+            local_variables: vec![0; code.max_locals as usize],
+            operand_stack: Vec::with_capacity(code.max_stack as usize),
             operand_stack_depth: 0,
+            code,
             constant_pool,
         }
     }
@@ -253,6 +297,7 @@ mod test {
     use crate::class::constant::ConstantPool;
     use crate::vm::{Frame, Value};
 
+    /*
     #[test]
     fn pop_bool() {
         let constants = ConstantPool::new(0);
@@ -271,4 +316,5 @@ mod test {
         assert_eq!(frame.get_local(0), 0);
         assert_eq!(frame.get_local(1), 13);
     }
+     */
 }

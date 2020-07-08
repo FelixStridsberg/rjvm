@@ -25,6 +25,11 @@ impl ClassReader<BufReader<File>> {
         let file = File::open(path)?;
         Ok(ClassReader::new(BufReader::new(file)))
     }
+
+    pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Class> {
+        let reader = ClassReader::open(path)?;
+        Ok(reader.read_class()?)
+    }
 }
 
 impl<R: BufRead> ClassReader<R> {
