@@ -38,15 +38,14 @@ fn invoke_static_simple_add_long() -> Result<()> {
     Ok(())
 }
 
-/*
 #[test]
 fn invoke_static_nested() -> Result<()> {
     let mut vm = VirtualMachine::new();
     vm.register_class("./tests/test_data/Simple.class");
-    vm.run("test_data/Simple", "add_nested", vec![Int(1), Int(5)]);
 
-//    assert_eq!(return_value, Some(Int(6)));
+    let return_value = vm.run("test_data/Simple", "add_nested", vec![Int(1), Int(5)]);
+
+    assert_eq!(return_value, Int(6));
 
     Ok(())
 }
-*/

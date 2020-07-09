@@ -31,6 +31,7 @@ pub(super) fn interpret_frame(frame: &mut Frame) -> Command {
 
 fn interpret_instruction(frame: &mut Frame, instruction: &Instruction) -> Option<Command> {
     let mut offset = None;
+    let mut command = None;
 
     match &instruction.opcode {
         // Load and store:
@@ -242,14 +243,14 @@ fn interpret_instruction(frame: &mut Frame, instruction: &Instruction) -> Option
 
         // Method invocation and return
         // TODO
-        Return => return Some(VMReturn(Null)),
-        Ireturn => return Some(VMReturn(Int(frame.pop_operand_int()))),
-        Lreturn => return Some(VMReturn(Long(frame.pop_operand_long()))),
-        Freturn => return Some(VMReturn(Float(frame.pop_operand_float()))),
-        Dreturn => return Some(VMReturn(Double(frame.pop_operand_double()))),
-        Areturn => return Some(VMReturn(Reference(frame.pop_operand_reference()))),
+        Return => command = Some(VMReturn(Null)),
+        Ireturn => command = Some(VMReturn(Int(frame.pop_operand_int()))),
+        Lreturn => command = Some(VMReturn(Long(frame.pop_operand_long()))),
+        Freturn => command = Some(VMReturn(Float(frame.pop_operand_float()))),
+        Dreturn => command = Some(VMReturn(Double(frame.pop_operand_double()))),
+        Areturn => command = Some(VMReturn(Reference(frame.pop_operand_reference()))),
 
-        Invokestatic => return Some(VMInvokeStatic(reference(&instruction.operands))),
+        Invokestatic => command = Some(VMInvokeStatic(reference(&instruction.operands))),
 
         // Throwing exceptions:
         // TODO
@@ -266,7 +267,7 @@ fn interpret_instruction(frame: &mut Frame, instruction: &Instruction) -> Option
         frame.pc += instruction.size();
     }
 
-    None
+    command
 }
 
 fn reference(operands: &[u8]) -> u16 {

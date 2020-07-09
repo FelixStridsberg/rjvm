@@ -1,4 +1,4 @@
-use crate::class::constant::Constant::{ClassRef, MethodRef, NameAndType};
+use crate::class::constant::Constant::{ClassRef, MethodRef, NameAndType, Utf8};
 use crate::class::Class;
 use crate::error::Result;
 use crate::io::class::ClassReader;
@@ -85,90 +85,81 @@ impl VirtualMachine {
         Ok(())
     }
 
-    pub fn run(&mut self, class_name: &str, method_name: &str, args: Vec<Value>) -> Value {
-        // TODO separate the running and initialization of frames.
-        let class = self.class_register.get(class_name).expect("Unknown class");
-        let method = class.find_public_static_method(method_name).unwrap();
-
-        let code = method.get_code().expect("No Code attribute on method.");
+    pub fn run(
+        &mut self,
+        init_class_name: &str,
+        init_method_name: &str,
+        args: Vec<Value>,
+    ) -> Value {
+        let initial_frame = self.prepare_static_method(init_class_name, init_method_name, args);
 
         let mut stack = Vec::new();
-
-        let mut new_frame = Frame::new(&code, &class.constants);
-        let mut index = 0;
-        for arg in args {
-            if arg.get_category() == 1 {
-                new_frame.set_local(index, arg.get_int_value());
-                index += 1;
-            } else {
-                new_frame.set_local_long(index, arg.get_long_value());
-                index += 2;
-            }
-        }
-
-        stack.push(new_frame);
+        let mut current_frame = initial_frame;
 
         loop {
-            let mut frame = stack.pop().unwrap();
+            match interpret_frame(&mut current_frame) {
+                VMReturn(value) => {
+                    if stack.is_empty() {
+                        return value;
+                    } else {
+                        current_frame = stack.pop().unwrap();
+                        current_frame.push_operand(value);
+                    }
+                }
+                VMInvokeStatic(index) => {
+                    // Temp hack for POC, this should be read from method type I assume.
+                    let arg1 = current_frame.pop_operand_int();
+                    let arg2 = current_frame.pop_operand_int();
+                    let args = vec![Int(arg1), Int(arg2)];
 
-            match interpret_frame(&mut frame) {
-                VMReturn(value) => return value,
-                VMInvokeStatic(_index) => {
-                    panic!("Invoked!")
-                    //Self::invoke_static(&mut frame, index)
+                    let (class_name, method_name) = Self::get_static(&current_frame, index);
+                    let next_frame = self.prepare_static_method(class_name, method_name, args);
+
+                    stack.push(current_frame);
+                    current_frame = next_frame;
                 }
             }
         }
     }
 
-    /*
-        pub fn invoke_static_entry_point(
-            &mut self,
-            class_register: &mut ClassRegister,
-            class_name: &str,
-            method_name: &str,
-            args: Vec<Value>,
-        ) -> Option<Value> {
-            let class = class_register.get(class_name).expect("Unknown class");
-            let method = class.find_public_static_method(method_name).unwrap();
+    fn prepare_static_method(
+        &self,
+        class_name: &str,
+        method_name: &str,
+        args: Vec<Value>,
+    ) -> Frame {
+        let class = self.class_register.get(class_name).expect("Unknown class");
+        let method = class.find_public_static_method(method_name).unwrap();
+        let code = method.get_code().expect("No Code attribute on method.");
 
-            let code = method.get_code().expect("No Code attribute on method.");
-            let mut frame = Frame::new(code.max_stack, code.max_locals, &class.constants);
+        let mut frame = Frame::new(&code, &class.constants);
+        frame.load_arguments(args);
 
+        frame
+    }
 
-
-            loop {
-                let instructions = &code.instructions[frame.pc as usize];
-                match interpret_instruction(&mut frame, instructions) {
-                    Running => {}
-                    Returned(value) => return value,
-                    InvokedStatic(index) => Self::invoke_static(&mut frame, index),
-                }
-            }
-
-    //        Self::execute_frame(&mut frame, &code, class_register)
-        }*/
-
-    fn invoke_static(frame: &mut Frame, index: u16) {
+    fn get_static<'a>(frame: &'a Frame, index: u16) -> (&'a str, &'a str) {
         let method_ref = frame.constant_pool.get(index);
 
+        let mut class_name = "";
+        let mut method_name = "";
         match method_ref {
             MethodRef(class_index, name_type_index) => {
                 if let ClassRef(class) = frame.constant_pool.get(*class_index) {
-                    println!("class: {:?}", frame.constant_pool.get(*class));
+                    if let Utf8(s) = frame.constant_pool.get(*class) {
+                        class_name = s;
+                    }
                 }
                 if let NameAndType(name_idx, type_idx) = frame.constant_pool.get(*name_type_index) {
-                    println!("name: {:?}", frame.constant_pool.get(*name_idx));
-                    println!("type: {:?}", frame.constant_pool.get(*type_idx));
+                    if let Utf8(s) = frame.constant_pool.get(*name_idx) {
+                        method_name = s;
+                    }
+                    // println!("type: {:?}", frame.constant_pool.get(*type_idx));
                 }
             }
             _ => panic!(""),
         }
 
-        panic!(
-            "Invoked static at index {:?}: {:?}",
-            index,
-            frame.constant_pool.get(index)
-        );
+        (class_name, method_name)
     }
 }

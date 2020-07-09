@@ -29,6 +29,19 @@ impl Frame<'_> {
         }
     }
 
+    pub fn load_arguments(&mut self, args: Vec<Value>) {
+        let mut index = 0;
+        for arg in args {
+            if arg.get_category() == 1 {
+                self.set_local(index, arg.get_int_value());
+                index += 1;
+            } else {
+                self.set_local_long(index, arg.get_long_value());
+                index += 2;
+            }
+        }
+    }
+
     pub fn set_operand_stack(&mut self, stack: Vec<Value>) {
         self.operand_stack_depth = stack
             .as_slice()
