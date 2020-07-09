@@ -1,5 +1,6 @@
+use crate::vm::frame::Frame;
+use crate::vm::Value;
 use crate::vm::Value::ReturnAddress;
-use crate::vm::{Frame, Value};
 
 pub fn if_equals(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
     if frame.pop_operand_int() == 0 {

@@ -1,4 +1,4 @@
-use crate::vm::Frame;
+use crate::vm::frame::Frame;
 
 pub fn pop_operand(frame: &mut Frame) {
     frame.pop_operand();

@@ -2,7 +2,7 @@
 //! https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.11.2
 
 use crate::class::constant::Constant;
-use crate::vm::Frame;
+use crate::vm::frame::Frame;
 use crate::vm::Value::*;
 
 pub fn load_int(frame: &mut Frame, operands: &[u8]) {

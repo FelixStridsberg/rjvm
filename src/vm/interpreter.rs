@@ -10,14 +10,15 @@ mod stack_management;
 
 use crate::class::code::Instruction;
 use crate::class::code::Opcode::*;
+use crate::vm::frame::Frame;
 use crate::vm::interpreter::arithmetic::*;
 use crate::vm::interpreter::control_transfer::*;
 use crate::vm::interpreter::conversion::*;
 use crate::vm::interpreter::load_and_store::*;
 use crate::vm::interpreter::stack_management::*;
 use crate::vm::interpreter::State::*;
+use crate::vm::Value;
 use crate::vm::Value::{Double, Float, Int, Long, Reference};
-use crate::vm::{Frame, Value};
 
 pub(crate) enum State {
     Running,

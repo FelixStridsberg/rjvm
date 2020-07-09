@@ -1,4 +1,4 @@
-use crate::vm::Frame;
+use crate::vm::frame::Frame;
 use crate::vm::Value::*;
 
 pub fn int_to_long(frame: &mut Frame) {

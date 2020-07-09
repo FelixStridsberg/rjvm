@@ -27,7 +27,12 @@ pub struct Code {
 }
 
 impl Code {
-    pub fn new(max_stack: u16, max_locals: u16, attributes: Vec<Attribute>, instructions: Vec<Instruction>) -> Code {
+    pub fn new(
+        max_stack: u16,
+        max_locals: u16,
+        attributes: Vec<Attribute>,
+        instructions: Vec<Instruction>,
+    ) -> Code {
         Code {
             max_stack,
             max_locals,

@@ -1,7 +1,7 @@
 //! Contains implementation of all instructions under:
 //! https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.11.3
 
-use crate::vm::Frame;
+use crate::vm::frame::Frame;
 use crate::vm::Value::{Double, Float, Int, Long};
 
 pub fn add_int(frame: &mut Frame) {

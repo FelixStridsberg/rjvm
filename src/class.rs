@@ -91,7 +91,7 @@ pub struct MethodInfo {
 impl MethodInfo {
     pub fn get_attribute(&self, name: &str) -> Option<&Attribute> {
         for a in &self.attributes {
-            if a.name.as_ref() == name {
+            if a.name == name {
                 return Some(a);
             }
         }
