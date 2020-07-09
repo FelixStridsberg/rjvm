@@ -17,8 +17,8 @@ use crate::vm::interpreter::conversion::*;
 use crate::vm::interpreter::load_and_store::*;
 use crate::vm::interpreter::stack_management::*;
 use crate::vm::Command;
-use crate::vm::Value::{Double, Float, Int, Long, Reference, Null};
-use crate::vm::Command::{VMReturn, VMInvokeStatic};
+use crate::vm::Command::{VMInvokeStatic, VMReturn};
+use crate::vm::Value::{Double, Float, Int, Long, Null, Reference};
 
 pub(super) fn interpret_frame(frame: &mut Frame) -> Command {
     loop {

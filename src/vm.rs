@@ -4,9 +4,9 @@ use crate::error::Result;
 use crate::io::class::ClassReader;
 use crate::vm::frame::Frame;
 use crate::vm::interpreter::interpret_frame;
+use crate::vm::Command::{VMInvokeStatic, VMReturn};
 use crate::vm::Value::*;
 use std::collections::HashMap;
-use crate::vm::Command::{VMReturn, VMInvokeStatic};
 
 mod frame;
 mod interpreter;
@@ -85,20 +85,34 @@ impl VirtualMachine {
         Ok(())
     }
 
-    pub fn run(&mut self, class_name: &str, method_name: &str, _args: Vec<Value>) {
+    pub fn run(&mut self, class_name: &str, method_name: &str, args: Vec<Value>) -> Value {
+        // TODO separate the running and initialization of frames.
         let class = self.class_register.get(class_name).expect("Unknown class");
         let method = class.find_public_static_method(method_name).unwrap();
 
         let code = method.get_code().expect("No Code attribute on method.");
 
         let mut stack = Vec::new();
-        stack.push(Frame::new(&code, &class.constants));
+
+        let mut new_frame = Frame::new(&code, &class.constants);
+        let mut index = 0;
+        for arg in args {
+            if arg.get_category() == 1 {
+                new_frame.set_local(index, arg.get_int_value());
+                index += 1;
+            } else {
+                new_frame.set_local_long(index, arg.get_long_value());
+                index += 2;
+            }
+        }
+
+        stack.push(new_frame);
 
         loop {
             let mut frame = stack.pop().unwrap();
 
             match interpret_frame(&mut frame) {
-                VMReturn(_value) => panic!("Returned!"),
+                VMReturn(value) => return value,
                 VMInvokeStatic(_index) => {
                     panic!("Invoked!")
                     //Self::invoke_static(&mut frame, index)
@@ -121,16 +135,7 @@ impl VirtualMachine {
             let code = method.get_code().expect("No Code attribute on method.");
             let mut frame = Frame::new(code.max_stack, code.max_locals, &class.constants);
 
-            let mut index = 0;
-            for arg in args {
-                if arg.get_category() == 1 {
-                    frame.set_local(index, arg.get_int_value());
-                    index += 1;
-                } else {
-                    frame.set_local_long(index, arg.get_long_value());
-                    index += 2;
-                }
-            }
+
 
             loop {
                 let instructions = &code.instructions[frame.pc as usize];
