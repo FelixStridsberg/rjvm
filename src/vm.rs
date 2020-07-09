@@ -3,10 +3,10 @@ use crate::class::Class;
 use crate::error::Result;
 use crate::io::class::ClassReader;
 use crate::vm::frame::Frame;
-use crate::vm::interpreter::State::*;
-use crate::vm::interpreter::{interpret_instruction, State};
+use crate::vm::interpreter::interpret_frame;
 use crate::vm::Value::*;
 use std::collections::HashMap;
+use crate::vm::Command::{VMReturn, VMInvokeStatic};
 
 mod frame;
 mod interpreter;
@@ -62,6 +62,11 @@ impl Value {
     }
 }
 
+enum Command {
+    VMReturn(Value),
+    VMInvokeStatic(u16),
+}
+
 pub struct VirtualMachine {
     class_register: HashMap<String, Class>,
 }
@@ -92,23 +97,12 @@ impl VirtualMachine {
         loop {
             let mut frame = stack.pop().unwrap();
 
-            match Self::interpret(&mut frame) {
-                Returned(_value) => panic!("Returned!"),
-                InvokedStatic(_index) => {
+            match interpret_frame(&mut frame) {
+                VMReturn(_value) => panic!("Returned!"),
+                VMInvokeStatic(_index) => {
                     panic!("Invoked!")
                     //Self::invoke_static(&mut frame, index)
                 }
-                _ => panic!("don't know what it did"),
-            }
-        }
-    }
-
-    fn interpret(frame: &mut Frame) -> State {
-        loop {
-            let instructions = &frame.code.instructions[frame.pc as usize];
-            match interpret_instruction(frame, instructions) {
-                Running => {}
-                state => return state,
             }
         }
     }
