@@ -1,4 +1,3 @@
-use crate::class::constant::Constant::{ClassRef, MethodRef, NameAndType};
 use crate::class::Class;
 use crate::error::Result;
 use crate::io::class::ClassReader;
@@ -52,8 +51,9 @@ impl VirtualMachine {
                     }
                 }
                 VMInvokeStatic(index) => {
-                    let (descriptor, class_name, method_name) =
-                        Self::get_static_method(&current_frame, index);
+                    let (class_name, method_name, descriptor_string) =
+                        current_frame.constant_pool.get_method_ref(index);
+                    let descriptor: MethodDescriptor = descriptor_string.try_into().unwrap();
                     let args = current_frame.pop_field_types(&descriptor.argument_types);
                     let next_frame = self.prepare_static_method(class_name, method_name, args);
 
@@ -78,33 +78,6 @@ impl VirtualMachine {
         frame.load_arguments(args);
 
         frame
-    }
-
-    fn get_static_method<'a>(
-        frame: &Frame<'a>,
-        index: u16,
-    ) -> (MethodDescriptor<'a>, &'a str, &'a str) {
-        let method_ref = frame.constant_pool.get(index);
-
-        let mut class_name = "";
-        let mut method_name = "";
-        let mut descriptor_str = "";
-        match method_ref {
-            MethodRef(class_index, name_type_index) => {
-                if let ClassRef(class) = frame.constant_pool.get(*class_index) {
-                    class_name = frame.constant_pool.get_utf8(*class);
-                }
-                if let NameAndType(name_idx, type_idx) = frame.constant_pool.get(*name_type_index) {
-                    method_name = frame.constant_pool.get_utf8(*name_idx);
-                    descriptor_str = frame.constant_pool.get_utf8(*type_idx);
-                    // println!("type: {:?}", frame.constant_pool.get(*type_idx));
-                }
-            }
-            _ => panic!(""),
-        }
-
-        let descriptor = descriptor_str.try_into().unwrap();
-        (descriptor, class_name, method_name)
     }
 }
 

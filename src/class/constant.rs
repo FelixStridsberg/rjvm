@@ -1,4 +1,6 @@
-use crate::class::constant::Constant::{ClassRef, Double, Long, Utf8, NOOP};
+use crate::class::constant::Constant::{
+    ClassRef, Double, Long, MethodRef, NameAndType, Utf8, NOOP,
+};
 
 type Index = u16;
 
@@ -83,6 +85,26 @@ impl ConstantPool {
             self.get_utf8(*name_index)
         } else {
             panic!(format!("Tried to get {:?} as a class reference", entry))
+        }
+    }
+
+    pub fn get_name_and_type(&self, index: u16) -> (&str, &str) {
+        let entry = self.get(index);
+        if let NameAndType(name_index, descriptor_index) = entry {
+            (self.get_utf8(*name_index), self.get_utf8(*descriptor_index))
+        } else {
+            panic!(format!("Tried to get {:?} as a class reference", entry))
+        }
+    }
+
+    pub fn get_method_ref(&self, index: u16) -> (&str, &str, &str) {
+        let entry = self.get(index);
+        if let MethodRef(class_index, name_type_index) = entry {
+            let class_name = self.get_class_info_name(*class_index);
+            let (method_name, descriptor_string) = self.get_name_and_type(*name_type_index);
+            (class_name, method_name, descriptor_string)
+        } else {
+            panic!(format!("Tried to get {:?} as a method ref", entry))
         }
     }
 }
