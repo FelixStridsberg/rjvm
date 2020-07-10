@@ -6,8 +6,9 @@ use crate::vm::frame::Frame;
 use crate::vm::interpreter::interpret_frame;
 use crate::vm::Command::{VMInvokeStatic, VMReturn};
 use crate::vm::Value::*;
+use bitflags::_core::convert::TryFrom;
 use std::collections::HashMap;
-use std::str::FromStr;
+use std::convert::TryInto;
 
 mod frame;
 mod interpreter;
@@ -139,7 +140,7 @@ impl VirtualMachine {
     fn get_static_method<'a>(
         frame: &Frame<'a>,
         index: u16,
-    ) -> (MethodDescriptor, &'a str, &'a str) {
+    ) -> (MethodDescriptor<'a>, &'a str, &'a str) {
         let method_ref = frame.constant_pool.get(index);
 
         let mut class_name = "";
@@ -159,13 +160,13 @@ impl VirtualMachine {
             _ => panic!(""),
         }
 
-        let descriptor = descriptor_str.parse().unwrap();
+        let descriptor = descriptor_str.try_into().unwrap();
         (descriptor, class_name, method_name)
     }
 }
 
 #[derive(Debug, Eq, PartialEq)]
-pub enum FieldType {
+pub enum FieldType<'a> {
     Byte,
     Char,
     Double,
@@ -174,11 +175,11 @@ pub enum FieldType {
     Long,
     Short,
     Boolean,
-    Object(String),
-    Array(Box<FieldType>),
+    Object(&'a str),
+    Array(Box<FieldType<'a>>),
 }
 
-impl FieldType {
+impl FieldType<'_> {
     fn str_len(&self) -> usize {
         match self {
             FieldType::Object(s) => s.len() + 2,
@@ -187,11 +188,10 @@ impl FieldType {
         }
     }
 }
+impl<'a> TryFrom<&'a str> for FieldType<'a> {
+    type Error = Error;
 
-impl FromStr for FieldType {
-    type Err = Error;
-
-    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+    fn try_from(s: &'a str) -> std::result::Result<FieldType<'a>, Self::Error> {
         Ok(match s.chars().next().unwrap() {
             'B' => FieldType::Byte,
             'C' => FieldType::Char,
@@ -203,22 +203,25 @@ impl FromStr for FieldType {
             'Z' => FieldType::Boolean,
             'L' => {
                 let index = s.find(';').unwrap();
-                FieldType::Object(s[1..index].to_owned())
+                FieldType::Object(&s[1..index])
             }
-            '[' => FieldType::Array(Box::new(s[1..].parse()?)),
+            '[' => FieldType::Array(Box::new(s[1..].try_into()?)),
             _ => panic!("Invalid field type '{}'", s),
         })
     }
 }
 
 #[derive(Debug, Eq, PartialEq)]
-struct MethodDescriptor {
-    argument_types: Vec<FieldType>,
-    return_type: Option<FieldType>,
+struct MethodDescriptor<'a> {
+    argument_types: Vec<FieldType<'a>>,
+    return_type: Option<FieldType<'a>>,
 }
 
-impl MethodDescriptor {
-    pub fn new(arguments: Vec<FieldType>, return_type: Option<FieldType>) -> MethodDescriptor {
+impl MethodDescriptor<'_> {
+    pub fn new<'a>(
+        arguments: Vec<FieldType<'a>>,
+        return_type: Option<FieldType<'a>>,
+    ) -> MethodDescriptor<'a> {
         MethodDescriptor {
             argument_types: arguments,
             return_type,
@@ -230,7 +233,7 @@ impl MethodDescriptor {
 
         let mut i = 0;
         while i < s.len() {
-            let field_type: FieldType = (&s[i..]).parse()?;
+            let field_type: FieldType = (&s[i..]).try_into()?;
             i += field_type.str_len();
 
             argument_types.push(field_type);
@@ -242,15 +245,15 @@ impl MethodDescriptor {
         if s == "V" {
             Ok(None)
         } else {
-            Ok(Some(s.parse()?))
+            Ok(Some(s.try_into()?))
         }
     }
 }
 
-impl FromStr for MethodDescriptor {
-    type Err = Error;
+impl<'a> TryFrom<&'a str> for MethodDescriptor<'a> {
+    type Error = Error;
 
-    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+    fn try_from(s: &'a str) -> std::result::Result<MethodDescriptor<'a>, Self::Error> {
         let parts: Vec<&str> = s.split(|c| c == '(' || c == ')').collect();
         if parts.len() != 3 || !parts[0].is_empty() || parts[2].len() != 1 {
             panic!("Invalid method descriptor '{}'.", s);
@@ -270,16 +273,17 @@ mod test {
     use std::str::FromStr;
 
     use crate::error::Result;
+    use std::convert::TryInto;
 
     #[test]
     fn parse_method_descriptor_return_int() {
-        let descriptor: MethodDescriptor = "()I".parse().unwrap();
+        let descriptor: MethodDescriptor = "()I".try_into().unwrap();
         assert_eq!(descriptor, MethodDescriptor::new(vec![], Some(Int)));
     }
 
     #[test]
     fn parse_base_type_method_descriptors() {
-        let descriptor: MethodDescriptor = "(BCDFIJSZ)V".parse().unwrap();
+        let descriptor: MethodDescriptor = "(BCDFIJSZ)V".try_into().unwrap();
         assert_eq!(
             descriptor,
             MethodDescriptor::new(
@@ -292,16 +296,16 @@ mod test {
     #[test]
     fn parse_complex_method_descriptors() {
         let descriptor: MethodDescriptor = "(Ljava/lang/Object;[I[Ljava/lang/Object;)V"
-            .parse()
+            .try_into()
             .unwrap();
 
         assert_eq!(
             descriptor,
             MethodDescriptor::new(
                 vec![
-                    Object("java/lang/Object".to_owned()),
+                    Object("java/lang/Object"),
                     Array(Box::new(Int)),
-                    Array(Box::new(Object("java/lang/Object".to_owned())))
+                    Array(Box::new(Object("java/lang/Object")))
                 ],
                 None
             )

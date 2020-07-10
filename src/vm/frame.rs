@@ -73,7 +73,7 @@ impl Frame<'_> {
         self.local_variables[(index + 1) as usize] = (value & 0xFFFF_FFFF) as u32;
     }
 
-    pub fn pop_field_types(&mut self, types: &Vec<FieldType>) -> Vec<Value> {
+    pub fn pop_field_types(&mut self, types: &[FieldType]) -> Vec<Value> {
         let mut values = Vec::with_capacity(types.len());
 
         for field_type in types {
