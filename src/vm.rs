@@ -1,12 +1,13 @@
 use crate::class::constant::Constant::{ClassRef, MethodRef, NameAndType, Utf8};
 use crate::class::Class;
-use crate::error::Result;
+use crate::error::{Error, Result};
 use crate::io::class::ClassReader;
 use crate::vm::frame::Frame;
 use crate::vm::interpreter::interpret_frame;
 use crate::vm::Command::{VMInvokeStatic, VMReturn};
 use crate::vm::Value::*;
 use std::collections::HashMap;
+use std::str::FromStr;
 
 mod frame;
 mod interpreter;
@@ -161,5 +162,150 @@ impl VirtualMachine {
         }
 
         (class_name, method_name)
+    }
+}
+
+#[derive(Debug, Eq, PartialEq)]
+enum FieldType {
+    Byte,
+    Char,
+    Double,
+    Float,
+    Int,
+    Long,
+    Short,
+    Boolean,
+    Object(String),
+    Array(Box<FieldType>),
+}
+
+impl FieldType {
+    fn str_len(&self) -> usize {
+        match self {
+            FieldType::Object(s) => s.len() + 2,
+            FieldType::Array(t) => t.str_len() + 1,
+            _ => 1,
+        }
+    }
+}
+
+impl FromStr for FieldType {
+    type Err = Error;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        Ok(match s.chars().next().unwrap() {
+            'B' => FieldType::Byte,
+            'C' => FieldType::Char,
+            'D' => FieldType::Double,
+            'F' => FieldType::Float,
+            'I' => FieldType::Int,
+            'J' => FieldType::Long,
+            'S' => FieldType::Short,
+            'Z' => FieldType::Boolean,
+            'L' => {
+                let index = s.find(';').unwrap();
+                FieldType::Object(s[1..index].to_owned())
+            }
+            '[' => FieldType::Array(Box::new(s[1..].parse()?)),
+            _ => panic!("Invalid field type '{}'", s),
+        })
+    }
+}
+
+#[derive(Debug, Eq, PartialEq)]
+struct MethodDescriptor {
+    argument_types: Vec<FieldType>,
+    return_type: Option<FieldType>,
+}
+
+impl MethodDescriptor {
+    pub fn new(arguments: Vec<FieldType>, return_type: Option<FieldType>) -> MethodDescriptor {
+        MethodDescriptor {
+            argument_types: arguments,
+            return_type,
+        }
+    }
+
+    fn parse_argument_str(s: &str) -> std::result::Result<Vec<FieldType>, Error> {
+        let mut argument_types = Vec::new();
+
+        let mut i = 0;
+        while i < s.len() {
+            let field_type: FieldType = (&s[i..]).parse()?;
+            i += field_type.str_len();
+
+            argument_types.push(field_type);
+        }
+        Ok(argument_types)
+    }
+
+    fn parse_return_type(s: &str) -> std::result::Result<Option<FieldType>, Error> {
+        if s == "V" {
+            Ok(None)
+        } else {
+            Ok(Some(s.parse()?))
+        }
+    }
+}
+
+impl FromStr for MethodDescriptor {
+    type Err = Error;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        let parts: Vec<&str> = s.split(|c| c == '(' || c == ')').collect();
+        if parts.len() != 3 || !parts[0].is_empty() || parts[2].len() != 1 {
+            panic!("Invalid method descriptor '{}'.", s);
+        }
+
+        Ok(MethodDescriptor {
+            argument_types: Self::parse_argument_str(parts[1])?,
+            return_type: Self::parse_return_type(parts[2])?,
+        })
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::vm::FieldType::*;
+    use crate::vm::MethodDescriptor;
+    use std::str::FromStr;
+
+    use crate::error::Result;
+
+    #[test]
+    fn parse_method_descriptor_return_int() {
+        let descriptor: MethodDescriptor = "()I".parse().unwrap();
+        assert_eq!(descriptor, MethodDescriptor::new(vec![], Some(Int)));
+    }
+
+    #[test]
+    fn parse_base_type_method_descriptors() {
+        let descriptor: MethodDescriptor = "(BCDFIJSZ)V".parse().unwrap();
+        assert_eq!(
+            descriptor,
+            MethodDescriptor::new(
+                vec![Byte, Char, Double, Float, Int, Long, Short, Boolean],
+                None
+            )
+        );
+    }
+
+    #[test]
+    fn parse_complex_method_descriptors() {
+        let descriptor: MethodDescriptor = "(Ljava/lang/Object;[I[Ljava/lang/Object;)V"
+            .parse()
+            .unwrap();
+
+        assert_eq!(
+            descriptor,
+            MethodDescriptor::new(
+                vec![
+                    Object("java/lang/Object".to_owned()),
+                    Array(Box::new(Int)),
+                    Array(Box::new(Object("java/lang/Object".to_owned())))
+                ],
+                None
+            )
+        );
     }
 }
