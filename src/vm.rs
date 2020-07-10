@@ -2,67 +2,17 @@ use crate::class::constant::Constant::{ClassRef, MethodRef, NameAndType};
 use crate::class::Class;
 use crate::error::{Error, Result};
 use crate::io::class::ClassReader;
+use crate::vm::data::{FieldType, Value};
 use crate::vm::frame::Frame;
 use crate::vm::interpreter::interpret_frame;
 use crate::vm::Command::{VMInvokeStatic, VMReturn};
-use crate::vm::Value::*;
 use bitflags::_core::convert::TryFrom;
 use std::collections::HashMap;
 use std::convert::TryInto;
 
+pub mod data;
 mod frame;
 mod interpreter;
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum Value {
-    Boolean(bool),
-    Byte(u8),
-    Short(i16),
-    Int(i32),
-    Long(i64),
-    Char(char),
-    Float(f32),
-    Double(f64),
-    Reference(i32),
-    ReturnAddress(i32),
-    Null,
-}
-
-impl Value {
-    pub fn get_category(&self) -> u8 {
-        match self {
-            Long(_) | Double(_) => 2,
-            _ => 1,
-        }
-    }
-
-    pub fn get_int_value(&self) -> u32 {
-        match self {
-            Boolean(b) => {
-                if *b {
-                    1
-                } else {
-                    0
-                }
-            }
-            Byte(b) => *b as u32,
-            Short(s) => *s as u32,
-            Char(c) => *c as u32,
-            Float(f) => (*f).to_bits(),
-            Null => 0,
-            Int(i) | Reference(i) | ReturnAddress(i) => *i as u32,
-            _ => panic!("Tried to get int value of {:?}", self),
-        }
-    }
-
-    pub fn get_long_value(&self) -> u64 {
-        match self {
-            Long(l) => *l as u64,
-            Double(d) => (*d).to_bits(),
-            _ => panic!("Tried to get long value of {:?}", self),
-        }
-    }
-}
 
 enum Command {
     VMReturn(Value),
@@ -74,12 +24,6 @@ pub struct VirtualMachine {
 }
 
 impl VirtualMachine {
-    pub fn new() -> Self {
-        VirtualMachine {
-            class_register: HashMap::new(),
-        }
-    }
-
     pub fn register_class(&mut self, filename: &str) -> Result<()> {
         let class = ClassReader::from_file(filename)?;
         self.class_register.insert(class.this_class.clone(), class);
@@ -165,49 +109,11 @@ impl VirtualMachine {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
-pub enum FieldType<'a> {
-    Byte,
-    Char,
-    Double,
-    Float,
-    Int,
-    Long,
-    Short,
-    Boolean,
-    Object(&'a str),
-    Array(Box<FieldType<'a>>),
-}
-
-impl FieldType<'_> {
-    fn str_len(&self) -> usize {
-        match self {
-            FieldType::Object(s) => s.len() + 2,
-            FieldType::Array(t) => t.str_len() + 1,
-            _ => 1,
+impl Default for VirtualMachine {
+    fn default() -> Self {
+        VirtualMachine {
+            class_register: HashMap::new(),
         }
-    }
-}
-impl<'a> TryFrom<&'a str> for FieldType<'a> {
-    type Error = Error;
-
-    fn try_from(s: &'a str) -> std::result::Result<FieldType<'a>, Self::Error> {
-        Ok(match s.chars().next().unwrap() {
-            'B' => FieldType::Byte,
-            'C' => FieldType::Char,
-            'D' => FieldType::Double,
-            'F' => FieldType::Float,
-            'I' => FieldType::Int,
-            'J' => FieldType::Long,
-            'S' => FieldType::Short,
-            'Z' => FieldType::Boolean,
-            'L' => {
-                let index = s.find(';').unwrap();
-                FieldType::Object(&s[1..index])
-            }
-            '[' => FieldType::Array(Box::new(s[1..].try_into()?)),
-            _ => panic!("Invalid field type '{}'", s),
-        })
     }
 }
 
@@ -218,16 +124,6 @@ struct MethodDescriptor<'a> {
 }
 
 impl MethodDescriptor<'_> {
-    pub fn new<'a>(
-        arguments: Vec<FieldType<'a>>,
-        return_type: Option<FieldType<'a>>,
-    ) -> MethodDescriptor<'a> {
-        MethodDescriptor {
-            argument_types: arguments,
-            return_type,
-        }
-    }
-
     fn parse_argument_str(s: &str) -> std::result::Result<Vec<FieldType>, Error> {
         let mut argument_types = Vec::new();
 
@@ -268,17 +164,16 @@ impl<'a> TryFrom<&'a str> for MethodDescriptor<'a> {
 
 #[cfg(test)]
 mod test {
-    use crate::vm::FieldType::*;
-    use crate::vm::MethodDescriptor;
-    use std::str::FromStr;
-
     use crate::error::Result;
+    use crate::vm::data::FieldType::*;
+    use crate::vm::MethodDescriptor;
     use std::convert::TryInto;
+    use std::str::FromStr;
 
     #[test]
     fn parse_method_descriptor_return_int() {
         let descriptor: MethodDescriptor = "()I".try_into().unwrap();
-        assert_eq!(descriptor, MethodDescriptor::new(vec![], Some(Int)));
+        assert_eq!(descriptor, MethodDescriptor { argument_types: vec![], return_type: Some(Int) });
     }
 
     #[test]
@@ -286,10 +181,10 @@ mod test {
         let descriptor: MethodDescriptor = "(BCDFIJSZ)V".try_into().unwrap();
         assert_eq!(
             descriptor,
-            MethodDescriptor::new(
-                vec![Byte, Char, Double, Float, Int, Long, Short, Boolean],
-                None
-            )
+            MethodDescriptor {
+                argument_types: vec![Byte, Char, Double, Float, Int, Long, Short, Boolean],
+                return_type: None,
+        }
         );
     }
 
@@ -301,14 +196,14 @@ mod test {
 
         assert_eq!(
             descriptor,
-            MethodDescriptor::new(
-                vec![
+            MethodDescriptor {
+                argument_types: vec![
                     Object("java/lang/Object"),
                     Array(Box::new(Int)),
                     Array(Box::new(Object("java/lang/Object")))
                 ],
-                None
-            )
+                return_type: None
+            }
         );
     }
 }

@@ -2,12 +2,12 @@ extern crate rjvm;
 
 use rjvm::io::class::ClassReader;
 use rjvm::vm::VirtualMachine;
-use rjvm::vm::Value::{Int, Long};
 use rjvm::error::Result;
+use rjvm::vm::data::Value::{Int, Long};
 
 #[test]
 fn invoke_static_simple_no_args() -> Result<()> {
-    let mut vm = VirtualMachine::new();
+    let mut vm = VirtualMachine::default();
     vm.register_class("./tests/test_data/Simple.class");
 
     let return_value = vm.run("test_data/Simple", "no_args", vec![]);
@@ -18,7 +18,7 @@ fn invoke_static_simple_no_args() -> Result<()> {
 
 #[test]
 fn invoke_static_simple_add() -> Result<()> {
-    let mut vm = VirtualMachine::new();
+    let mut vm = VirtualMachine::default();
     vm.register_class("./tests/test_data/Simple.class");
 
     let return_value = vm.run("test_data/Simple", "add", vec![Int(1), Int(5)]);
@@ -29,7 +29,7 @@ fn invoke_static_simple_add() -> Result<()> {
 
 #[test]
 fn invoke_static_simple_add_long() -> Result<()> {
-    let mut vm = VirtualMachine::new();
+    let mut vm = VirtualMachine::default();
     vm.register_class("./tests/test_data/Simple.class");
 
     let return_value = vm.run("test_data/Simple", "add_long", vec![Long(1), Long(5)]);
@@ -40,7 +40,7 @@ fn invoke_static_simple_add_long() -> Result<()> {
 
 #[test]
 fn invoke_static_nested() -> Result<()> {
-    let mut vm = VirtualMachine::new();
+    let mut vm = VirtualMachine::default();
     vm.register_class("./tests/test_data/Simple.class");
 
     let return_value = vm.run("test_data/Simple", "add_nested", vec![Int(1), Int(5)]);
