@@ -1,7 +1,7 @@
 use crate::class::attribute::Code;
 use crate::class::constant::ConstantPool;
-use crate::vm::Value;
 use crate::vm::Value::*;
+use crate::vm::{FieldType, Value};
 
 #[derive(Debug)]
 pub struct Frame<'a> {
@@ -73,6 +73,25 @@ impl Frame<'_> {
         self.local_variables[(index + 1) as usize] = (value & 0xFFFF_FFFF) as u32;
     }
 
+    pub fn pop_field_types(&mut self, types: &Vec<FieldType>) -> Vec<Value> {
+        let mut values = Vec::with_capacity(types.len());
+
+        for field_type in types {
+            match field_type {
+                FieldType::Byte => values.push(Byte(self.pop_operand_byte())),
+                FieldType::Char => values.push(Char(self.pop_operand_char())),
+                FieldType::Double => values.push(Double(self.pop_operand_double())),
+                FieldType::Float => values.push(Float(self.pop_operand_float())),
+                FieldType::Int => values.push(Int(self.pop_operand_int())),
+                FieldType::Long => values.push(Long(self.pop_operand_long())),
+                FieldType::Short => values.push(Short(self.pop_operand_short())),
+                FieldType::Boolean => values.push(Boolean(self.pop_operand_boolean())),
+                _ => panic!("Not implemented"),
+            }
+        }
+        values
+    }
+
     pub fn push_operand(&mut self, value: Value) {
         self.operand_stack_depth += match value {
             Long(_) | Double(_) => 2,
@@ -93,9 +112,30 @@ impl Frame<'_> {
         }
     }
 
+    pub fn pop_operand_byte(&mut self) -> u8 {
+        match self.pop_operand() {
+            Byte(b) => b,
+            op => panic!("Expected int to pop, found {:?}", op),
+        }
+    }
+
+    pub fn pop_operand_char(&mut self) -> char {
+        match self.pop_operand() {
+            Char(c) => c,
+            op => panic!("Expected int to pop, found {:?}", op),
+        }
+    }
+
     pub fn pop_operand_int(&mut self) -> i32 {
         match self.pop_operand() {
             Int(i) => i,
+            op => panic!("Expected int to pop, found {:?}", op),
+        }
+    }
+
+    pub fn pop_operand_short(&mut self) -> i16 {
+        match self.pop_operand() {
+            Short(s) => s,
             op => panic!("Expected int to pop, found {:?}", op),
         }
     }
@@ -118,6 +158,13 @@ impl Frame<'_> {
         match self.pop_operand() {
             Double(d) => d,
             op => panic!("Expected double to pop, found {:?}", op),
+        }
+    }
+
+    pub fn pop_operand_boolean(&mut self) -> bool {
+        match self.pop_operand() {
+            Boolean(b) => b,
+            op => panic!("Expected int to pop, found {:?}", op),
         }
     }
 

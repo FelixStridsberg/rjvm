@@ -1,4 +1,4 @@
-use crate::class::constant::Constant::{ClassRef, MethodRef, NameAndType, Utf8};
+use crate::class::constant::Constant::{ClassRef, MethodRef, NameAndType};
 use crate::class::Class;
 use crate::error::{Error, Result};
 use crate::io::class::ClassReader;
@@ -108,12 +108,9 @@ impl VirtualMachine {
                     }
                 }
                 VMInvokeStatic(index) => {
-                    // Temp hack for POC, this should be read from method type I assume.
-                    let arg1 = current_frame.pop_operand_int();
-                    let arg2 = current_frame.pop_operand_int();
-                    let args = vec![Int(arg1), Int(arg2)];
-
-                    let (class_name, method_name) = Self::get_static(&current_frame, index);
+                    let (descriptor, class_name, method_name) =
+                        Self::get_static_method(&current_frame, index);
+                    let args = current_frame.pop_field_types(&descriptor.argument_types);
                     let next_frame = self.prepare_static_method(class_name, method_name, args);
 
                     stack.push(current_frame);
@@ -139,34 +136,36 @@ impl VirtualMachine {
         frame
     }
 
-    fn get_static<'a>(frame: &'a Frame, index: u16) -> (&'a str, &'a str) {
+    fn get_static_method<'a>(
+        frame: &Frame<'a>,
+        index: u16,
+    ) -> (MethodDescriptor, &'a str, &'a str) {
         let method_ref = frame.constant_pool.get(index);
 
         let mut class_name = "";
         let mut method_name = "";
+        let mut descriptor_str = "";
         match method_ref {
             MethodRef(class_index, name_type_index) => {
                 if let ClassRef(class) = frame.constant_pool.get(*class_index) {
-                    if let Utf8(s) = frame.constant_pool.get(*class) {
-                        class_name = s;
-                    }
+                    class_name = frame.constant_pool.get_utf8(*class);
                 }
                 if let NameAndType(name_idx, type_idx) = frame.constant_pool.get(*name_type_index) {
-                    if let Utf8(s) = frame.constant_pool.get(*name_idx) {
-                        method_name = s;
-                    }
+                    method_name = frame.constant_pool.get_utf8(*name_idx);
+                    descriptor_str = frame.constant_pool.get_utf8(*type_idx);
                     // println!("type: {:?}", frame.constant_pool.get(*type_idx));
                 }
             }
             _ => panic!(""),
         }
 
-        (class_name, method_name)
+        let descriptor = descriptor_str.parse().unwrap();
+        (descriptor, class_name, method_name)
     }
 }
 
 #[derive(Debug, Eq, PartialEq)]
-enum FieldType {
+pub enum FieldType {
     Byte,
     Char,
     Double,
