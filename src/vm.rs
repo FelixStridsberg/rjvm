@@ -1,16 +1,15 @@
 use crate::class::constant::Constant::{ClassRef, MethodRef, NameAndType};
 use crate::class::Class;
-use crate::error::{Error, Result};
+use crate::error::Result;
 use crate::io::class::ClassReader;
-use crate::vm::data::{FieldType, Value};
+use crate::vm::data_type::{FieldType, Value, MethodDescriptor};
 use crate::vm::frame::Frame;
 use crate::vm::interpreter::interpret_frame;
 use crate::vm::Command::{VMInvokeStatic, VMReturn};
-use bitflags::_core::convert::TryFrom;
 use std::collections::HashMap;
 use std::convert::TryInto;
 
-pub mod data;
+pub mod data_type;
 mod frame;
 mod interpreter;
 
@@ -114,96 +113,5 @@ impl Default for VirtualMachine {
         VirtualMachine {
             class_register: HashMap::new(),
         }
-    }
-}
-
-#[derive(Debug, Eq, PartialEq)]
-struct MethodDescriptor<'a> {
-    argument_types: Vec<FieldType<'a>>,
-    return_type: Option<FieldType<'a>>,
-}
-
-impl MethodDescriptor<'_> {
-    fn parse_argument_str(s: &str) -> std::result::Result<Vec<FieldType>, Error> {
-        let mut argument_types = Vec::new();
-
-        let mut i = 0;
-        while i < s.len() {
-            let field_type: FieldType = (&s[i..]).try_into()?;
-            i += field_type.str_len();
-
-            argument_types.push(field_type);
-        }
-        Ok(argument_types)
-    }
-
-    fn parse_return_type(s: &str) -> std::result::Result<Option<FieldType>, Error> {
-        if s == "V" {
-            Ok(None)
-        } else {
-            Ok(Some(s.try_into()?))
-        }
-    }
-}
-
-impl<'a> TryFrom<&'a str> for MethodDescriptor<'a> {
-    type Error = Error;
-
-    fn try_from(s: &'a str) -> std::result::Result<MethodDescriptor<'a>, Self::Error> {
-        let parts: Vec<&str> = s.split(|c| c == '(' || c == ')').collect();
-        if parts.len() != 3 || !parts[0].is_empty() || parts[2].len() != 1 {
-            panic!("Invalid method descriptor '{}'.", s);
-        }
-
-        Ok(MethodDescriptor {
-            argument_types: Self::parse_argument_str(parts[1])?,
-            return_type: Self::parse_return_type(parts[2])?,
-        })
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use crate::error::Result;
-    use crate::vm::data::FieldType::*;
-    use crate::vm::MethodDescriptor;
-    use std::convert::TryInto;
-    use std::str::FromStr;
-
-    #[test]
-    fn parse_method_descriptor_return_int() {
-        let descriptor: MethodDescriptor = "()I".try_into().unwrap();
-        assert_eq!(descriptor, MethodDescriptor { argument_types: vec![], return_type: Some(Int) });
-    }
-
-    #[test]
-    fn parse_base_type_method_descriptors() {
-        let descriptor: MethodDescriptor = "(BCDFIJSZ)V".try_into().unwrap();
-        assert_eq!(
-            descriptor,
-            MethodDescriptor {
-                argument_types: vec![Byte, Char, Double, Float, Int, Long, Short, Boolean],
-                return_type: None,
-        }
-        );
-    }
-
-    #[test]
-    fn parse_complex_method_descriptors() {
-        let descriptor: MethodDescriptor = "(Ljava/lang/Object;[I[Ljava/lang/Object;)V"
-            .try_into()
-            .unwrap();
-
-        assert_eq!(
-            descriptor,
-            MethodDescriptor {
-                argument_types: vec![
-                    Object("java/lang/Object"),
-                    Array(Box::new(Int)),
-                    Array(Box::new(Object("java/lang/Object")))
-                ],
-                return_type: None
-            }
-        );
     }
 }

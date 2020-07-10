@@ -3,7 +3,7 @@ extern crate rjvm;
 use rjvm::io::class::ClassReader;
 use rjvm::vm::VirtualMachine;
 use rjvm::error::Result;
-use rjvm::vm::data::Value::{Int, Long};
+use rjvm::vm::data_type::Value::{Int, Long};
 
 #[test]
 fn invoke_static_simple_no_args() -> Result<()> {
