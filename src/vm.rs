@@ -2,7 +2,7 @@ use crate::class::constant::Constant::{ClassRef, MethodRef, NameAndType};
 use crate::class::Class;
 use crate::error::Result;
 use crate::io::class::ClassReader;
-use crate::vm::data_type::{FieldType, Value, MethodDescriptor};
+use crate::vm::data_type::{MethodDescriptor, Value};
 use crate::vm::frame::Frame;
 use crate::vm::interpreter::interpret_frame;
 use crate::vm::Command::{VMInvokeStatic, VMReturn};

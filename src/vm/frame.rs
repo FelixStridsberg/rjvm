@@ -1,7 +1,7 @@
 use crate::class::attribute::Code;
 use crate::class::constant::ConstantPool;
-use crate::vm::Value::*;
-use crate::vm::{FieldType, Value};
+use crate::vm::data_type::Value::*;
+use crate::vm::data_type::{FieldType, Value};
 
 #[derive(Debug)]
 pub struct Frame<'a> {
@@ -180,8 +180,8 @@ impl Frame<'_> {
 mod test {
     use crate::class::attribute::Code;
     use crate::class::constant::ConstantPool;
+    use crate::vm::data_type::Value;
     use crate::vm::frame::Frame;
-    use crate::vm::Value;
 
     #[test]
     fn pop_bool() {

@@ -147,16 +147,20 @@ impl<'a> TryFrom<&'a str> for MethodDescriptor<'a> {
 
 #[cfg(test)]
 mod test {
-    use crate::error::Result;
     use crate::vm::data_type::FieldType::*;
-    use std::convert::TryInto;
-    use std::str::FromStr;
     use crate::vm::data_type::MethodDescriptor;
+    use std::convert::TryInto;
 
     #[test]
     fn parse_method_descriptor_return_int() {
         let descriptor: MethodDescriptor = "()I".try_into().unwrap();
-        assert_eq!(descriptor, MethodDescriptor { argument_types: vec![], return_type: Some(Int) });
+        assert_eq!(
+            descriptor,
+            MethodDescriptor {
+                argument_types: vec![],
+                return_type: Some(Int)
+            }
+        );
     }
 
     #[test]
