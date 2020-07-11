@@ -11,7 +11,6 @@ pub type DoubleType = f64;
 pub type ReferenceType = u32;
 pub type ReturnAddressType = u32;
 
-
 #[derive(Debug, PartialEq, Clone)]
 pub enum Value {
     Boolean(bool),
@@ -60,6 +59,87 @@ impl Value {
             Long(l) => *l as u64,
             Double(d) => (*d).to_bits(),
             _ => panic!("Tried to get long value of {:?}", self),
+        }
+    }
+}
+
+impl Into<u8> for Value {
+    fn into(self) -> u8 {
+        match self {
+            Byte(b) => b,
+            x => panic!("Tried to convert '{:?}' to byte.", x),
+        }
+    }
+}
+
+impl Into<char> for Value {
+    fn into(self) -> char {
+        match self {
+            Char(c) => c,
+            x => panic!("Tried to convert '{:?}' to char.", x),
+        }
+    }
+}
+
+impl Into<FloatType> for Value {
+    fn into(self) -> FloatType {
+        match self {
+            Float(f) => f,
+            x => panic!("Tried to convert '{:?}' to float.", x),
+        }
+    }
+}
+
+impl Into<DoubleType> for Value {
+    fn into(self) -> DoubleType {
+        match self {
+            Double(d) => d,
+            x => panic!("Tried to convert '{:?}' to double.", x),
+        }
+    }
+}
+
+impl Into<IntType> for Value {
+    fn into(self) -> IntType {
+        match self {
+            Int(i) => i,
+            x => panic!("Tried to convert '{:?}' to int.", x),
+        }
+    }
+}
+
+impl Into<ReferenceType> for Value {
+    fn into(self) -> ReferenceType {
+        match self {
+            Reference(r) | ReturnAddress(r) => r,
+            x => panic!("Tried to convert '{:?}' to int.", x),
+        }
+    }
+}
+
+impl Into<LongType> for Value {
+    fn into(self) -> LongType {
+        match self {
+            Long(l) => l,
+            x => panic!("Tried to convert '{:?}' to long.", x),
+        }
+    }
+}
+
+impl Into<ShortType> for Value {
+    fn into(self) -> ShortType {
+        match self {
+            Short(s) => s,
+            x => panic!("Tried to convert '{:?}' to short.", x),
+        }
+    }
+}
+
+impl Into<bool> for Value {
+    fn into(self) -> bool {
+        match self {
+            Boolean(b) => b,
+            x => panic!("Tried to convert '{:?}' to bool.", x),
         }
     }
 }

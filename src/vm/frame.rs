@@ -1,7 +1,7 @@
 use crate::class::attribute::Code;
 use crate::class::constant::ConstantPool;
 use crate::vm::data_type::Value::*;
-use crate::vm::data_type::{FieldType, Value, LongType, ShortType, IntType, FloatType, DoubleType, ReferenceType};
+use crate::vm::data_type::{FieldType, IntType, ReferenceType, Value};
 
 #[derive(Debug)]
 pub struct Frame<'a> {
@@ -78,14 +78,14 @@ impl Frame<'_> {
 
         for field_type in types {
             match field_type {
-                FieldType::Byte => values.push(Byte(self.pop_operand_byte())),
-                FieldType::Char => values.push(Char(self.pop_operand_char())),
-                FieldType::Double => values.push(Double(self.pop_operand_double())),
-                FieldType::Float => values.push(Float(self.pop_operand_float())),
-                FieldType::Int => values.push(Int(self.pop_operand_int())),
-                FieldType::Long => values.push(Long(self.pop_operand_long())),
-                FieldType::Short => values.push(Short(self.pop_operand_short())),
-                FieldType::Boolean => values.push(Boolean(self.pop_operand_boolean())),
+                FieldType::Byte => values.push(Byte(self.pop_operand().into())),
+                FieldType::Char => values.push(Char(self.pop_operand().into())),
+                FieldType::Double => values.push(Double(self.pop_operand().into())),
+                FieldType::Float => values.push(Float(self.pop_operand().into())),
+                FieldType::Int => values.push(Int(self.pop_operand().into())),
+                FieldType::Long => values.push(Long(self.pop_operand().into())),
+                FieldType::Short => values.push(Short(self.pop_operand().into())),
+                FieldType::Boolean => values.push(Boolean(self.pop_operand().into())),
                 _ => panic!("Not implemented"),
             }
         }
@@ -112,13 +112,6 @@ impl Frame<'_> {
         }
     }
 
-    pub fn pop_operand_byte(&mut self) -> u8 {
-        match self.pop_operand() {
-            Byte(b) => b,
-            op => panic!("Expected int to pop, found {:?}", op),
-        }
-    }
-
     pub fn pop_operand_char(&mut self) -> char {
         match self.pop_operand() {
             Char(c) => c,
@@ -129,41 +122,6 @@ impl Frame<'_> {
     pub fn pop_operand_int(&mut self) -> IntType {
         match self.pop_operand() {
             Int(i) => i,
-            op => panic!("Expected int to pop, found {:?}", op),
-        }
-    }
-
-    pub fn pop_operand_short(&mut self) -> ShortType {
-        match self.pop_operand() {
-            Short(s) => s,
-            op => panic!("Expected int to pop, found {:?}", op),
-        }
-    }
-
-    pub fn pop_operand_long(&mut self) -> LongType {
-        match self.pop_operand() {
-            Long(l) => l,
-            op => panic!("Expected long to pop, found {:?}", op),
-        }
-    }
-
-    pub fn pop_operand_float(&mut self) -> FloatType {
-        match self.pop_operand() {
-            Float(f) => f,
-            op => panic!("Expected float to pop, found {:?}", op),
-        }
-    }
-
-    pub fn pop_operand_double(&mut self) -> DoubleType {
-        match self.pop_operand() {
-            Double(d) => d,
-            op => panic!("Expected double to pop, found {:?}", op),
-        }
-    }
-
-    pub fn pop_operand_boolean(&mut self) -> bool {
-        match self.pop_operand() {
-            Boolean(b) => b,
             op => panic!("Expected int to pop, found {:?}", op),
         }
     }

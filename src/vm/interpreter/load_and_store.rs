@@ -3,8 +3,8 @@
 
 use crate::class::constant::Constant;
 use crate::vm::data_type::Value::*;
+use crate::vm::data_type::{DoubleType, FloatType, IntType, LongType, ReferenceType};
 use crate::vm::frame::Frame;
-use crate::vm::data_type::{ReferenceType, LongType, IntType, DoubleType, FloatType};
 
 pub fn load_int(frame: &mut Frame, operands: &[u8]) {
     let index = operands[0] as u16;

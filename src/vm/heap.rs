@@ -1,5 +1,5 @@
-use crate::vm::heap::HeapType::IntArray;
 use crate::vm::data_type::ReferenceType;
+use crate::vm::heap::HeapType::IntArray;
 
 #[derive(Debug)]
 pub enum HeapType {

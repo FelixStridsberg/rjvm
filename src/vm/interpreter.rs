@@ -254,11 +254,11 @@ fn interpret_instruction(
         // Method invocation and return
         // TODO
         Return => command = Some(VMReturn(Null)),
-        Ireturn => command = Some(VMReturn(Int(frame.pop_operand_int()))),
-        Lreturn => command = Some(VMReturn(Long(frame.pop_operand_long()))),
-        Freturn => command = Some(VMReturn(Float(frame.pop_operand_float()))),
-        Dreturn => command = Some(VMReturn(Double(frame.pop_operand_double()))),
-        Areturn => command = Some(VMReturn(Reference(frame.pop_operand_reference()))),
+        Ireturn => command = Some(VMReturn(Int(frame.pop_operand().into()))),
+        Lreturn => command = Some(VMReturn(Long(frame.pop_operand().into()))),
+        Freturn => command = Some(VMReturn(Float(frame.pop_operand().into()))),
+        Dreturn => command = Some(VMReturn(Double(frame.pop_operand().into()))),
+        Areturn => command = Some(VMReturn(Reference(frame.pop_operand().into()))),
 
         Invokestatic => command = Some(VMInvokeStatic(reference(&instruction.operands))),
 
