@@ -1,6 +1,7 @@
 use crate::vm::frame::Frame;
 use crate::vm::Value;
-use crate::vm::Value::ReturnAddress;
+use crate::vm::data_type::Value::ReturnAddress;
+use crate::vm::data_type::ReturnAddressType;
 
 pub fn if_equals(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
     if frame.pop_operand_int() == 0 {
@@ -153,12 +154,12 @@ pub fn goto_wide(operands: &[u8]) -> Option<i32> {
 }
 
 pub fn jump_subroutine(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
-    frame.push_operand(ReturnAddress(frame.pc as i32 + 3));
+    frame.push_operand(ReturnAddress(frame.pc as ReturnAddressType + 3));
     Some(offset(operands))
 }
 
 pub fn jump_subroutine_wide(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
-    frame.push_operand(ReturnAddress(frame.pc as i32 + 5));
+    frame.push_operand(ReturnAddress(frame.pc as ReturnAddressType + 5));
     Some(offset_wide(operands))
 }
 

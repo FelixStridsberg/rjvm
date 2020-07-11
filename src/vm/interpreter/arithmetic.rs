@@ -3,6 +3,7 @@
 
 use crate::vm::data_type::Value::{Double, Float, Int, Long};
 use crate::vm::frame::Frame;
+use crate::vm::data_type::LongType;
 
 pub fn add_int(frame: &mut Frame) {
     let value = frame.pop_operand_int() + frame.pop_operand_int();
@@ -157,7 +158,7 @@ pub fn long_shift_right(frame: &mut Frame) {
 pub fn long_logical_shift_right(frame: &mut Frame) {
     let value1 = frame.pop_operand_long() as u64;
     let value2 = frame.pop_operand_long() as u64;
-    frame.push_operand(Long((value1 >> (value2 & 0x1f)) as i64));
+    frame.push_operand(Long((value1 >> (value2 & 0x1f)) as LongType));
 }
 
 pub fn int_bitwise_or(frame: &mut Frame) {

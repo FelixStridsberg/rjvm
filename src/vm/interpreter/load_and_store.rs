@@ -4,6 +4,7 @@
 use crate::class::constant::Constant;
 use crate::vm::data_type::Value::*;
 use crate::vm::frame::Frame;
+use crate::vm::data_type::{ReferenceType, LongType, IntType, DoubleType, FloatType};
 
 pub fn load_int(frame: &mut Frame, operands: &[u8]) {
     let index = operands[0] as u16;
@@ -11,7 +12,7 @@ pub fn load_int(frame: &mut Frame, operands: &[u8]) {
 }
 
 pub fn load_int_n(frame: &mut Frame, index: u16) {
-    let int = frame.get_local(index) as i32;
+    let int = frame.get_local(index) as IntType;
     frame.push_operand(Int(int));
 }
 
@@ -21,8 +22,8 @@ pub fn load_long(frame: &mut Frame, operands: &[u8]) {
 }
 
 pub fn load_long_n(frame: &mut Frame, index: u16) {
-    let i1 = frame.get_local(index) as i64;
-    let i2 = frame.get_local(index + 1) as i64;
+    let i1 = frame.get_local(index) as LongType;
+    let i2 = frame.get_local(index + 1) as LongType;
     frame.push_operand(Long(i1 << 32 | i2));
 }
 
@@ -33,7 +34,7 @@ pub fn load_float(frame: &mut Frame, operands: &[u8]) {
 
 pub fn load_float_n(frame: &mut Frame, index: u16) {
     let bits = frame.get_local(index);
-    frame.push_operand(Float(f32::from_bits(bits)));
+    frame.push_operand(Float(FloatType::from_bits(bits)));
 }
 
 pub fn load_double(frame: &mut Frame, operands: &[u8]) {
@@ -45,7 +46,7 @@ pub fn load_double_n(frame: &mut Frame, index: u16) {
     let i1 = frame.get_local(index) as u64;
     let i2 = frame.get_local(index + 1) as u64;
     let bits = i1 << 32 | i2;
-    frame.push_operand(Double(f64::from_bits(bits)));
+    frame.push_operand(Double(DoubleType::from_bits(bits)));
 }
 
 pub fn load_reference(frame: &mut Frame, operands: &[u8]) {
@@ -54,8 +55,8 @@ pub fn load_reference(frame: &mut Frame, operands: &[u8]) {
 }
 
 pub fn load_reference_n(frame: &mut Frame, index: u16) {
-    let int = frame.get_local(index) as i32;
-    frame.push_operand(Reference(int));
+    let int = frame.get_local(index);
+    frame.push_operand(Reference(int as ReferenceType));
 }
 
 pub fn store_int(frame: &mut Frame, operands: &[u8]) {

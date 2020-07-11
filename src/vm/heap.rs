@@ -1,4 +1,5 @@
 use crate::vm::heap::HeapType::IntArray;
+use crate::vm::data_type::ReferenceType;
 
 #[derive(Debug)]
 pub enum HeapType {
@@ -18,8 +19,8 @@ impl Heap {
         index
     }
 
-    pub fn get_int_array(&mut self, index: i32) -> &mut Vec<i32> {
-        let object = self.objects.get_mut(index as usize).unwrap();
+    pub fn get_int_array(&mut self, reference: ReferenceType) -> &mut Vec<i32> {
+        let object = self.objects.get_mut(reference as usize).unwrap();
         match object {
             IntArray(a) => a,
             _ => panic!("Tried to pop {:?} as IntArray.", object),

@@ -1,7 +1,7 @@
 use crate::class::attribute::Code;
 use crate::class::constant::ConstantPool;
 use crate::vm::data_type::Value::*;
-use crate::vm::data_type::{FieldType, Value};
+use crate::vm::data_type::{FieldType, Value, LongType, ShortType, IntType, FloatType, DoubleType, ReferenceType};
 
 #[derive(Debug)]
 pub struct Frame<'a> {
@@ -126,35 +126,35 @@ impl Frame<'_> {
         }
     }
 
-    pub fn pop_operand_int(&mut self) -> i32 {
+    pub fn pop_operand_int(&mut self) -> IntType {
         match self.pop_operand() {
             Int(i) => i,
             op => panic!("Expected int to pop, found {:?}", op),
         }
     }
 
-    pub fn pop_operand_short(&mut self) -> i16 {
+    pub fn pop_operand_short(&mut self) -> ShortType {
         match self.pop_operand() {
             Short(s) => s,
             op => panic!("Expected int to pop, found {:?}", op),
         }
     }
 
-    pub fn pop_operand_long(&mut self) -> i64 {
+    pub fn pop_operand_long(&mut self) -> LongType {
         match self.pop_operand() {
             Long(l) => l,
             op => panic!("Expected long to pop, found {:?}", op),
         }
     }
 
-    pub fn pop_operand_float(&mut self) -> f32 {
+    pub fn pop_operand_float(&mut self) -> FloatType {
         match self.pop_operand() {
             Float(f) => f,
             op => panic!("Expected float to pop, found {:?}", op),
         }
     }
 
-    pub fn pop_operand_double(&mut self) -> f64 {
+    pub fn pop_operand_double(&mut self) -> DoubleType {
         match self.pop_operand() {
             Double(d) => d,
             op => panic!("Expected double to pop, found {:?}", op),
@@ -168,7 +168,7 @@ impl Frame<'_> {
         }
     }
 
-    pub fn pop_operand_reference(&mut self) -> i32 {
+    pub fn pop_operand_reference(&mut self) -> ReferenceType {
         match self.pop_operand() {
             Reference(i) => i,
             op => panic!("Expected reference to pop, found {:?}", op),

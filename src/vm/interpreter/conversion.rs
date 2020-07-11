@@ -1,34 +1,35 @@
 use crate::vm::data_type::Value::*;
 use crate::vm::frame::Frame;
+use crate::vm::data_type::{FloatType, LongType, IntType, ShortType, DoubleType};
 
 pub fn int_to_long(frame: &mut Frame) {
     let int = frame.pop_operand_int();
-    frame.push_operand(Long(int as i64));
+    frame.push_operand(Long(int as LongType));
 }
 
 pub fn int_to_float(frame: &mut Frame) {
     let int = frame.pop_operand_int();
-    frame.push_operand(Float(int as f32));
+    frame.push_operand(Float(int as FloatType));
 }
 
 pub fn int_to_double(frame: &mut Frame) {
     let int = frame.pop_operand_int();
-    frame.push_operand(Double(int as f64));
+    frame.push_operand(Double(int as DoubleType));
 }
 
 pub fn long_to_float(frame: &mut Frame) {
     let long = frame.pop_operand_long();
-    frame.push_operand(Float(long as f32));
+    frame.push_operand(Float(long as FloatType));
 }
 
 pub fn long_to_double(frame: &mut Frame) {
     let long = frame.pop_operand_long();
-    frame.push_operand(Double(long as f64));
+    frame.push_operand(Double(long as DoubleType));
 }
 
 pub fn float_to_double(frame: &mut Frame) {
     let float = frame.pop_operand_float();
-    frame.push_operand(Double(float as f64));
+    frame.push_operand(Double(float as DoubleType));
 }
 
 pub fn int_to_byte(frame: &mut Frame) {
@@ -43,37 +44,37 @@ pub fn int_to_char(frame: &mut Frame) {
 
 pub fn int_to_short(frame: &mut Frame) {
     let int = frame.pop_operand_int();
-    frame.push_operand(Short(int as i16));
+    frame.push_operand(Short(int as ShortType));
 }
 
 pub fn long_to_int(frame: &mut Frame) {
     let long = frame.pop_operand_long();
-    frame.push_operand(Int(long as i32));
+    frame.push_operand(Int(long as IntType));
 }
 
 pub fn float_to_int(frame: &mut Frame) {
     let float = frame.pop_operand_float();
-    frame.push_operand(Int(float as i32));
+    frame.push_operand(Int(float as IntType));
 }
 
 pub fn float_to_long(frame: &mut Frame) {
     let float = frame.pop_operand_float();
-    frame.push_operand(Long(float as i64));
+    frame.push_operand(Long(float as LongType));
 }
 
 pub fn double_to_int(frame: &mut Frame) {
     let double = frame.pop_operand_double();
-    frame.push_operand(Int(double as i32));
+    frame.push_operand(Int(double as IntType));
 }
 
 pub fn double_to_long(frame: &mut Frame) {
     let double = frame.pop_operand_double();
-    frame.push_operand(Long(double as i64));
+    frame.push_operand(Long(double as LongType));
 }
 
 pub fn double_to_float(frame: &mut Frame) {
     let double = frame.pop_operand_double();
-    frame.push_operand(Float(double as f32));
+    frame.push_operand(Float(double as FloatType));
 }
 
 #[cfg(test)]

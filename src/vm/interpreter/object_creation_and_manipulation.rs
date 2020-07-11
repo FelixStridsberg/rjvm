@@ -1,6 +1,7 @@
 use crate::vm::data_type::Value::{Int, Reference};
 use crate::vm::frame::Frame;
 use crate::vm::heap::Heap;
+use crate::vm::data_type::ReferenceType;
 
 pub fn new_array(frame: &mut Frame, heap: &mut Heap, operands: &[u8]) {
     let len = frame.pop_operand_int();
@@ -9,7 +10,7 @@ pub fn new_array(frame: &mut Frame, heap: &mut Heap, operands: &[u8]) {
         a => panic!("Unknown array type {}.", a),
     };
 
-    frame.push_operand(Reference(reference));
+    frame.push_operand(Reference(reference as ReferenceType));
 }
 
 pub fn int_array_store(frame: &mut Frame, heap: &mut Heap) {

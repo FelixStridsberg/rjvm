@@ -2,18 +2,28 @@ use crate::error::Error;
 use crate::vm::data_type::Value::*;
 use std::convert::{TryFrom, TryInto};
 
+pub type ByteType = u8;
+pub type ShortType = i16;
+pub type IntType = i32;
+pub type LongType = i64;
+pub type FloatType = f32;
+pub type DoubleType = f64;
+pub type ReferenceType = u32;
+pub type ReturnAddressType = u32;
+
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Value {
     Boolean(bool),
     Byte(u8),
-    Short(i16),
-    Int(i32),
-    Long(i64),
+    Short(ShortType),
+    Int(IntType),
+    Long(LongType),
     Char(char),
-    Float(f32),
-    Double(f64),
-    Reference(i32),
-    ReturnAddress(i32),
+    Float(FloatType),
+    Double(DoubleType),
+    Reference(ReferenceType),
+    ReturnAddress(ReturnAddressType),
     Null,
 }
 
@@ -39,7 +49,8 @@ impl Value {
             Char(c) => *c as u32,
             Float(f) => (*f).to_bits(),
             Null => 0,
-            Int(i) | Reference(i) | ReturnAddress(i) => *i as u32,
+            Int(i) => *i as u32,
+            Reference(i) | ReturnAddress(i) => *i as u32,
             _ => panic!("Tried to get int value of {:?}", self),
         }
     }
