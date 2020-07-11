@@ -6,30 +6,37 @@ mod control_transfer;
 mod conversion;
 mod load_and_store;
 mod method_invocation_and_return;
+mod object_creation_and_manipulation;
 mod stack_management;
 
 use crate::class::code::Instruction;
 use crate::class::code::Opcode::*;
+use crate::vm::data_type::Value::{Double, Float, Int, Long, Null, Reference};
 use crate::vm::frame::Frame;
+use crate::vm::heap::Heap;
 use crate::vm::interpreter::arithmetic::*;
 use crate::vm::interpreter::control_transfer::*;
 use crate::vm::interpreter::conversion::*;
 use crate::vm::interpreter::load_and_store::*;
+use crate::vm::interpreter::object_creation_and_manipulation::*;
 use crate::vm::interpreter::stack_management::*;
 use crate::vm::Command;
 use crate::vm::Command::{VMInvokeStatic, VMReturn};
-use crate::vm::Value::{Double, Float, Int, Long, Null, Reference};
 
-pub(super) fn interpret_frame(frame: &mut Frame) -> Command {
+pub(super) fn interpret_frame(frame: &mut Frame, heap: &mut Heap) -> Command {
     loop {
         let instructions = &frame.code.instructions[frame.pc as usize];
-        if let Some(vm_command) = interpret_instruction(frame, instructions) {
+        if let Some(vm_command) = interpret_instruction(frame, heap, instructions) {
             return vm_command;
         }
     }
 }
 
-fn interpret_instruction(frame: &mut Frame, instruction: &Instruction) -> Option<Command> {
+fn interpret_instruction(
+    frame: &mut Frame,
+    heap: &mut Heap,
+    instruction: &Instruction,
+) -> Option<Command> {
     let mut offset = None;
     let mut command = None;
 
@@ -200,6 +207,9 @@ fn interpret_instruction(frame: &mut Frame, instruction: &Instruction) -> Option
 
         // Object creation and manipulation:
         // TODO
+        NewArray => new_array(frame, heap, &instruction.operands),
+        Iastore => int_array_store(frame, heap),
+        Iaload => int_array_load(frame, heap),
 
         // Operand stack management:
         Pop => pop_operand(frame),

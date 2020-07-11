@@ -2,8 +2,8 @@
 //! https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.11.2
 
 use crate::class::constant::Constant;
+use crate::vm::data_type::Value::*;
 use crate::vm::frame::Frame;
-use crate::vm::Value::*;
 
 pub fn load_int(frame: &mut Frame, operands: &[u8]) {
     let index = operands[0] as u16;
@@ -192,12 +192,8 @@ pub fn push_null(_frame: &mut Frame) {
 
 #[cfg(test)]
 mod test {
-    use crate::class::code::Instruction;
     use crate::class::code::Opcode::*;
     use crate::class::constant::Constant;
-    use crate::class::constant::ConstantPool;
-    use crate::vm::interpreter::interpret_instruction;
-    use crate::vm::Frame;
     use crate::vm::Value::*;
 
     #[test]

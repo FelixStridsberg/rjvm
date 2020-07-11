@@ -1,5 +1,5 @@
+use crate::vm::data_type::Value::*;
 use crate::vm::frame::Frame;
-use crate::vm::Value::*;
 
 pub fn int_to_long(frame: &mut Frame) {
     let int = frame.pop_operand_int();
@@ -78,11 +78,7 @@ pub fn double_to_float(frame: &mut Frame) {
 
 #[cfg(test)]
 mod test {
-    use crate::class::code::Instruction;
     use crate::class::code::Opcode::*;
-    use crate::class::constant::ConstantPool;
-    use crate::vm::interpreter::interpret_instruction;
-    use crate::vm::Frame;
     use crate::vm::Value::*;
 
     #[test]

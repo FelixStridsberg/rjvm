@@ -3,6 +3,7 @@ use crate::error::Result;
 use crate::io::class::ClassReader;
 use crate::vm::data_type::{MethodDescriptor, Value};
 use crate::vm::frame::Frame;
+use crate::vm::heap::Heap;
 use crate::vm::interpreter::interpret_frame;
 use crate::vm::Command::{VMInvokeStatic, VMReturn};
 use std::collections::HashMap;
@@ -10,6 +11,7 @@ use std::convert::TryInto;
 
 pub mod data_type;
 mod frame;
+mod heap;
 mod interpreter;
 
 enum Command {
@@ -37,11 +39,12 @@ impl VirtualMachine {
     ) -> Value {
         let initial_frame = self.prepare_static_method(init_class_name, init_method_name, args);
 
+        let mut heap = Heap::default();
         let mut stack = Vec::new();
         let mut current_frame = initial_frame;
 
         loop {
-            match interpret_frame(&mut current_frame) {
+            match interpret_frame(&mut current_frame, &mut heap) {
                 VMReturn(value) => {
                     if stack.is_empty() {
                         return value;

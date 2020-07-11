@@ -1,8 +1,8 @@
 //! Contains implementation of all instructions under:
 //! https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.11.3
 
+use crate::vm::data_type::Value::{Double, Float, Int, Long};
 use crate::vm::frame::Frame;
-use crate::vm::Value::{Double, Float, Int, Long};
 
 pub fn add_int(frame: &mut Frame) {
     let value = frame.pop_operand_int() + frame.pop_operand_int();
@@ -249,11 +249,7 @@ fn compare<O: PartialOrd>(value1: O, value2: O) -> i32 {
 
 #[cfg(test)]
 mod test {
-    use crate::class::code::Instruction;
     use crate::class::code::Opcode::*;
-    use crate::class::constant::ConstantPool;
-    use crate::vm::interpreter::interpret_instruction;
-    use crate::vm::Frame;
     use crate::vm::Value::*;
 
     #[test]

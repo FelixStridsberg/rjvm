@@ -1,6 +1,8 @@
+// TODO clean up macro
 #[macro_export]
 macro_rules! test_command {
         (
+            $(heap: $heap:expr,)?
             $(constants: [$($constant:expr),*],)?
             $(start_pc: $start_pc:expr,)?
             $(start_stack: [$($stack:expr),*],)?
@@ -13,11 +15,11 @@ macro_rules! test_command {
             $(final_locals_long: {$($expect_local_l_idx:expr => $expected_local_l:expr),*},)?
         ) => {{
             // Setup
-            let mut _constants = ConstantPool::new(2);
+            let mut _constants = crate::class::constant::ConstantPool::new(2);
             $($(_constants.add($constant);)*)?
 
             let code = crate::class::attribute::Code::new(10, 10, vec![], vec![]);
-            let mut frame = Frame::new(&code, &_constants);
+            let mut frame = crate::vm::Frame::new(&code, &_constants);
             $(frame.pc = $start_pc;)?
             $(frame.set_operand_stack(vec![$($stack),*]);)?
 
@@ -25,7 +27,17 @@ macro_rules! test_command {
             $($(frame.set_local_long($local_l_idx, $local_l_value);)*)?
 
             // Execute
-            interpret_instruction(&mut frame, &Instruction::new($command, vec![$($($operands),*)?]));
+            let mut _heap = crate::vm::heap::Heap::default();
+            let _heap_ref = &mut _heap;
+            $(
+                let _heap_ref = &mut $heap;
+            )?
+
+            crate::vm::interpreter::interpret_instruction(
+                &mut frame,
+                _heap_ref,
+                &crate::class::code::Instruction::new($command, vec![$($($operands),*)?])
+            );
 
             // Assert
 
