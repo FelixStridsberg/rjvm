@@ -242,7 +242,7 @@ fn compare<O: PartialOrd>(value1: O, value2: O) -> i32 {
 #[cfg(test)]
 mod test {
     use crate::class::code::Opcode::*;
-    use crate::vm::Value::*;
+    use crate::vm::data_type::Value::*;
 
     #[test]
     fn iadd() {

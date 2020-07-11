@@ -180,7 +180,7 @@ fn offset_wide(bytes: &[u8]) -> i32 {
 #[cfg(test)]
 mod test {
     use crate::class::code::Opcode::*;
-    use crate::vm::Value::*;
+    use crate::vm::data_type::Value::*;
 
     #[test]
     fn ifeq_success() {

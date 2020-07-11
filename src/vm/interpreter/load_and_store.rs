@@ -195,7 +195,7 @@ pub fn push_null(_frame: &mut Frame) {
 mod test {
     use crate::class::code::Opcode::*;
     use crate::class::constant::Constant;
-    use crate::vm::Value::*;
+    use crate::vm::data_type::Value::*;
 
     #[test]
     fn iload() {

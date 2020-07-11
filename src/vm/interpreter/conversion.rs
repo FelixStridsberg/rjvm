@@ -80,7 +80,7 @@ pub fn double_to_float(frame: &mut Frame) {
 #[cfg(test)]
 mod test {
     use crate::class::code::Opcode::*;
-    use crate::vm::Value::*;
+    use crate::vm::data_type::Value::*;
 
     #[test]
     fn i2l() {
