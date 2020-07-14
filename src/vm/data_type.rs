@@ -87,7 +87,7 @@ impl Value {
         }
     }
 
-    pub fn get_int_value(&self) -> u32 {
+    pub fn as_int_value(&self) -> u32 {
         match self {
             Boolean(b) => {
                 if *b {
@@ -103,15 +103,15 @@ impl Value {
             Null => 0,
             Int(i) => *i as u32,
             Reference(i) | ReturnAddress(i) => *i as u32,
-            _ => panic!("Tried to get int value of {:?}", self),
+            _ => panic!("Tried to use {:?} as int value.", self),
         }
     }
 
-    pub fn get_long_value(&self) -> u64 {
+    pub fn as_long_value(&self) -> u64 {
         match self {
             Long(l) => *l as u64,
             Double(d) => (*d).to_bits(),
-            _ => panic!("Tried to get long value of {:?}", self),
+            _ => panic!("Tried to use {:?} as long value.", self),
         }
     }
 }
@@ -163,6 +163,36 @@ impl<'a> TryFrom<&'a str> for FieldType<'a> {
     }
 }
 
+
+/// Method descriptors defines a method signature; the argument and the return types.
+///
+/// Raw JVM method descriptors are strings that looks like this: `(IJ)F`
+///
+/// Where the contents of the parentheses are the arguments and the string outside at the end the
+/// return type. This particular signature is a method taking an `int` and a `long` as arguments and
+/// returning a `float`.
+///
+/// Primitive types are only one character long, but references (`L<ClassName>;`) and arrays
+/// (`[<type>`) are more characters.
+///
+/// MethodDescriptor's can be parsed with the `TryInto` trait:
+/// ```
+///# use rjvm::vm::data_type::MethodDescriptor;
+///# use std::convert::TryInto;
+///# use crate::rjvm::error::Result;
+///# fn main() -> Result<()> {
+///# use rjvm::vm::data_type::FieldType;
+/// let descriptor: MethodDescriptor = "(IJ)F".try_into()?;
+///
+/// assert_eq!(descriptor.argument_types, vec![FieldType::Int, FieldType::Long]);
+/// assert_eq!(descriptor.return_type, Some(FieldType::Float));
+///# Ok(())
+///# }
+/// ```
+/// Return value is `None` on void methods.
+///
+/// Reference: https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-4.3.3
+///
 #[derive(Debug, Eq, PartialEq)]
 pub struct MethodDescriptor<'a> {
     pub argument_types: Vec<FieldType<'a>>,

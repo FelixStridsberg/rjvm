@@ -29,10 +29,10 @@ impl Frame<'_> {
         let mut index = 0;
         for arg in args {
             if arg.get_category() == 1 {
-                self.set_local(index, arg.get_int_value());
+                self.set_local(index, arg.as_int_value());
                 index += 1;
             } else {
-                self.set_local_long(index, arg.get_long_value());
+                self.set_local_long(index, arg.as_long_value());
                 index += 2;
             }
         }
