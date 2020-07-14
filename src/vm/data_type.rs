@@ -2,6 +2,8 @@ use crate::error::Error;
 use crate::vm::data_type::Value::*;
 use std::convert::{TryFrom, TryInto};
 
+pub type BooleanType = bool;
+pub type CharType = char;
 pub type ByteType = u8;
 pub type ShortType = i16;
 pub type IntType = i32;
@@ -13,12 +15,12 @@ pub type ReturnAddressType = u32;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Value {
-    Boolean(bool),
-    Byte(u8),
+    Boolean(BooleanType),
+    Byte(ByteType),
     Short(ShortType),
     Int(IntType),
     Long(LongType),
-    Char(char),
+    Char(CharType),
     Float(FloatType),
     Double(DoubleType),
     Reference(ReferenceType),
@@ -26,11 +28,72 @@ pub enum Value {
     Null,
 }
 
+#[macro_export]
+macro_rules! expect_type (
+    ($value:expr, $expected_type:path) => {
+        match $value {
+            $expected_type(i) => i,
+            value => panic!("Tried to use a {:?} as a {}", value, stringify!($expected_type)),
+        }
+    }
+);
+
 impl Value {
     pub fn get_category(&self) -> u8 {
         match self {
             Long(_) | Double(_) => 2,
             _ => 1,
+        }
+    }
+
+    pub fn expect_boolean(self) -> BooleanType {
+        expect_type!(self, Boolean)
+    }
+
+    pub fn expect_byte(self) -> ByteType {
+        expect_type!(self, Byte)
+    }
+
+    pub fn expect_short(self) -> ShortType {
+        expect_type!(self, Short)
+    }
+
+    pub fn expect_int(self) -> IntType {
+        expect_type!(self, Int)
+    }
+
+    pub fn expect_long(self) -> LongType {
+        expect_type!(self, Long)
+    }
+
+    pub fn expect_char(self) -> CharType {
+        expect_type!(self, Char)
+    }
+
+    pub fn expect_float(self) -> FloatType {
+        expect_type!(self, Float)
+    }
+
+    pub fn expect_double(self) -> DoubleType {
+        expect_type!(self, Double)
+    }
+
+    pub fn expect_reference(self) -> ReferenceType {
+        expect_type!(self, Reference)
+    }
+
+    pub fn expect_type(self, field_type: &FieldType) -> Value {
+        match field_type {
+            FieldType::Byte => Byte(self.expect_byte()),
+            FieldType::Char => Char(self.expect_char()),
+            FieldType::Double => Double(self.expect_double()),
+            FieldType::Float => Float(self.expect_float()),
+            FieldType::Int => Int(self.expect_int()),
+            FieldType::Long => Long(self.expect_long()),
+            FieldType::Short => Short(self.expect_short()),
+            FieldType::Boolean => Boolean(self.expect_boolean()),
+            FieldType::Object(_) => Reference(self.expect_reference()),
+            FieldType::Array(_) => Reference(self.expect_reference()),
         }
     }
 
@@ -59,87 +122,6 @@ impl Value {
             Long(l) => *l as u64,
             Double(d) => (*d).to_bits(),
             _ => panic!("Tried to get long value of {:?}", self),
-        }
-    }
-}
-
-impl Into<u8> for Value {
-    fn into(self) -> u8 {
-        match self {
-            Byte(b) => b,
-            x => panic!("Tried to convert '{:?}' to byte.", x),
-        }
-    }
-}
-
-impl Into<char> for Value {
-    fn into(self) -> char {
-        match self {
-            Char(c) => c,
-            x => panic!("Tried to convert '{:?}' to char.", x),
-        }
-    }
-}
-
-impl Into<FloatType> for Value {
-    fn into(self) -> FloatType {
-        match self {
-            Float(f) => f,
-            x => panic!("Tried to convert '{:?}' to float.", x),
-        }
-    }
-}
-
-impl Into<DoubleType> for Value {
-    fn into(self) -> DoubleType {
-        match self {
-            Double(d) => d,
-            x => panic!("Tried to convert '{:?}' to double.", x),
-        }
-    }
-}
-
-impl Into<IntType> for Value {
-    fn into(self) -> IntType {
-        match self {
-            Int(i) => i,
-            x => panic!("Tried to convert '{:?}' to int.", x),
-        }
-    }
-}
-
-impl Into<ReferenceType> for Value {
-    fn into(self) -> ReferenceType {
-        match self {
-            Reference(r) | ReturnAddress(r) => r,
-            x => panic!("Tried to convert '{:?}' to int.", x),
-        }
-    }
-}
-
-impl Into<LongType> for Value {
-    fn into(self) -> LongType {
-        match self {
-            Long(l) => l,
-            x => panic!("Tried to convert '{:?}' to long.", x),
-        }
-    }
-}
-
-impl Into<ShortType> for Value {
-    fn into(self) -> ShortType {
-        match self {
-            Short(s) => s,
-            x => panic!("Tried to convert '{:?}' to short.", x),
-        }
-    }
-}
-
-impl Into<bool> for Value {
-    fn into(self) -> bool {
-        match self {
-            Boolean(b) => b,
-            x => panic!("Tried to convert '{:?}' to bool.", x),
         }
     }
 }

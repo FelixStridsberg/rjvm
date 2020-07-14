@@ -6,190 +6,190 @@ use crate::vm::data_type::*;
 use crate::vm::frame::Frame;
 
 macro_rules! pop2(
-    ($type:ty, $frame:expr) => {{
-        let left: $type = $frame.pop_operand().into();
-        let right: $type = $frame.pop_operand().into();
+    ($type:path, $frame:expr) => {{
+        let left = expect_type!($frame.pop_operand(), $type);
+        let right = expect_type!($frame.pop_operand(), $type);
         (left, right)
     }}
 );
 
 pub fn add_int(frame: &mut Frame) {
-    let (left, right) = pop2!(IntType, frame);
+    let (left, right) = pop2!(Int, frame);
     frame.push_operand(Int(left + right));
 }
 
 pub fn add_long(frame: &mut Frame) {
-    let (left, right) = pop2!(LongType, frame);
+    let (left, right) = pop2!(Long, frame);
     frame.push_operand(Long(left + right));
 }
 
 pub fn add_float(frame: &mut Frame) {
-    let (left, right) = pop2!(FloatType, frame);
+    let (left, right) = pop2!(Float, frame);
     frame.push_operand(Float(left + right));
 }
 
 pub fn add_double(frame: &mut Frame) {
-    let (left, right) = pop2!(DoubleType, frame);
+    let (left, right) = pop2!(Double, frame);
     frame.push_operand(Double(left + right));
 }
 
 pub fn sub_int(frame: &mut Frame) {
-    let (left, right) = pop2!(IntType, frame);
+    let (left, right) = pop2!(Int, frame);
     frame.push_operand(Int(left - right));
 }
 
 pub fn sub_long(frame: &mut Frame) {
-    let (left, right) = pop2!(LongType, frame);
+    let (left, right) = pop2!(Long, frame);
     frame.push_operand(Long(left - right));
 }
 
 pub fn sub_float(frame: &mut Frame) {
-    let (left, right) = pop2!(FloatType, frame);
+    let (left, right) = pop2!(Float, frame);
     frame.push_operand(Float(left - right));
 }
 
 pub fn sub_double(frame: &mut Frame) {
-    let (left, right) = pop2!(DoubleType, frame);
+    let (left, right) = pop2!(Double, frame);
     frame.push_operand(Double(left - right));
 }
 
 pub fn mul_int(frame: &mut Frame) {
-    let (left, right) = pop2!(IntType, frame);
+    let (left, right) = pop2!(Int, frame);
     frame.push_operand(Int(left * right));
 }
 
 pub fn mul_long(frame: &mut Frame) {
-    let (left, right) = pop2!(LongType, frame);
+    let (left, right) = pop2!(Long, frame);
     frame.push_operand(Long(left * right));
 }
 
 pub fn mul_float(frame: &mut Frame) {
-    let (left, right) = pop2!(FloatType, frame);
+    let (left, right) = pop2!(Float, frame);
     frame.push_operand(Float(left * right));
 }
 
 pub fn mul_double(frame: &mut Frame) {
-    let (left, right) = pop2!(DoubleType, frame);
+    let (left, right) = pop2!(Double, frame);
     frame.push_operand(Double(left * right));
 }
 
 pub fn div_int(frame: &mut Frame) {
-    let (left, right) = pop2!(IntType, frame);
+    let (left, right) = pop2!(Int, frame);
     frame.push_operand(Int(left / right));
 }
 
 pub fn div_long(frame: &mut Frame) {
-    let (left, right) = pop2!(LongType, frame);
+    let (left, right) = pop2!(Long, frame);
     frame.push_operand(Long(left / right));
 }
 
 pub fn div_float(frame: &mut Frame) {
-    let (left, right) = pop2!(FloatType, frame);
+    let (left, right) = pop2!(Float, frame);
     frame.push_operand(Float(left / right));
 }
 
 pub fn div_double(frame: &mut Frame) {
-    let (left, right) = pop2!(DoubleType, frame);
+    let (left, right) = pop2!(Double, frame);
     frame.push_operand(Double(left / right));
 }
 
 pub fn rem_int(frame: &mut Frame) {
-    let (left, right) = pop2!(IntType, frame);
+    let (left, right) = pop2!(Int, frame);
     frame.push_operand(Int(left % right));
 }
 
 pub fn rem_long(frame: &mut Frame) {
-    let (left, right) = pop2!(LongType, frame);
+    let (left, right) = pop2!(Long, frame);
     frame.push_operand(Long(left % right));
 }
 
 pub fn rem_float(frame: &mut Frame) {
-    let (left, right) = pop2!(FloatType, frame);
+    let (left, right) = pop2!(Float, frame);
     frame.push_operand(Float(left % right));
 }
 
 pub fn rem_double(frame: &mut Frame) {
-    let (left, right) = pop2!(DoubleType, frame);
+    let (left, right) = pop2!(Double, frame);
     frame.push_operand(Double(left % right));
 }
 
 pub fn neg_int(frame: &mut Frame) {
-    let value: IntType = frame.pop_operand().into();
+    let value = frame.pop_operand().expect_int();
     frame.push_operand(Int(-value));
 }
 
 pub fn neg_long(frame: &mut Frame) {
-    let value: LongType = frame.pop_operand().into();
+    let value = frame.pop_operand().expect_long();
     frame.push_operand(Long(-value));
 }
 
 pub fn neg_float(frame: &mut Frame) {
-    let value: FloatType = frame.pop_operand().into();
+    let value = frame.pop_operand().expect_float();
     frame.push_operand(Float(-value));
 }
 
 pub fn neg_double(frame: &mut Frame) {
-    let value: DoubleType = frame.pop_operand().into();
+    let value = frame.pop_operand().expect_double();
     frame.push_operand(Double(-value));
 }
 
 pub fn int_shift_left(frame: &mut Frame) {
-    let (left, right) = pop2!(IntType, frame);
+    let (left, right) = pop2!(Int, frame);
     frame.push_operand(Int((left as i32) << (right as i32 & 0x1f) as IntType));
 }
 
 pub fn int_shift_right(frame: &mut Frame) {
-    let (left, right) = pop2!(IntType, frame);
+    let (left, right) = pop2!(Int, frame);
     frame.push_operand(Int(left as i32 >> (right as i32 & 0x1f) as IntType));
 }
 
 pub fn int_logical_shift_right(frame: &mut Frame) {
-    let (left, right) = pop2!(IntType, frame);
+    let (left, right) = pop2!(Int, frame);
     frame.push_operand(Int((left as u32 >> (right as u32 & 0x1f)) as IntType));
 }
 
 pub fn long_shift_left(frame: &mut Frame) {
-    let (left, right) = pop2!(LongType, frame);
+    let (left, right) = pop2!(Long, frame);
     frame.push_operand(Long((left as i64) << (right as i64 & 0x1f) as LongType));
 }
 
 pub fn long_shift_right(frame: &mut Frame) {
-    let (left, right) = pop2!(LongType, frame);
+    let (left, right) = pop2!(Long, frame);
     frame.push_operand(Long(left as i64 >> (right as i64 & 0x1f) as LongType));
 }
 
 pub fn long_logical_shift_right(frame: &mut Frame) {
-    let (left, right) = pop2!(LongType, frame);
+    let (left, right) = pop2!(Long, frame);
     frame.push_operand(Long((left as u64 >> (right as u64 & 0x1f)) as LongType));
 }
 
 pub fn int_bitwise_or(frame: &mut Frame) {
-    let (left, right) = pop2!(IntType, frame);
+    let (left, right) = pop2!(Int, frame);
     frame.push_operand(Int(left | right));
 }
 
 pub fn long_bitwise_or(frame: &mut Frame) {
-    let (left, right) = pop2!(LongType, frame);
+    let (left, right) = pop2!(Long, frame);
     frame.push_operand(Long(left | right));
 }
 
 pub fn int_bitwise_and(frame: &mut Frame) {
-    let (left, right) = pop2!(IntType, frame);
+    let (left, right) = pop2!(Int, frame);
     frame.push_operand(Int(left & right));
 }
 
 pub fn long_bitwise_and(frame: &mut Frame) {
-    let (left, right) = pop2!(LongType, frame);
+    let (left, right) = pop2!(Long, frame);
     frame.push_operand(Long(left & right));
 }
 
 pub fn int_bitwise_exclusive_or(frame: &mut Frame) {
-    let (left, right) = pop2!(IntType, frame);
+    let (left, right) = pop2!(Int, frame);
     frame.push_operand(Int(left ^ right));
 }
 
 pub fn long_bitwise_exclusive_or(frame: &mut Frame) {
-    let (left, right) = pop2!(LongType, frame);
+    let (left, right) = pop2!(Long, frame);
     frame.push_operand(Long(left ^ right));
 }
 
@@ -202,30 +202,30 @@ pub fn int_increase(frame: &mut Frame, operands: &[u8]) {
 
 // TODO NaN
 pub fn double_compare_g(frame: &mut Frame) {
-    let (left, right) = pop2!(DoubleType, frame);
+    let (left, right) = pop2!(Double, frame);
     frame.push_operand(Int(compare(left, right)))
 }
 
 // TODO NaN
 pub fn double_compare_l(frame: &mut Frame) {
-    let (left, right) = pop2!(DoubleType, frame);
+    let (left, right) = pop2!(Double, frame);
     frame.push_operand(Int(compare(left, right)))
 }
 
 // TODO NaN
 pub fn float_compare_g(frame: &mut Frame) {
-    let (left, right) = pop2!(FloatType, frame);
+    let (left, right) = pop2!(Float, frame);
     frame.push_operand(Int(compare(left, right)))
 }
 
 // TODO NaN
 pub fn float_compare_l(frame: &mut Frame) {
-    let (left, right) = pop2!(FloatType, frame);
+    let (left, right) = pop2!(Float, frame);
     frame.push_operand(Int(compare(left, right)))
 }
 
 pub fn long_compare(frame: &mut Frame) {
-    let (left, right) = pop2!(LongType, frame);
+    let (left, right) = pop2!(Long, frame);
     frame.push_operand(Int(compare(left, right)))
 }
 

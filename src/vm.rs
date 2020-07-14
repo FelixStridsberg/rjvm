@@ -9,6 +9,7 @@ use crate::vm::Command::{VMInvokeStatic, VMReturn};
 use std::collections::HashMap;
 use std::convert::TryInto;
 
+#[macro_use]
 pub mod data_type;
 mod frame;
 mod heap;

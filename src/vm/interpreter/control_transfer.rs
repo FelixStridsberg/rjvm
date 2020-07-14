@@ -4,7 +4,7 @@ use crate::vm::data_type::Value::ReturnAddress;
 use crate::vm::frame::Frame;
 
 pub fn if_equals(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
-    if frame.pop_operand_int() == 0 {
+    if frame.pop_operand().expect_int() == 0 {
         Some(offset(operands))
     } else {
         None
@@ -12,7 +12,7 @@ pub fn if_equals(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
 }
 
 pub fn if_not_equals(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
-    if frame.pop_operand_int() != 0 {
+    if frame.pop_operand().expect_int() != 0 {
         Some(offset(operands))
     } else {
         None
@@ -20,7 +20,7 @@ pub fn if_not_equals(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
 }
 
 pub fn if_less_than(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
-    if frame.pop_operand_int() < 0 {
+    if frame.pop_operand().expect_int() < 0 {
         Some(offset(operands))
     } else {
         None
@@ -28,7 +28,7 @@ pub fn if_less_than(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
 }
 
 pub fn if_less_than_inclusive(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
-    if frame.pop_operand_int() <= 0 {
+    if frame.pop_operand().expect_int() <= 0 {
         Some(offset(operands))
     } else {
         None
@@ -36,7 +36,7 @@ pub fn if_less_than_inclusive(frame: &mut Frame, operands: &[u8]) -> Option<i32>
 }
 
 pub fn if_greater_than(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
-    if frame.pop_operand_int() > 0 {
+    if frame.pop_operand().expect_int() > 0 {
         Some(offset(operands))
     } else {
         None
@@ -44,7 +44,7 @@ pub fn if_greater_than(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
 }
 
 pub fn if_greater_than_inclusive(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
-    if frame.pop_operand_int() >= 0 {
+    if frame.pop_operand().expect_int() >= 0 {
         Some(offset(operands))
     } else {
         None
@@ -66,8 +66,8 @@ pub fn if_non_null(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
 }
 
 pub fn if_int_equals(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
-    let value1 = frame.pop_operand_int();
-    let value2 = frame.pop_operand_int();
+    let value1 = frame.pop_operand().expect_int();
+    let value2 = frame.pop_operand().expect_int();
     if value1 == value2 {
         Some(offset(operands))
     } else {
@@ -76,8 +76,8 @@ pub fn if_int_equals(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
 }
 
 pub fn if_int_not_equals(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
-    let value1 = frame.pop_operand_int();
-    let value2 = frame.pop_operand_int();
+    let value1 = frame.pop_operand().expect_int();
+    let value2 = frame.pop_operand().expect_int();
     if value1 != value2 {
         Some(offset(operands))
     } else {
@@ -86,8 +86,8 @@ pub fn if_int_not_equals(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
 }
 
 pub fn if_int_less_than(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
-    let value1 = frame.pop_operand_int();
-    let value2 = frame.pop_operand_int();
+    let value1 = frame.pop_operand().expect_int();
+    let value2 = frame.pop_operand().expect_int();
     if value1 < value2 {
         Some(offset(operands))
     } else {
@@ -96,8 +96,8 @@ pub fn if_int_less_than(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
 }
 
 pub fn if_int_less_than_inclusive(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
-    let value1 = frame.pop_operand_int();
-    let value2 = frame.pop_operand_int();
+    let value1 = frame.pop_operand().expect_int();
+    let value2 = frame.pop_operand().expect_int();
     if value1 <= value2 {
         Some(offset(operands))
     } else {
@@ -106,8 +106,8 @@ pub fn if_int_less_than_inclusive(frame: &mut Frame, operands: &[u8]) -> Option<
 }
 
 pub fn if_int_greater_than(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
-    let value1 = frame.pop_operand_int();
-    let value2 = frame.pop_operand_int();
+    let value1 = frame.pop_operand().expect_int();
+    let value2 = frame.pop_operand().expect_int();
     if value1 > value2 {
         Some(offset(operands))
     } else {
@@ -116,8 +116,8 @@ pub fn if_int_greater_than(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
 }
 
 pub fn if_int_greater_than_inclusive(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
-    let value1 = frame.pop_operand_int();
-    let value2 = frame.pop_operand_int();
+    let value1 = frame.pop_operand().expect_int();
+    let value2 = frame.pop_operand().expect_int();
     if value1 >= value2 {
         Some(offset(operands))
     } else {
@@ -126,8 +126,8 @@ pub fn if_int_greater_than_inclusive(frame: &mut Frame, operands: &[u8]) -> Opti
 }
 
 pub fn if_reference_equals(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
-    let value1 = frame.pop_operand_reference();
-    let value2 = frame.pop_operand_reference();
+    let value1 = frame.pop_operand().expect_reference();
+    let value2 = frame.pop_operand().expect_reference();
     if value1 == value2 {
         Some(offset(operands))
     } else {
@@ -136,8 +136,8 @@ pub fn if_reference_equals(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
 }
 
 pub fn if_reference_not_equals(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
-    let value1 = frame.pop_operand_reference();
-    let value2 = frame.pop_operand_reference();
+    let value1 = frame.pop_operand().expect_reference();
+    let value2 = frame.pop_operand().expect_reference();
     if value1 != value2 {
         Some(offset(operands))
     } else {

@@ -4,7 +4,7 @@ use crate::vm::frame::Frame;
 use crate::vm::heap::Heap;
 
 pub fn new_array(frame: &mut Frame, heap: &mut Heap, operands: &[u8]) {
-    let len = frame.pop_operand().into();
+    let len = frame.pop_operand().expect_int();
     let reference = match operands[0] {
         10 => heap.allocate_int_array(len),
         a => panic!("Unknown array type {}.", a),
@@ -14,17 +14,17 @@ pub fn new_array(frame: &mut Frame, heap: &mut Heap, operands: &[u8]) {
 }
 
 pub fn int_array_store(frame: &mut Frame, heap: &mut Heap) {
-    let value: IntType = frame.pop_operand().into();
-    let index: IntType = frame.pop_operand().into();
-    let reference = frame.pop_operand().into();
+    let value: IntType = frame.pop_operand().expect_int();
+    let index: IntType = frame.pop_operand().expect_int();
+    let reference = frame.pop_operand().expect_reference();
 
     let array = heap.get_int_array(reference);
     array[index as usize] = value;
 }
 
 pub fn int_array_load(frame: &mut Frame, heap: &mut Heap) {
-    let index: IntType = frame.pop_operand().into();
-    let reference = frame.pop_operand().into();
+    let index: IntType = frame.pop_operand().expect_int();
+    let reference = frame.pop_operand().expect_reference();
 
     let array = heap.get_int_array(reference);
     frame.push_operand(Int(array[index as usize]));
