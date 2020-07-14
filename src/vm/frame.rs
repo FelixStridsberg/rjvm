@@ -13,10 +13,6 @@ pub struct Frame<'a> {
     pub code: &'a Code,
 }
 
-pub trait PopOperandFrame<T> {
-    fn pop_operand(&mut self) -> T;
-}
-
 impl Frame<'_> {
     pub fn new<'a>(code: &'a Code, constant_pool: &'a ConstantPool) -> Frame<'a> {
         Frame {
