@@ -26,7 +26,9 @@ impl Heap {
     }
 
     pub fn get(&mut self, reference: ReferenceType) -> &mut HeapObject {
-        self.objects.get_mut(reference as usize).expect("Tried to get non existing heap object.")
+        self.objects
+            .get_mut(reference as usize)
+            .expect("Tried to get non existing heap object.")
     }
 }
 

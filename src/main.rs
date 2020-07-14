@@ -1,5 +1,5 @@
-use std::env;
 use rjvm::vm::VirtualMachine;
+use std::env;
 
 fn main() {
     let args: Vec<String> = env::args().collect();

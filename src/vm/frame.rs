@@ -14,7 +14,6 @@ pub struct Frame<'a> {
 }
 
 impl Frame<'_> {
-
     pub fn new<'a>(code: &'a Code, constant_pool: &'a ConstantPool) -> Frame<'a> {
         Frame {
             pc: 0,

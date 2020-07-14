@@ -9,7 +9,6 @@ use crate::vm::Command::{VMInvokeStatic, VMReturn};
 use std::collections::HashMap;
 use std::convert::TryInto;
 
-
 #[macro_export]
 macro_rules! expect_type (
     ($value:expr, $expected_type:path) => {
