@@ -28,16 +28,6 @@ pub enum Value {
     Null,
 }
 
-#[macro_export]
-macro_rules! expect_type (
-    ($value:expr, $expected_type:path) => {
-        match $value {
-            $expected_type(i) => i,
-            value => panic!("Tried to use a {:?} as a {}", value, stringify!($expected_type)),
-        }
-    }
-);
-
 impl Value {
     pub fn get_category(&self) -> u8 {
         match self {

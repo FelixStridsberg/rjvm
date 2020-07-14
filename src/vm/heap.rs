@@ -1,15 +1,21 @@
 use crate::vm::data_type::ReferenceType;
-use crate::vm::heap::HeapType::IntArray;
+use crate::vm::heap::HeapObject::IntArray;
 
 #[derive(Debug)]
-pub enum HeapType {
+pub enum HeapObject {
     IntArray(Vec<i32>),
+}
+
+impl HeapObject {
+    pub fn expect_int_array(&mut self) -> &mut Vec<i32> {
+        expect_type!(self, IntArray)
+    }
 }
 
 // TODO implement a real heap
 #[derive(Debug)]
 pub struct Heap {
-    objects: Vec<HeapType>,
+    objects: Vec<HeapObject>,
 }
 
 impl Heap {
@@ -19,12 +25,8 @@ impl Heap {
         index
     }
 
-    pub fn get_int_array(&mut self, reference: ReferenceType) -> &mut Vec<i32> {
-        let object = self.objects.get_mut(reference as usize).unwrap();
-        match object {
-            IntArray(a) => a,
-            _ => panic!("Tried to pop {:?} as IntArray.", object),
-        }
+    pub fn get(&mut self, reference: ReferenceType) -> &mut HeapObject {
+        self.objects.get_mut(reference as usize).expect("Tried to get non existing heap object.")
     }
 }
 
