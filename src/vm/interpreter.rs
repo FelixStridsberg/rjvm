@@ -21,7 +21,7 @@ use crate::vm::interpreter::load_and_store::*;
 use crate::vm::interpreter::object_creation_and_manipulation::*;
 use crate::vm::interpreter::stack_management::*;
 use crate::vm::Command;
-use crate::vm::Command::{VMInvokeStatic, VMReturn};
+use crate::vm::Command::{VMInvokeStatic, VMReturn, VMInvokeSpecial};
 
 pub(super) fn interpret_frame(frame: &mut Frame, heap: &mut Heap) -> Command {
     loop {
@@ -208,6 +208,7 @@ fn interpret_instruction(
         // Object creation and manipulation:
         // TODO
         NewArray => new_array(frame, heap, &instruction.operands),
+        New => new_object(frame, heap, &instruction.operands),
         Iastore => int_array_store(frame, heap),
         Iaload => int_array_load(frame, heap),
 
@@ -260,6 +261,7 @@ fn interpret_instruction(
         Dreturn => command = Some(VMReturn(Double(frame.pop_operand().expect_double()))),
         Areturn => command = Some(VMReturn(Reference(frame.pop_operand().expect_reference()))),
 
+        Invokespecial => command = Some(VMInvokeSpecial(reference(&instruction.operands))),
         Invokestatic => command = Some(VMInvokeStatic(reference(&instruction.operands))),
 
         // Throwing exceptions:

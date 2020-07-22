@@ -25,6 +25,9 @@ pub enum ErrorKind {
 
     /// IO error. E.g. file not found, permission denied.
     IO(io::Error),
+
+    /// Error during runtime.
+    RuntimeError,
 }
 
 impl Error {
@@ -68,6 +71,7 @@ impl Display for ErrorKind {
                 io::ErrorKind::UnexpectedEof => write!(f, "Unexpected end of file.")?,
                 _ => write!(f, "IO error: {}", io_error)?,
             },
+            ErrorKind::RuntimeError => write!(f, "Runtime error.")?,
         };
         Ok(())
     }

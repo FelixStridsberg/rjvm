@@ -10,4 +10,8 @@ class Array {
 
         return i[0] + i[1];
     }
+
+    public static void main() {
+        Array a = new Array();
+    }
 }

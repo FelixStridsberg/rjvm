@@ -1,9 +1,11 @@
 use crate::vm::data_type::ReferenceType;
-use crate::vm::heap::HeapObject::IntArray;
+use crate::vm::heap::HeapObject::{IntArray, Instance};
+use crate::vm::Object;
 
 #[derive(Debug)]
 pub enum HeapObject {
     IntArray(Vec<i32>),
+    Instance(Object)
 }
 
 impl HeapObject {
@@ -19,9 +21,17 @@ pub struct Heap {
 }
 
 impl Heap {
-    pub fn allocate_int_array(&mut self, size: i32) -> i32 {
-        let index = self.objects.len() as i32;
+    pub fn allocate_int_array(&mut self, size: i32) -> u32 {
+        let index = self.objects.len() as u32;
         self.objects.push(IntArray(vec![0; size as usize]));
+        index
+    }
+
+    pub fn allocate_object(&mut self, class: &str) -> u32 {
+        let index = self.objects.len() as u32;
+        self.objects.push(Instance(Object {
+            class: class.to_owned()
+        }));
         index
     }
 

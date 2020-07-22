@@ -13,6 +13,13 @@ pub fn new_array(frame: &mut Frame, heap: &mut Heap, operands: &[u8]) {
     frame.push_operand(Reference(reference as ReferenceType));
 }
 
+pub fn new_object(frame: &mut Frame, heap: &mut Heap, operands: &[u8]) {
+    let index = ((operands[0] as u16) << 8) | operands[1] as u16;
+    let class = frame.constant_pool.get_class_info_name(index as u16);
+    let reference = heap.allocate_object(class);
+    frame.push_operand(Reference(reference as ReferenceType));
+}
+
 pub fn int_array_store(frame: &mut Frame, heap: &mut Heap) {
     let value: IntType = frame.pop_operand().expect_int();
     let index: IntType = frame.pop_operand().expect_int();

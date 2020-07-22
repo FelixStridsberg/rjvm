@@ -5,9 +5,10 @@ use crate::vm::data_type::{MethodDescriptor, Value};
 use crate::vm::frame::Frame;
 use crate::vm::heap::Heap;
 use crate::vm::interpreter::interpret_frame;
-use crate::vm::Command::{VMInvokeStatic, VMReturn};
+use crate::vm::Command::{VMInvokeStatic, VMReturn, VMInvokeSpecial};
 use std::collections::HashMap;
 use std::convert::TryInto;
+use crate::vm::data_type::Value::Reference;
 
 #[macro_export]
 macro_rules! expect_type (
@@ -27,6 +28,13 @@ mod interpreter;
 enum Command {
     VMReturn(Value),
     VMInvokeStatic(u16),
+    VMInvokeSpecial(u16),
+}
+
+#[derive(Debug)]
+pub struct Object {
+    class: String,
+//  TODO fields etc
 }
 
 pub struct VirtualMachine {
@@ -72,6 +80,21 @@ impl VirtualMachine {
 
                     stack.push(current_frame);
                     current_frame = next_frame;
+                },
+                VMInvokeSpecial(index) => {
+                    let (class_name, method_name, descriptor_string) =
+                        current_frame.constant_pool.get_method_ref(index);
+                    let descriptor: MethodDescriptor = descriptor_string.try_into().unwrap();
+                    let object_ref = current_frame.pop_operand().expect_reference();
+                    let mut args = current_frame.pop_field_types(&descriptor.argument_types);
+                    args.insert(0, Reference(object_ref));
+
+                    let next_frame = self.prepare_method(class_name, method_name, args);
+
+                    stack.push(current_frame);
+                    current_frame = next_frame;
+
+                    println!("Invoke special {:?}", current_frame.constant_pool.get_method_ref(index));
                 }
             }
         }
@@ -85,6 +108,22 @@ impl VirtualMachine {
     ) -> Frame {
         let class = self.class_register.get(class_name).expect("Unknown class");
         let method = class.find_public_static_method(method_name).unwrap();
+        let code = method.get_code().expect("No Code attribute on method.");
+
+        let mut frame = Frame::new(&code, &class.constants);
+        frame.load_arguments(args);
+
+        frame
+    }
+
+    fn prepare_method(
+        &self,
+        class_name: &str,
+        method_name: &str,
+        args: Vec<Value>,
+    ) -> Frame {
+        let class = self.class_register.get(class_name).expect("Unknown class");
+        let method = class.find_method(method_name).unwrap();
         let code = method.get_code().expect("No Code attribute on method.");
 
         let mut frame = Frame::new(&code, &class.constants);

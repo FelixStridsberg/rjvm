@@ -45,9 +45,16 @@ impl<R: BufRead> ClassReader<R> {
         let this_class = constants
             .get_class_info_name(self.reader.read_u2()?)
             .to_owned();
-        let super_class = constants
-            .get_class_info_name(self.reader.read_u2()?)
-            .to_owned();
+
+        let super_class_index = self.reader.read_u2()?;
+
+        // Object class have no super class.
+        let super_class = if super_class_index != 0 {
+            constants.get_class_info_name(super_class_index).to_owned()
+        } else {
+            "".to_owned()
+        };
+
         let interfaces = self.read_interfaces(&constants)?;
         let fields = self.read_fields(&constants)?;
         let methods = self.read_methods(&constants)?;
