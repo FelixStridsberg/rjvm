@@ -11,6 +11,7 @@ mod stack_management;
 
 use crate::class::code::Instruction;
 use crate::class::code::Opcode::*;
+use crate::error::Result;
 use crate::vm::data_type::Value::{Double, Float, Int, Long, Null, Reference};
 use crate::vm::frame::Frame;
 use crate::vm::heap::Heap;
@@ -23,11 +24,11 @@ use crate::vm::interpreter::stack_management::*;
 use crate::vm::Command;
 use crate::vm::Command::{VMInvokeSpecial, VMInvokeStatic, VMReturn};
 
-pub(super) fn interpret_frame(frame: &mut Frame, heap: &mut Heap) -> Command {
+pub(super) fn interpret_frame(frame: &mut Frame, heap: &mut Heap) -> Result<Command> {
     loop {
         let instructions = &frame.code.instructions[frame.pc as usize];
-        if let Some(vm_command) = interpret_instruction(frame, heap, instructions) {
-            return vm_command;
+        if let Some(vm_command) = interpret_instruction(frame, heap, instructions)? {
+            return Ok(vm_command);
         }
     }
 }
@@ -36,7 +37,7 @@ fn interpret_instruction(
     frame: &mut Frame,
     heap: &mut Heap,
     instruction: &Instruction,
-) -> Option<Command> {
+) -> Result<Option<Command>> {
     let mut offset = None;
     let mut command = None;
 
@@ -97,10 +98,10 @@ fn interpret_instruction(
         Dstore3 => store_double_n(frame, 3),
 
         Astore => store_reference(frame, &instruction.operands),
-        Astore0 => store_reference_n(frame, 0),
-        Astore1 => store_reference_n(frame, 1),
-        Astore2 => store_reference_n(frame, 2),
-        Astore3 => store_reference_n(frame, 3),
+        Astore0 => store_reference_n(frame, 0)?,
+        Astore1 => store_reference_n(frame, 1)?,
+        Astore2 => store_reference_n(frame, 2)?,
+        Astore3 => store_reference_n(frame, 3)?,
 
         Bipush => push_byte(frame, &instruction.operands),
         Sipush => push_short(frame, &instruction.operands),
@@ -279,7 +280,7 @@ fn interpret_instruction(
         frame.pc += instruction.size();
     }
 
-    command
+    Ok(command)
 }
 
 fn reference(operands: &[u8]) -> u16 {

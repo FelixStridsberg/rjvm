@@ -9,6 +9,7 @@ use crate::vm::interpreter::interpret_frame;
 use crate::vm::Command::{VMInvokeSpecial, VMInvokeStatic, VMReturn};
 use std::collections::HashMap;
 use std::convert::TryInto;
+use std::panic::resume_unwind;
 
 #[macro_export]
 macro_rules! expect_type (
@@ -49,26 +50,20 @@ impl VirtualMachine {
         Ok(())
     }
 
-    pub fn run(
-        &mut self,
-        init_class_name: &str,
-        init_method_name: &str,
-        args: Vec<Value>,
-    ) -> Value {
+    pub fn run(&mut self, class_name: &str, method_name: &str, args: Vec<Value>) -> Value {
         let mut heap = Heap::default();
         let mut stack = Vec::new();
 
-        if let Ok(value) = self.execute(
-            &mut heap,
-            &mut stack,
-            init_class_name,
-            init_method_name,
-            args,
-        ) {
-            return value;
-        }
+        let result = self.execute(&mut heap, &mut stack, class_name, method_name, args);
 
-        panic!("Execution failed.");
+        if result.is_ok() {
+            result.unwrap()
+        } else {
+            println!("Stack: {:#?}", stack);
+            println!("Heap: {:#?}", heap);
+
+            panic!("Runtime error {:?}", result.unwrap_err().message().expect("No error message."));
+        }
     }
 
     pub fn execute<'a>(
@@ -79,43 +74,48 @@ impl VirtualMachine {
         init_method_name: &str,
         args: Vec<Value>,
     ) -> Result<Value> {
-        let mut current_frame = self.prepare_static_method(init_class_name, init_method_name, args);
+        let init_frame = self.prepare_static_method(init_class_name, init_method_name, args);
+        stack.push(init_frame);
 
         loop {
-            match interpret_frame(&mut current_frame, heap) {
+            match interpret_frame(stack.last_mut().unwrap(), heap)? {
                 VMReturn(value) => {
-                    if stack.is_empty() {
+                    if stack.len() == 1 {
                         return Ok(value);
                     } else {
-                        current_frame = stack.pop().unwrap();
-                        current_frame.push_operand(value);
+                        stack.pop();
+                        stack.last_mut().unwrap().push_operand(value);
                     }
                 }
                 VMInvokeStatic(index) => {
-                    let (class_name, method_name, descriptor_string) =
-                        current_frame.constant_pool.get_method_ref(index)?;
-                    let descriptor: MethodDescriptor = descriptor_string.try_into().unwrap();
-                    let args = current_frame.pop_field_types(&descriptor.argument_types);
-                    let next_frame = self.prepare_static_method(class_name, method_name, args);
-
-                    stack.push(current_frame);
-                    current_frame = next_frame;
+                    let next_frame = self.invoke_static(index, stack.last_mut().unwrap())?;
+                    stack.push(next_frame);
                 }
                 VMInvokeSpecial(index) => {
-                    let (class_name, method_name, descriptor_string) =
-                        current_frame.constant_pool.get_method_ref(index)?;
-                    let descriptor: MethodDescriptor = descriptor_string.try_into().unwrap();
-                    let object_ref = current_frame.pop_operand().expect_reference();
-                    let mut args = current_frame.pop_field_types(&descriptor.argument_types);
-                    args.insert(0, Reference(object_ref));
-
-                    let next_frame = self.prepare_method(class_name, method_name, args);
-
-                    stack.push(current_frame);
-                    current_frame = next_frame;
+                    let next_frame = self.invoke_special(index, stack.last_mut().unwrap())?;
+                    stack.push(next_frame);
                 }
             }
         }
+    }
+
+    fn invoke_special(&self, index: u16, current_frame: &mut Frame) -> Result<Frame> {
+        let (class_name, method_name, descriptor_string) =
+            current_frame.constant_pool.get_method_ref(index)?;
+        let descriptor: MethodDescriptor = descriptor_string.try_into().unwrap();
+        let object_ref = current_frame.pop_operand().expect_reference();
+        let mut args = current_frame.pop_field_types(&descriptor.argument_types);
+        args.insert(0, Reference(object_ref));
+
+        Ok(self.prepare_method(class_name, method_name, args))
+    }
+
+    fn invoke_static(&self, index: u16, current_frame: &mut Frame) -> Result<Frame> {
+        let (class_name, method_name, descriptor_string) =
+            current_frame.constant_pool.get_method_ref(index)?;
+        let descriptor: MethodDescriptor = descriptor_string.try_into().unwrap();
+        let args = current_frame.pop_field_types(&descriptor.argument_types);
+        Ok(self.prepare_static_method(class_name, method_name, args))
     }
 
     fn prepare_static_method(

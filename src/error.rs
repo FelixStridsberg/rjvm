@@ -1,4 +1,4 @@
-use crate::error::ErrorKind::IO;
+use crate::error::ErrorKind::{RuntimeError, IO};
 use crate::error::Repr::Simple;
 use std::fmt::{Display, Formatter};
 use std::io;
@@ -35,6 +35,13 @@ impl Error {
         Error {
             repr: Simple(kind),
             message,
+        }
+    }
+
+    pub fn runtime(message: String) -> Self {
+        Error {
+            repr: Simple(RuntimeError),
+            message: Some(message),
         }
     }
 

@@ -2,6 +2,7 @@
 //! https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.11.2
 
 use crate::class::constant::Constant;
+use crate::error::{Error, ErrorKind, Result};
 use crate::vm::data_type::Value::*;
 use crate::vm::data_type::{DoubleType, FloatType, IntType, LongType, ReferenceType};
 use crate::vm::frame::Frame;
@@ -132,16 +133,19 @@ pub fn store_reference(frame: &mut Frame, operands: &[u8]) {
     store_reference_n(frame, index);
 }
 
-pub fn store_reference_n(frame: &mut Frame, index: u16) {
+pub fn store_reference_n(frame: &mut Frame, index: u16) -> Result<()> {
     let value = match frame.pop_operand() {
         Reference(r) => r,
         ReturnAddress(r) => r,
-        operand => panic!(
-            "astore_<n> expected an int value on top of the stack. Got {:?}",
-            operand
-        ),
+        operand => {
+            return Err(Error::runtime(format!(
+                "astore_<n> expected an int value on top of the stack. Got {:?}",
+                operand
+            )));
+        }
     };
     frame.set_local(index, value as u32);
+    Ok(())
 }
 
 pub fn push_byte(frame: &mut Frame, operands: &[u8]) {
