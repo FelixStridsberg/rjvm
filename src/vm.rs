@@ -6,10 +6,10 @@ use crate::vm::data_type::{MethodDescriptor, Value};
 use crate::vm::frame::Frame;
 use crate::vm::heap::Heap;
 use crate::vm::interpreter::interpret_frame;
+use crate::vm::stack::Stack;
 use crate::vm::Command::{VMInvokeSpecial, VMInvokeStatic, VMReturn};
 use std::collections::HashMap;
 use std::convert::TryInto;
-use std::panic::resume_unwind;
 
 #[macro_export]
 macro_rules! expect_type (
@@ -25,6 +25,7 @@ pub mod data_type;
 mod frame;
 mod heap;
 mod interpreter;
+mod stack;
 
 enum Command {
     VMReturn(Value),
@@ -52,7 +53,7 @@ impl VirtualMachine {
 
     pub fn run(&mut self, class_name: &str, method_name: &str, args: Vec<Value>) -> Value {
         let mut heap = Heap::default();
-        let mut stack = Vec::new();
+        let mut stack = Stack::new();
 
         let result = self.execute(&mut heap, &mut stack, class_name, method_name, args);
 
@@ -62,14 +63,17 @@ impl VirtualMachine {
             println!("Stack: {:#?}", stack);
             println!("Heap: {:#?}", heap);
 
-            panic!("Runtime error {:?}", result.unwrap_err().message().expect("No error message."));
+            panic!(
+                "Runtime error {:?}",
+                result.unwrap_err().message().expect("No error message.")
+            );
         }
     }
 
     pub fn execute<'a>(
         &'a mut self,
         heap: &mut Heap,
-        stack: &mut Vec<Frame<'a>>,
+        stack: &mut Stack<'a>,
         init_class_name: &str,
         init_method_name: &str,
         args: Vec<Value>,
@@ -78,21 +82,21 @@ impl VirtualMachine {
         stack.push(init_frame);
 
         loop {
-            match interpret_frame(stack.last_mut().unwrap(), heap)? {
+            match interpret_frame(stack.current_frame(), heap)? {
                 VMReturn(value) => {
-                    if stack.len() == 1 {
+                    if stack.last_frame() {
                         return Ok(value);
                     } else {
                         stack.pop();
-                        stack.last_mut().unwrap().push_operand(value);
+                        stack.current_frame().push_operand(value);
                     }
                 }
                 VMInvokeStatic(index) => {
-                    let next_frame = self.invoke_static(index, stack.last_mut().unwrap())?;
+                    let next_frame = self.invoke_static(index, stack.current_frame())?;
                     stack.push(next_frame);
                 }
                 VMInvokeSpecial(index) => {
-                    let next_frame = self.invoke_special(index, stack.last_mut().unwrap())?;
+                    let next_frame = self.invoke_special(index, stack.current_frame())?;
                     stack.push(next_frame);
                 }
             }

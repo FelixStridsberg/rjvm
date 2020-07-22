@@ -2,7 +2,7 @@
 //! https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.11.2
 
 use crate::class::constant::Constant;
-use crate::error::{Error, ErrorKind, Result};
+use crate::error::{Error, Result};
 use crate::vm::data_type::Value::*;
 use crate::vm::data_type::{DoubleType, FloatType, IntType, LongType, ReferenceType};
 use crate::vm::frame::Frame;
