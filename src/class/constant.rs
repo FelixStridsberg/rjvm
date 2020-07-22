@@ -1,6 +1,7 @@
 use crate::class::constant::Constant::{
     ClassRef, Double, Long, MethodRef, NameAndType, Utf8, NOOP,
 };
+use crate::error::{Result, Error, ErrorKind};
 
 type Index = u16;
 
@@ -70,41 +71,53 @@ impl ConstantPool {
         &self.constants[(index - 1) as usize]
     }
 
-    pub fn get_utf8(&self, index: u16) -> &str {
+    pub fn get_utf8(&self, index: u16) -> Result<&str> {
         let entry = self.get(index);
         if let Utf8(s) = entry {
-            s.as_ref()
+            Ok(s.as_ref())
         } else {
-            panic!(format!("Tried to get {:?} as an utf8", entry))
+            Err(Error::new(
+                ErrorKind::RuntimeError,
+                Some(format!("Tried to get {:?} as a utf8", entry))
+            ))
         }
     }
 
-    pub fn get_class_info_name(&self, index: u16) -> &str {
+    pub fn get_class_info_name(&self, index: u16) -> Result<&str> {
         let entry = self.get(index);
         if let ClassRef(name_index) = entry {
             self.get_utf8(*name_index)
         } else {
-            panic!(format!("Tried to get {:?} as a class reference", entry))
+            Err(Error::new(
+                ErrorKind::RuntimeError,
+                Some(format!("Tried to get {:?} as a class reference", entry))
+            ))
         }
     }
 
-    pub fn get_name_and_type(&self, index: u16) -> (&str, &str) {
+    pub fn get_name_and_type(&self, index: u16) -> Result<(&str, &str)> {
         let entry = self.get(index);
         if let NameAndType(name_index, descriptor_index) = entry {
-            (self.get_utf8(*name_index), self.get_utf8(*descriptor_index))
+            Ok((self.get_utf8(*name_index)?, self.get_utf8(*descriptor_index)?))
         } else {
-            panic!(format!("Tried to get {:?} as a class reference", entry))
+            Err(Error::new(
+                ErrorKind::RuntimeError,
+                Some(format!("Tried to get {:?} as a class reference", entry))
+            ))
         }
     }
 
-    pub fn get_method_ref(&self, index: u16) -> (&str, &str, &str) {
+    pub fn get_method_ref(&self, index: u16) -> Result<(&str, &str, &str)> {
         let entry = self.get(index);
         if let MethodRef(class_index, name_type_index) = entry {
-            let class_name = self.get_class_info_name(*class_index);
-            let (method_name, descriptor_string) = self.get_name_and_type(*name_type_index);
-            (class_name, method_name, descriptor_string)
+            let class_name = self.get_class_info_name(*class_index)?;
+            let (method_name, descriptor_string) = self.get_name_and_type(*name_type_index)?;
+            Ok((class_name, method_name, descriptor_string))
         } else {
-            panic!(format!("Tried to get {:?} as a method ref", entry))
+            Err(Error::new(
+                ErrorKind::RuntimeError,
+                Some(format!("Tried to get {:?} as a method reference", entry))
+            ))
         }
     }
 }

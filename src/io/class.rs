@@ -43,14 +43,14 @@ impl<R: BufRead> ClassReader<R> {
         let constants = self.read_constants()?;
         let access_flags = self.read_access_flags()?;
         let this_class = constants
-            .get_class_info_name(self.reader.read_u2()?)
+            .get_class_info_name(self.reader.read_u2()?)?
             .to_owned();
 
         let super_class_index = self.reader.read_u2()?;
 
         // Object class have no super class.
         let super_class = if super_class_index != 0 {
-            constants.get_class_info_name(super_class_index).to_owned()
+            constants.get_class_info_name(super_class_index)?.to_owned()
         } else {
             "".to_owned()
         };
@@ -93,8 +93,8 @@ impl<R: BufRead> ClassReader<R> {
 
     fn read_field(&mut self, constants: &ConstantPool) -> Result<FieldInfo> {
         let access_flags = FieldAccessFlags::from_bits(self.reader.read_u2()?).unwrap();
-        let name = constants.get_utf8(self.reader.read_u2()?).to_owned();
-        let descriptor = constants.get_utf8(self.reader.read_u2()?).to_owned();
+        let name = constants.get_utf8(self.reader.read_u2()?)?.to_owned();
+        let descriptor = constants.get_utf8(self.reader.read_u2()?)?.to_owned();
         let attributes = self.read_attributes(constants)?;
 
         Ok(FieldInfo {
@@ -116,8 +116,8 @@ impl<R: BufRead> ClassReader<R> {
 
     fn read_method(&mut self, constants: &ConstantPool) -> Result<MethodInfo> {
         let access_flags = MethodAccessFlags::from_bits(self.reader.read_u2()?).unwrap();
-        let name = constants.get_utf8(self.reader.read_u2()?).to_owned();
-        let descriptor = constants.get_utf8(self.reader.read_u2()?).to_owned();
+        let name = constants.get_utf8(self.reader.read_u2()?)?.to_owned();
+        let descriptor = constants.get_utf8(self.reader.read_u2()?)?.to_owned();
         let attributes = self.read_attributes(constants)?;
 
         Ok(MethodInfo {
@@ -156,7 +156,7 @@ impl<R: BufRead> ClassReader<R> {
         for _ in 0..len {
             indexes.push(
                 constants
-                    .get_class_info_name(self.reader.read_u2()?)
+                    .get_class_info_name(self.reader.read_u2()?)?
                     .to_owned(),
             )
         }

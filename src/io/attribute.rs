@@ -30,7 +30,7 @@ impl<'r, 'c, R: BufRead> AttributeReader<'r, 'c, R> {
     }
 
     fn read_attribute_info(&mut self) -> Result<Attribute> {
-        let name = self.constants.get_utf8(self.reader.read_u2()?).to_owned();
+        let name = self.constants.get_utf8(self.reader.read_u2()?)?.to_owned();
         let len = self.reader.read_u4()? as usize;
         let data = match &name[..] {
             "SourceFile" => self.read_source_file_attribute()?,
@@ -46,7 +46,7 @@ impl<'r, 'c, R: BufRead> AttributeReader<'r, 'c, R> {
 
     fn read_source_file_attribute(&mut self) -> Result<AttributeData> {
         let name_index = self.reader.read_u2()?;
-        Ok(SourceFile(self.constants.get_utf8(name_index).to_owned()))
+        Ok(SourceFile(self.constants.get_utf8(name_index)?.to_owned()))
     }
 
     fn read_constant_value_attribute(&mut self) -> Result<AttributeData> {
@@ -61,7 +61,7 @@ impl<'r, 'c, R: BufRead> AttributeReader<'r, 'c, R> {
         for _ in 0..exception_count {
             exceptions.push(
                 self.constants
-                    .get_class_info_name(self.reader.read_u2()?)
+                    .get_class_info_name(self.reader.read_u2()?)?
                     .to_owned(),
             );
         }

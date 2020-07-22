@@ -55,17 +55,31 @@ impl VirtualMachine {
         init_method_name: &str,
         args: Vec<Value>,
     ) -> Value {
-        let initial_frame = self.prepare_static_method(init_class_name, init_method_name, args);
-
         let mut heap = Heap::default();
         let mut stack = Vec::new();
-        let mut current_frame = initial_frame;
+
+        if let Ok(value) = self.execute(&mut heap, &mut stack, init_class_name, init_method_name, args) {
+            return value
+        }
+
+        panic!("Execution failed.");
+    }
+
+    pub fn execute<'a>(
+        &'a mut self,
+        heap: &mut Heap,
+        stack: &mut Vec<Frame<'a>>,
+        init_class_name: &str,
+        init_method_name: &str,
+        args: Vec<Value>,
+    ) -> Result<Value> {
+        let mut current_frame = self.prepare_static_method(init_class_name, init_method_name, args);
 
         loop {
-            match interpret_frame(&mut current_frame, &mut heap) {
+            match interpret_frame(&mut current_frame, heap) {
                 VMReturn(value) => {
                     if stack.is_empty() {
-                        return value;
+                        return Ok(value);
                     } else {
                         current_frame = stack.pop().unwrap();
                         current_frame.push_operand(value);
@@ -73,7 +87,7 @@ impl VirtualMachine {
                 }
                 VMInvokeStatic(index) => {
                     let (class_name, method_name, descriptor_string) =
-                        current_frame.constant_pool.get_method_ref(index);
+                        current_frame.constant_pool.get_method_ref(index)?;
                     let descriptor: MethodDescriptor = descriptor_string.try_into().unwrap();
                     let args = current_frame.pop_field_types(&descriptor.argument_types);
                     let next_frame = self.prepare_static_method(class_name, method_name, args);
@@ -83,7 +97,7 @@ impl VirtualMachine {
                 },
                 VMInvokeSpecial(index) => {
                     let (class_name, method_name, descriptor_string) =
-                        current_frame.constant_pool.get_method_ref(index);
+                        current_frame.constant_pool.get_method_ref(index)?;
                     let descriptor: MethodDescriptor = descriptor_string.try_into().unwrap();
                     let object_ref = current_frame.pop_operand().expect_reference();
                     let mut args = current_frame.pop_field_types(&descriptor.argument_types);
@@ -94,7 +108,6 @@ impl VirtualMachine {
                     stack.push(current_frame);
                     current_frame = next_frame;
 
-                    println!("Invoke special {:?}", current_frame.constant_pool.get_method_ref(index));
                 }
             }
         }
