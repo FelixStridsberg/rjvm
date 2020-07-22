@@ -60,7 +60,7 @@ impl VirtualMachine {
         if result.is_ok() {
             result.unwrap()
         } else {
-            println!("Stack: {:#?}", stack);
+            println!("Stack:\n{}", stack);
             println!("Heap: {:#?}", heap);
 
             panic!(

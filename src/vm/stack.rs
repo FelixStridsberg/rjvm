@@ -1,5 +1,7 @@
 use crate::error::{Error, Result};
 use crate::vm::frame::Frame;
+use std::fmt;
+use bitflags::_core::fmt::Formatter;
 
 #[derive(Debug)]
 pub struct Stack<'a> {
@@ -27,5 +29,14 @@ impl<'a> Stack<'a> {
         self.stack
             .last_mut()
             .expect("Tried to get current frame on empty stack.")
+    }
+}
+
+impl fmt::Display for Stack<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        for frame in &self.stack {
+            write!(f, "Frame {}\n", frame)?
+        }
+        Ok(())
     }
 }

@@ -2,6 +2,8 @@ use crate::class::attribute::Code;
 use crate::class::constant::ConstantPool;
 use crate::vm::data_type::Value::*;
 use crate::vm::data_type::{FieldType, Value};
+use core::fmt;
+use std::fmt::Formatter;
 
 #[derive(Debug)]
 pub struct Frame<'a> {
@@ -96,6 +98,13 @@ impl Frame<'_> {
         } else {
             panic!("Tried to pop value from empty stack.");
         }
+    }
+}
+
+impl fmt::Display for Frame<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "PC {}", self.pc)?;
+        Ok(())
     }
 }
 
