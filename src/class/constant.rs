@@ -1,7 +1,7 @@
 use crate::class::constant::Constant::{
     ClassRef, Double, Long, MethodRef, NameAndType, Utf8, NOOP,
 };
-use crate::error::{Result, Error, ErrorKind};
+use crate::error::{Error, ErrorKind, Result};
 
 type Index = u16;
 
@@ -78,7 +78,7 @@ impl ConstantPool {
         } else {
             Err(Error::new(
                 ErrorKind::RuntimeError,
-                Some(format!("Tried to get {:?} as a utf8", entry))
+                Some(format!("Tried to get {:?} as a utf8", entry)),
             ))
         }
     }
@@ -90,7 +90,7 @@ impl ConstantPool {
         } else {
             Err(Error::new(
                 ErrorKind::RuntimeError,
-                Some(format!("Tried to get {:?} as a class reference", entry))
+                Some(format!("Tried to get {:?} as a class reference", entry)),
             ))
         }
     }
@@ -98,11 +98,14 @@ impl ConstantPool {
     pub fn get_name_and_type(&self, index: u16) -> Result<(&str, &str)> {
         let entry = self.get(index);
         if let NameAndType(name_index, descriptor_index) = entry {
-            Ok((self.get_utf8(*name_index)?, self.get_utf8(*descriptor_index)?))
+            Ok((
+                self.get_utf8(*name_index)?,
+                self.get_utf8(*descriptor_index)?,
+            ))
         } else {
             Err(Error::new(
                 ErrorKind::RuntimeError,
-                Some(format!("Tried to get {:?} as a class reference", entry))
+                Some(format!("Tried to get {:?} as a class reference", entry)),
             ))
         }
     }
@@ -116,7 +119,7 @@ impl ConstantPool {
         } else {
             Err(Error::new(
                 ErrorKind::RuntimeError,
-                Some(format!("Tried to get {:?} as a method reference", entry))
+                Some(format!("Tried to get {:?} as a method reference", entry)),
             ))
         }
     }

@@ -163,7 +163,6 @@ impl<'a> TryFrom<&'a str> for FieldType<'a> {
     }
 }
 
-
 /// Method descriptors defines a method signature; the argument and the return types.
 ///
 /// Raw JVM method descriptors are strings that looks like this: `(IJ)F`

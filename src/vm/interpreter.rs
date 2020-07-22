@@ -21,7 +21,7 @@ use crate::vm::interpreter::load_and_store::*;
 use crate::vm::interpreter::object_creation_and_manipulation::*;
 use crate::vm::interpreter::stack_management::*;
 use crate::vm::Command;
-use crate::vm::Command::{VMInvokeStatic, VMReturn, VMInvokeSpecial};
+use crate::vm::Command::{VMInvokeSpecial, VMInvokeStatic, VMReturn};
 
 pub(super) fn interpret_frame(frame: &mut Frame, heap: &mut Heap) -> Command {
     loop {

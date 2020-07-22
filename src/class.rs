@@ -66,9 +66,7 @@ pub struct Class {
 
 impl Class {
     pub fn find_method(&self, name: &str) -> Option<&MethodInfo> {
-        self.methods.iter().find(|m| {
-            m.name.ends_with(name)
-        })
+        self.methods.iter().find(|m| m.name.ends_with(name))
     }
 
     pub fn find_public_static_method(&self, name: &str) -> Option<&MethodInfo> {
