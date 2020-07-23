@@ -57,8 +57,8 @@ impl VirtualMachine {
 
         let result = self.execute(&mut heap, &mut stack, class_name, method_name, args);
 
-        if result.is_ok() {
-            result.unwrap()
+        if let Ok(value) = result {
+            value
         } else {
             println!("Stack:\n{}", stack);
             println!("Heap: {:#?}", heap);
@@ -130,9 +130,8 @@ impl VirtualMachine {
     ) -> Frame {
         let class = self.class_register.get(class_name).expect("Unknown class");
         let method = class.find_public_static_method(method_name).unwrap();
-        let code = method.get_code().expect("No Code attribute on method.");
 
-        let mut frame = Frame::new(&code, &class.constants);
+        let mut frame = Frame::new(&method, &class.constants);
         frame.load_arguments(args);
 
         frame
@@ -141,9 +140,8 @@ impl VirtualMachine {
     fn prepare_method(&self, class_name: &str, method_name: &str, args: Vec<Value>) -> Frame {
         let class = self.class_register.get(class_name).expect("Unknown class");
         let method = class.find_method(method_name).unwrap();
-        let code = method.get_code().expect("No Code attribute on method.");
 
-        let mut frame = Frame::new(&code, &class.constants);
+        let mut frame = Frame::new(&method, &class.constants);
         frame.load_arguments(args);
 
         frame

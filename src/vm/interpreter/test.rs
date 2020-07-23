@@ -19,7 +19,9 @@ macro_rules! test_command {
             $($(_constants.add($constant);)*)?
 
             let code = crate::class::attribute::Code::new(10, 10, vec![], vec![]);
-            let mut frame = crate::vm::Frame::new(&code, &_constants);
+            let _method = crate::class::MethodInfo::from_code(code);
+            let mut frame = crate::vm::Frame::new(&_method, &_constants);
+
             $(frame.pc = $start_pc;)?
             $(frame.set_operand_stack(vec![$($stack),*]);)?
 
@@ -37,7 +39,7 @@ macro_rules! test_command {
                 &mut frame,
                 _heap_ref,
                 &crate::class::code::Instruction::new($command, vec![$($($operands),*)?])
-            );
+            ).expect("Interpretation failed.");
 
             // Assert
 

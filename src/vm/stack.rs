@@ -1,7 +1,6 @@
-use crate::error::{Error, Result};
 use crate::vm::frame::Frame;
-use std::fmt;
 use bitflags::_core::fmt::Formatter;
+use std::fmt;
 
 #[derive(Debug)]
 pub struct Stack<'a> {
@@ -35,7 +34,7 @@ impl<'a> Stack<'a> {
 impl fmt::Display for Stack<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         for frame in &self.stack {
-            write!(f, "Frame {}\n", frame)?
+            writeln!(f, "Frame {}", frame)?
         }
         Ok(())
     }

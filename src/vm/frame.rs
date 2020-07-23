@@ -1,5 +1,6 @@
 use crate::class::attribute::Code;
 use crate::class::constant::ConstantPool;
+use crate::class::MethodInfo;
 use crate::vm::data_type::Value::*;
 use crate::vm::data_type::{FieldType, Value};
 use core::fmt;
@@ -12,16 +13,19 @@ pub struct Frame<'a> {
     pub operand_stack: Vec<Value>,
     pub operand_stack_depth: u32,
     pub constant_pool: &'a ConstantPool,
+    pub method: &'a MethodInfo,
     pub code: &'a Code,
 }
 
 impl Frame<'_> {
-    pub fn new<'a>(code: &'a Code, constant_pool: &'a ConstantPool) -> Frame<'a> {
+    pub fn new<'a>(method: &'a MethodInfo, constant_pool: &'a ConstantPool) -> Frame<'a> {
+        let code = method.get_code().expect("No Code attribute on method.");
         Frame {
             pc: 0,
             local_variables: vec![0; code.max_locals as usize],
             operand_stack: Vec::with_capacity(code.max_stack as usize),
             operand_stack_depth: 0,
+            method,
             code,
             constant_pool,
         }
@@ -112,14 +116,15 @@ impl fmt::Display for Frame<'_> {
 mod test {
     use crate::class::attribute::Code;
     use crate::class::constant::ConstantPool;
+    use crate::class::MethodInfo;
     use crate::vm::data_type::Value;
     use crate::vm::frame::Frame;
 
     #[test]
     fn pop_bool() {
         let constants = ConstantPool::new(0);
-        let code = Code::new(1, 0, vec![], vec![]);
-        let mut frame = Frame::new(&code, &constants);
+        let method = MethodInfo::from_code(Code::new(1, 0, vec![], vec![]));
+        let mut frame = Frame::new(&method, &constants);
         frame.push_operand(Value::Boolean(true));
 
         assert_eq!(frame.pop_operand(), Value::Boolean(true));
@@ -128,8 +133,8 @@ mod test {
     #[test]
     fn set_local() {
         let constants = ConstantPool::new(0);
-        let code = Code::new(0, 2, vec![], vec![]);
-        let mut frame = Frame::new(&code, &constants);
+        let method = MethodInfo::from_code(Code::new(0, 2, vec![], vec![]));
+        let mut frame = Frame::new(&method, &constants);
 
         frame.set_local(1, 13);
         assert_eq!(frame.get_local(0), 0);

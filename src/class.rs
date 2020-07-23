@@ -93,6 +93,18 @@ pub struct MethodInfo {
 }
 
 impl MethodInfo {
+    pub fn from_code(code: Code) -> MethodInfo {
+        MethodInfo {
+            access_flags: MethodAccessFlags::ACC_PUBLIC,
+            name: "<Anonymous>".to_owned(),
+            descriptor: "()V".to_owned(),
+            attributes: vec![Attribute {
+                name: "Code".to_string(),
+                data: CodeInfo(code),
+            }],
+        }
+    }
+
     pub fn get_attribute(&self, name: &str) -> Option<&Attribute> {
         for a in &self.attributes {
             if a.name == name {
