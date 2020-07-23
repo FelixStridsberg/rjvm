@@ -11,7 +11,12 @@ class Array {
         return i[0] + i[1];
     }
 
-    public static void main() {
+    public static int main() {
         Array a = new Array();
+        return a.getNumber();
+    }
+
+    private int getNumber() {
+        return 3;
     }
 }
