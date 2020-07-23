@@ -87,8 +87,18 @@ impl VirtualMachine {
                     if stack.last_frame() {
                         return Ok(value);
                     } else {
+                        let void_return = stack
+                            .current_frame()
+                            .method
+                            .descriptor
+                            .return_type
+                            .is_none();
+
                         stack.pop();
-                        stack.current_frame().push_operand(value);
+
+                        if !void_return {
+                            stack.current_frame().push_operand(value);
+                        }
                     }
                 }
                 VMInvokeStatic(index) => {
@@ -106,6 +116,8 @@ impl VirtualMachine {
     fn invoke_special(&self, index: u16, current_frame: &mut Frame) -> Result<Frame> {
         let (class_name, method_name, descriptor_string) =
             current_frame.class.constants.get_method_ref(index)?;
+
+        // TODO don't parse descriptor here, get the matching method and use that already parsed one.
         let descriptor: MethodDescriptor = descriptor_string.try_into().unwrap();
         let object_ref = current_frame.pop_operand().expect_reference();
         let mut args = current_frame.pop_field_types(&descriptor.argument_types);
@@ -117,6 +129,8 @@ impl VirtualMachine {
     fn invoke_static(&self, index: u16, current_frame: &mut Frame) -> Result<Frame> {
         let (class_name, method_name, descriptor_string) =
             current_frame.class.constants.get_method_ref(index)?;
+
+        // TODO don't parse descriptor here, get the matching method and use that already parsed one.
         let descriptor: MethodDescriptor = descriptor_string.try_into().unwrap();
         let args = current_frame.pop_field_types(&descriptor.argument_types);
         Ok(self.prepare_static_method(class_name, method_name, args))

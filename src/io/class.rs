@@ -10,10 +10,10 @@ use crate::error::ErrorKind::ParseError;
 use crate::error::{Error, Result};
 use crate::io::attribute::AttributeReader;
 use crate::io::ReadBytesExt;
+use std::convert::TryInto;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
-use std::convert::TryInto;
 
 const SIGNATURE: &[u8] = &[0xCA, 0xFE, 0xBA, 0xBE];
 
