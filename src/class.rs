@@ -1,6 +1,7 @@
 use crate::class::attribute::AttributeData::CodeInfo;
 use crate::class::attribute::{Attribute, Code};
 use crate::class::constant::ConstantPool;
+use crate::error::{Error, Result};
 use crate::vm::data_type::MethodDescriptor;
 use std::convert::TryInto;
 
@@ -82,8 +83,14 @@ impl Class {
         }
     }
 
-    pub fn find_method(&self, name: &str) -> Option<&MethodInfo> {
-        self.methods.iter().find(|m| m.name.ends_with(name))
+    pub fn resolve_method(&self, name: &str, descriptor: &str) -> Result<&MethodInfo> {
+        Ok(self
+            .methods
+            .iter()
+            .find(|m| m.name == name)
+            .ok_or_else(|| {
+                Error::runtime(format!("Could not find method {}/{}", name, descriptor))
+            })?)
     }
 
     pub fn find_public_static_method(&self, name: &str) -> Option<&MethodInfo> {

@@ -346,6 +346,7 @@ mod test {
         ClassAccessFlags, FieldAccessFlags, FieldInfo, MethodAccessFlags, MethodInfo,
     };
     use crate::io::class::ClassReader;
+    use std::convert::TryInto;
 
     #[test]
     fn read_signature() {
@@ -483,7 +484,7 @@ mod test {
     fn read_methods() {
         let mut constants = ConstantPool::new(2);
         constants.add(Utf8("method_name".to_owned()));
-        constants.add(Utf8("descriptor".to_owned()));
+        constants.add(Utf8("()V".to_owned()));
         constants.add(Utf8("attribute".to_owned()));
 
         let data: Vec<u8> = vec![
@@ -503,7 +504,7 @@ mod test {
             vec![MethodInfo {
                 access_flags: MethodAccessFlags::ACC_PRIVATE,
                 name: "method_name".to_owned(),
-                descriptor: "descriptor".to_owned(),
+                descriptor: "()V".try_into().unwrap(),
                 attributes: vec![Attribute {
                     name: "attribute".to_owned(),
                     data: Unknown(vec![0x01, 0x02])
