@@ -13,6 +13,7 @@ use crate::io::ReadBytesExt;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
+use std::convert::TryInto;
 
 const SIGNATURE: &[u8] = &[0xCA, 0xFE, 0xBA, 0xBE];
 
@@ -117,7 +118,7 @@ impl<R: BufRead> ClassReader<R> {
     fn read_method(&mut self, constants: &ConstantPool) -> Result<MethodInfo> {
         let access_flags = MethodAccessFlags::from_bits(self.reader.read_u2()?).unwrap();
         let name = constants.get_utf8(self.reader.read_u2()?)?.to_owned();
-        let descriptor = constants.get_utf8(self.reader.read_u2()?)?.to_owned();
+        let descriptor = constants.get_utf8(self.reader.read_u2()?)?.try_into()?;
         let attributes = self.read_attributes(constants)?;
 
         Ok(MethodInfo {

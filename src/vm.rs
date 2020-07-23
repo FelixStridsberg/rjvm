@@ -139,7 +139,7 @@ impl VirtualMachine {
 
     fn prepare_method(&self, class_name: &str, method_name: &str, args: Vec<Value>) -> Frame {
         let class = self.class_register.get(class_name).expect("Unknown class");
-        let method = class.find_method(method_name).unwrap();
+        let method = class.find_method(method_name).expect("Method not found");
 
         let mut frame = Frame::new(&class, &method);
         frame.load_arguments(args);

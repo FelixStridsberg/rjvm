@@ -1,6 +1,8 @@
 use crate::class::attribute::AttributeData::CodeInfo;
 use crate::class::attribute::{Attribute, Code};
 use crate::class::constant::ConstantPool;
+use crate::vm::data_type::MethodDescriptor;
+use std::convert::TryInto;
 
 pub mod attribute;
 pub mod code;
@@ -103,7 +105,7 @@ pub struct Version {
 pub struct MethodInfo {
     pub access_flags: MethodAccessFlags,
     pub name: String,
-    pub descriptor: String,
+    pub descriptor: MethodDescriptor,
     pub attributes: Vec<Attribute>,
 }
 
@@ -113,7 +115,7 @@ impl MethodInfo {
         MethodInfo {
             access_flags: MethodAccessFlags::ACC_PUBLIC,
             name: "<Anonymous>".to_owned(),
-            descriptor: "()V".to_owned(),
+            descriptor: "()V".try_into().unwrap(),
             attributes: vec![Attribute {
                 name: "Code".to_string(),
                 data: CodeInfo(code),

@@ -117,7 +117,7 @@ impl Value {
 }
 
 #[derive(Debug, Eq, PartialEq)]
-pub enum FieldType<'a> {
+pub enum FieldType {
     Byte,
     Char,
     Double,
@@ -126,11 +126,11 @@ pub enum FieldType<'a> {
     Long,
     Short,
     Boolean,
-    Object(&'a str),
-    Array(Box<FieldType<'a>>),
+    Object(String),
+    Array(Box<FieldType>),
 }
 
-impl FieldType<'_> {
+impl FieldType {
     pub(crate) fn str_len(&self) -> usize {
         match self {
             FieldType::Object(s) => s.len() + 2,
@@ -140,10 +140,10 @@ impl FieldType<'_> {
     }
 }
 
-impl<'a> TryFrom<&'a str> for FieldType<'a> {
+impl<'a> TryFrom<&'a str> for FieldType {
     type Error = Error;
 
-    fn try_from(s: &'a str) -> std::result::Result<FieldType<'a>, Self::Error> {
+    fn try_from(s: &'a str) -> std::result::Result<FieldType, Self::Error> {
         Ok(match s.chars().next().unwrap() {
             'B' => FieldType::Byte,
             'C' => FieldType::Char,
@@ -155,7 +155,7 @@ impl<'a> TryFrom<&'a str> for FieldType<'a> {
             'Z' => FieldType::Boolean,
             'L' => {
                 let index = s.find(';').unwrap();
-                FieldType::Object(&s[1..index])
+                FieldType::Object((&s[1..index]).to_owned())
             }
             '[' => FieldType::Array(Box::new(s[1..].try_into()?)),
             _ => panic!("Invalid field type '{}'", s),
@@ -193,12 +193,12 @@ impl<'a> TryFrom<&'a str> for FieldType<'a> {
 /// Reference: https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-4.3.3
 ///
 #[derive(Debug, Eq, PartialEq)]
-pub struct MethodDescriptor<'a> {
-    pub argument_types: Vec<FieldType<'a>>,
-    pub return_type: Option<FieldType<'a>>,
+pub struct MethodDescriptor {
+    pub argument_types: Vec<FieldType>,
+    pub return_type: Option<FieldType>,
 }
 
-impl MethodDescriptor<'_> {
+impl MethodDescriptor {
     fn parse_argument_str(s: &str) -> std::result::Result<Vec<FieldType>, Error> {
         let mut argument_types = Vec::new();
 
@@ -221,10 +221,10 @@ impl MethodDescriptor<'_> {
     }
 }
 
-impl<'a> TryFrom<&'a str> for MethodDescriptor<'a> {
+impl TryFrom<&str> for MethodDescriptor {
     type Error = Error;
 
-    fn try_from(s: &'a str) -> std::result::Result<MethodDescriptor<'a>, Self::Error> {
+    fn try_from(s: &str) -> std::result::Result<MethodDescriptor, Self::Error> {
         let parts: Vec<&str> = s.split(|c| c == '(' || c == ')').collect();
         if parts.len() != 3 || !parts[0].is_empty() || parts[2].len() != 1 {
             panic!("Invalid method descriptor '{}'.", s);
@@ -277,9 +277,9 @@ mod test {
             descriptor,
             MethodDescriptor {
                 argument_types: vec![
-                    Object("java/lang/Object"),
+                    Object("java/lang/Object".to_owned()),
                     Array(Box::new(Int)),
-                    Array(Box::new(Object("java/lang/Object")))
+                    Array(Box::new(Object("java/lang/Object".to_owned())))
                 ],
                 return_type: None
             }
