@@ -105,7 +105,7 @@ impl VirtualMachine {
 
     fn invoke_special(&self, index: u16, current_frame: &mut Frame) -> Result<Frame> {
         let (class_name, method_name, descriptor_string) =
-            current_frame.constant_pool.get_method_ref(index)?;
+            current_frame.class.constants.get_method_ref(index)?;
         let descriptor: MethodDescriptor = descriptor_string.try_into().unwrap();
         let object_ref = current_frame.pop_operand().expect_reference();
         let mut args = current_frame.pop_field_types(&descriptor.argument_types);
@@ -116,7 +116,7 @@ impl VirtualMachine {
 
     fn invoke_static(&self, index: u16, current_frame: &mut Frame) -> Result<Frame> {
         let (class_name, method_name, descriptor_string) =
-            current_frame.constant_pool.get_method_ref(index)?;
+            current_frame.class.constants.get_method_ref(index)?;
         let descriptor: MethodDescriptor = descriptor_string.try_into().unwrap();
         let args = current_frame.pop_field_types(&descriptor.argument_types);
         Ok(self.prepare_static_method(class_name, method_name, args))
@@ -131,7 +131,7 @@ impl VirtualMachine {
         let class = self.class_register.get(class_name).expect("Unknown class");
         let method = class.find_public_static_method(method_name).unwrap();
 
-        let mut frame = Frame::new(&method, &class.constants);
+        let mut frame = Frame::new(&class, &method);
         frame.load_arguments(args);
 
         frame
@@ -141,7 +141,7 @@ impl VirtualMachine {
         let class = self.class_register.get(class_name).expect("Unknown class");
         let method = class.find_method(method_name).unwrap();
 
-        let mut frame = Frame::new(&method, &class.constants);
+        let mut frame = Frame::new(&class, &method);
         frame.load_arguments(args);
 
         frame

@@ -18,9 +18,10 @@ macro_rules! test_command {
             let mut _constants = crate::class::constant::ConstantPool::new(2);
             $($(_constants.add($constant);)*)?
 
+            let _class = crate::class::Class::from_constant_pool(_constants);
             let code = crate::class::attribute::Code::new(10, 10, vec![], vec![]);
             let _method = crate::class::MethodInfo::from_code(code);
-            let mut frame = crate::vm::Frame::new(&_method, &_constants);
+            let mut frame = crate::vm::Frame::new(&_class, &_method);
 
             $(frame.pc = $start_pc;)?
             $(frame.set_operand_stack(vec![$($stack),*]);)?

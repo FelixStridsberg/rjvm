@@ -65,6 +65,21 @@ pub struct Class {
 }
 
 impl Class {
+    // Only used by tests, probably put somewhere else?
+    pub(crate) fn from_constant_pool(constants: ConstantPool) -> Class {
+        Class {
+            version: Version { minor: 0, major: 0 },
+            constants,
+            access_flags: ClassAccessFlags::PUBLIC,
+            this_class: "<Anonymous>".to_string(),
+            super_class: "<Anonymous>".to_string(),
+            interfaces: vec![],
+            fields: vec![],
+            methods: vec![],
+            attributes: vec![],
+        }
+    }
+
     pub fn find_method(&self, name: &str) -> Option<&MethodInfo> {
         self.methods.iter().find(|m| m.name.ends_with(name))
     }
@@ -93,6 +108,7 @@ pub struct MethodInfo {
 }
 
 impl MethodInfo {
+    // Only used by tests, probably put somewhere else?
     pub fn from_code(code: Code) -> MethodInfo {
         MethodInfo {
             access_flags: MethodAccessFlags::ACC_PUBLIC,

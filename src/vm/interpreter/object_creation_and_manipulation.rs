@@ -16,7 +16,8 @@ pub fn new_array(frame: &mut Frame, heap: &mut Heap, operands: &[u8]) {
 pub fn new_object(frame: &mut Frame, heap: &mut Heap, operands: &[u8]) {
     let index = ((operands[0] as u16) << 8) | operands[1] as u16;
     let class = frame
-        .constant_pool
+        .class
+        .constants
         .get_class_info_name(index as u16)
         .unwrap();
     let reference = heap.allocate_object(class);
