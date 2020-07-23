@@ -1,3 +1,6 @@
+use bitflags::_core::fmt::Formatter;
+use core::fmt;
+
 #[derive(Debug, Eq, PartialEq)]
 pub struct Instruction {
     pub opcode: Opcode,
@@ -15,6 +18,12 @@ impl Instruction {
 
     pub fn size(&self) -> u32 {
         1 + self.operands.len() as u32
+    }
+}
+
+impl fmt::Display for Instruction {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{:<15}{:?}", format!("{:?}", self.opcode), self.operands)
     }
 }
 

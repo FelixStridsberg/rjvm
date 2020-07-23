@@ -1,8 +1,10 @@
 use crate::class::attribute::Code;
+use crate::class::code::Opcode::OperationSpacer;
 use crate::class::{Class, MethodInfo};
 use crate::vm::data_type::Value::*;
 use crate::vm::data_type::{FieldType, Value};
 use core::fmt;
+use std::cmp::{max, min};
 use std::fmt::Formatter;
 
 #[derive(Debug)]
@@ -19,7 +21,6 @@ pub struct Frame<'a> {
 impl Frame<'_> {
     pub fn new<'a>(class: &'a Class, method: &'a MethodInfo) -> Frame<'a> {
         let code = method.get_code().expect("No Code attribute on method.");
-        let constant_pool = &class.constants;
 
         Frame {
             pc: 0,
@@ -108,7 +109,28 @@ impl Frame<'_> {
 
 impl fmt::Display for Frame<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "PC {}", self.pc)?;
+        writeln!(f, "{}::{}", self.class.this_class, self.method.name)?;
+
+        let code_start = max(self.pc as usize - 5, 0);
+        let code_end = min(self.pc as usize + 5, self.code.instructions.len());
+
+        for i in code_start..code_end {
+            let instruction = &self.code.instructions[i];
+            if instruction.opcode == OperationSpacer {
+                continue;
+            }
+
+            if self.pc == i as u32 {
+                write!(f, "> ")?;
+            } else {
+                write!(f, "  ")?;
+            }
+            writeln!(f, "{:<5}{}", i, instruction)?;
+        }
+
+        writeln!(f, "Operands: {:?}", self.operand_stack)?;
+        writeln!(f, "Locals: {:?}", self.local_variables)?;
+
         Ok(())
     }
 }

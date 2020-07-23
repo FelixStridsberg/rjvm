@@ -33,8 +33,8 @@ impl<'a> Stack<'a> {
 
 impl fmt::Display for Stack<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        for frame in &self.stack {
-            writeln!(f, "Frame {}", frame)?
+        for (i, frame) in self.stack.iter().enumerate() {
+            writeln!(f, "#{} {}", i, frame)?
         }
         Ok(())
     }
