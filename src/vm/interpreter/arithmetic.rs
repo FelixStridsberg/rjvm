@@ -246,468 +246,468 @@ mod test {
 
     #[test]
     fn iadd() {
-        test_command!(
+        test_instruction!(
             start_stack: [Int(1), Int(2)],
-            command: Iadd,
+            instruction: Iadd,
             final_stack: [Int(3)],
         );
     }
 
     #[test]
     fn ladd() {
-        test_command!(
+        test_instruction!(
             start_stack: [Long(3), Long(4)],
-            command: Ladd,
+            instruction: Ladd,
             final_stack: [Long(7)],
         );
     }
 
     #[test]
     fn fadd() {
-        test_command!(
+        test_instruction!(
             start_stack: [Float(1.0), Float(2.2)],
-            command: Fadd,
+            instruction: Fadd,
             final_stack: [Float(3.2)],
         );
     }
 
     #[test]
     fn dadd() {
-        test_command!(
+        test_instruction!(
             start_stack: [Double(3.1), Double(4.0)],
-            command: Dadd,
+            instruction: Dadd,
             final_stack: [Double(7.1)],
         );
     }
 
     #[test]
     fn isub() {
-        test_command!(
+        test_instruction!(
             start_stack: [Int(3), Int(2)],
-            command: Isub,
+            instruction: Isub,
             final_stack: [Int(-1)],
         );
     }
 
     #[test]
     fn lsub() {
-        test_command!(
+        test_instruction!(
             start_stack: [Long(2), Long(4)],
-            command: Lsub,
+            instruction: Lsub,
             final_stack: [Long(2)],
         );
     }
 
     #[test]
     fn fsub() {
-        test_command!(
+        test_instruction!(
             start_stack: [Float(1.0), Float(2.2)],
-            command: Fsub,
+            instruction: Fsub,
             final_stack: [Float(1.2)],
         );
     }
 
     #[test]
     fn dsub() {
-        test_command!(
+        test_instruction!(
             start_stack: [Double(3.0), Double(4.0)],
-            command: Dsub,
+            instruction: Dsub,
             final_stack: [Double(1.0)],
         );
     }
 
     #[test]
     fn imul() {
-        test_command!(
+        test_instruction!(
             start_stack: [Int(1), Int(2)],
-            command: Imul,
+            instruction: Imul,
             final_stack: [Int(2)],
         );
     }
 
     #[test]
     fn lmul() {
-        test_command!(
+        test_instruction!(
             start_stack: [Long(3), Long(4)],
-            command: Lmul,
+            instruction: Lmul,
             final_stack: [Long(12)],
         );
     }
 
     #[test]
     fn fmul() {
-        test_command!(
+        test_instruction!(
             start_stack: [Float(1.0), Float(2.2)],
-            command: Fmul,
+            instruction: Fmul,
             final_stack: [Float(2.2)],
         );
     }
 
     #[test]
     fn dmul() {
-        test_command!(
+        test_instruction!(
             start_stack: [Double(3.1), Double(4.0)],
-            command: Dmul,
+            instruction: Dmul,
             final_stack: [Double(12.4)],
         );
     }
 
     #[test]
     fn idiv() {
-        test_command!(
+        test_instruction!(
             start_stack: [Int(2), Int(4)],
-            command: Idiv,
+            instruction: Idiv,
             final_stack: [Int(2)],
         );
     }
 
     #[test]
     fn ldiv() {
-        test_command!(
+        test_instruction!(
             start_stack: [Long(3), Long(4)],
-            command: Ldiv,
+            instruction: Ldiv,
             final_stack: [Long(1)],
         );
     }
 
     #[test]
     fn fdiv() {
-        test_command!(
+        test_instruction!(
             start_stack: [Float(1.1), Float(2.2)],
-            command: Fdiv,
+            instruction: Fdiv,
             final_stack: [Float(2.0)],
         );
     }
 
     #[test]
     fn ddiv() {
-        test_command!(
+        test_instruction!(
             start_stack: [Double(4.0), Double(3.1)],
-            command: Ddiv,
+            instruction: Ddiv,
             final_stack: [Double(0.775)],
         );
     }
 
     #[test]
     fn irem() {
-        test_command!(
+        test_instruction!(
             start_stack: [Int(2), Int(4)],
-            command: Irem,
+            instruction: Irem,
             final_stack: [Int(0)],
         );
     }
 
     #[test]
     fn lrem() {
-        test_command!(
+        test_instruction!(
             start_stack: [Long(3), Long(4)],
-            command: Lrem,
+            instruction: Lrem,
             final_stack: [Long(1)],
         );
     }
 
     #[test]
     fn frem() {
-        test_command!(
+        test_instruction!(
             start_stack: [Float(1.1), Float(2.2)],
-            command: Frem,
+            instruction: Frem,
             final_stack: [Float(0.0)],
         );
     }
 
     #[test]
     fn drem() {
-        test_command!(
+        test_instruction!(
             start_stack: [Double(4.0), Double(3.1)],
-            command: Drem,
+            instruction: Drem,
             final_stack: [Double(3.1)],
         );
     }
 
     #[test]
     fn ineg() {
-        test_command!(
+        test_instruction!(
             start_stack: [Int(2)],
-            command: Ineg,
+            instruction: Ineg,
             final_stack: [Int(-2)],
         );
     }
 
     #[test]
     fn lneg() {
-        test_command!(
+        test_instruction!(
             start_stack: [Long(3)],
-            command: Lneg,
+            instruction: Lneg,
             final_stack: [Long(-3)],
         );
     }
 
     #[test]
     fn fneg() {
-        test_command!(
+        test_instruction!(
             start_stack: [Float(1.1)],
-            command: Fneg,
+            instruction: Fneg,
             final_stack: [Float(-1.1)],
         );
     }
 
     #[test]
     fn dneg() {
-        test_command!(
+        test_instruction!(
             start_stack: [Double(4.0)],
-            command: Dneg,
+            instruction: Dneg,
             final_stack: [Double(-4.0)],
         );
     }
 
     #[test]
     fn ishl() {
-        test_command!(
+        test_instruction!(
             start_stack: [Int(1), Int(0x08)],
-            command: Ishl,
+            instruction: Ishl,
             final_stack: [Int(0x10)],
         );
     }
 
     #[test]
     fn ishr() {
-        test_command!(
+        test_instruction!(
             start_stack: [Int(2), Int(-0x01)],
-            command: Ishr,
+            instruction: Ishr,
             final_stack: [Int(-1)],
         );
     }
 
     #[test]
     fn iushr() {
-        test_command!(
+        test_instruction!(
             start_stack: [Int(2), Int(-0x01)],
-            command: Iushr,
+            instruction: Iushr,
             final_stack: [Int(1073741823)],
         );
     }
 
     #[test]
     fn lshl() {
-        test_command!(
+        test_instruction!(
             start_stack: [Long(1), Long(0x08)],
-            command: Lshl,
+            instruction: Lshl,
             final_stack: [Long(0x10)],
         );
     }
 
     #[test]
     fn lshr() {
-        test_command!(
+        test_instruction!(
             start_stack: [Long(2), Long(-0x01)],
-            command: Lshr,
+            instruction: Lshr,
             final_stack: [Long(-1)],
         );
     }
 
     #[test]
     fn lushr() {
-        test_command!(
+        test_instruction!(
             start_stack: [Long(63), Long(-1)],
-            command: Lushr,
+            instruction: Lushr,
             final_stack: [Long(8589934591)],
         );
     }
 
     #[test]
     fn ior() {
-        test_command!(
+        test_instruction!(
             start_stack: [Int(0xf0), Int(0x0f)],
-            command: Ior,
+            instruction: Ior,
             final_stack: [Int(0xff)],
         );
     }
 
     #[test]
     fn lor() {
-        test_command!(
+        test_instruction!(
             start_stack: [Long(0xf000), Long(0x0fff)],
-            command: Lor,
+            instruction: Lor,
             final_stack: [Long(0xffff)],
         );
     }
 
     #[test]
     fn iand() {
-        test_command!(
+        test_instruction!(
             start_stack: [Int(0x30), Int(0xff)],
-            command: Iand,
+            instruction: Iand,
             final_stack: [Int(0x30)],
         );
     }
 
     #[test]
     fn land() {
-        test_command!(
+        test_instruction!(
             start_stack: [Long(0xfc00), Long(0x0fff)],
-            command: Land,
+            instruction: Land,
             final_stack: [Long(0x0c00)],
         );
     }
 
     #[test]
     fn ixor() {
-        test_command!(
+        test_instruction!(
             start_stack: [Int(0x30), Int(0xff)],
-            command: Ixor,
+            instruction: Ixor,
             final_stack: [Int(0xcf)],
         );
     }
 
     #[test]
     fn lxor() {
-        test_command!(
+        test_instruction!(
             start_stack: [Long(0xfc00), Long(0x0fff)],
-            command: Lxor,
+            instruction: Lxor,
             final_stack: [Long(0xf3ff)],
         );
     }
 
     #[test]
     fn iinc() {
-        test_command!(
+        test_instruction!(
             start_locals: {1 => 0x0a},
-            command: Iinc; [0x01, 0x06],
+            instruction: Iinc; [0x01, 0x06],
             final_locals: {1 => 0x10},
         );
     }
 
     #[test]
     fn dcmpg_lesser() {
-        test_command!(
+        test_instruction!(
             start_stack: [Double(100.0), Double(-10.0)],
-            command: Dcmpg,
+            instruction: Dcmpg,
             final_stack: [Int(-1)],
         );
     }
 
     #[test]
     fn dcmpl_lesser() {
-        test_command!(
+        test_instruction!(
             start_stack: [Double(100.0), Double(-10.0)],
-            command: Dcmpl,
+            instruction: Dcmpl,
             final_stack: [Int(-1)],
         );
     }
 
     #[test]
     fn dcmpg_equal() {
-        test_command!(
+        test_instruction!(
             start_stack: [Double(10.0), Double(10.0)],
-            command: Dcmpg,
+            instruction: Dcmpg,
             final_stack: [Int(0)],
         );
     }
 
     #[test]
     fn dcmpl_equal() {
-        test_command!(
+        test_instruction!(
             start_stack: [Double(10.0), Double(10.0)],
-            command: Dcmpl,
+            instruction: Dcmpl,
             final_stack: [Int(0)],
         );
     }
 
     #[test]
     fn dcmpg_greater() {
-        test_command!(
+        test_instruction!(
             start_stack: [Double(10.0), Double(100.0)],
-            command: Dcmpg,
+            instruction: Dcmpg,
             final_stack: [Int(1)],
         );
     }
 
     #[test]
     fn dcmpl_greater() {
-        test_command!(
+        test_instruction!(
             start_stack: [Double(10.0), Double(100.0)],
-            command: Dcmpl,
+            instruction: Dcmpl,
             final_stack: [Int(1)],
         );
     }
 
     #[test]
     fn fcmpg_lesser() {
-        test_command!(
+        test_instruction!(
             start_stack: [Float(100.0), Float(-10.0)],
-            command: Fcmpg,
+            instruction: Fcmpg,
             final_stack: [Int(-1)],
         );
     }
 
     #[test]
     fn fcmpl_lesser() {
-        test_command!(
+        test_instruction!(
             start_stack: [Float(100.0), Float(-10.0)],
-            command: Fcmpl,
+            instruction: Fcmpl,
             final_stack: [Int(-1)],
         );
     }
 
     #[test]
     fn fcmpg_equal() {
-        test_command!(
+        test_instruction!(
             start_stack: [Float(10.0), Float(10.0)],
-            command: Fcmpg,
+            instruction: Fcmpg,
             final_stack: [Int(0)],
         );
     }
 
     #[test]
     fn fcmpl_equal() {
-        test_command!(
+        test_instruction!(
             start_stack: [Float(10.0), Float(10.0)],
-            command: Fcmpl,
+            instruction: Fcmpl,
             final_stack: [Int(0)],
         );
     }
 
     #[test]
     fn fcmpg_greater() {
-        test_command!(
+        test_instruction!(
             start_stack: [Float(10.0), Float(100.0)],
-            command: Fcmpg,
+            instruction: Fcmpg,
             final_stack: [Int(1)],
         );
     }
 
     #[test]
     fn fcmpl_greater() {
-        test_command!(
+        test_instruction!(
             start_stack: [Float(10.0), Float(100.0)],
-            command: Fcmpl,
+            instruction: Fcmpl,
             final_stack: [Int(1)],
         );
     }
 
     #[test]
     fn lcmp_lesser() {
-        test_command!(
+        test_instruction!(
             start_stack: [Long(10), Long(100)],
-            command: Lcmp,
+            instruction: Lcmp,
             final_stack: [Int(1)],
         );
     }
 
     #[test]
     fn lcmp_equal() {
-        test_command!(
+        test_instruction!(
             start_stack: [Long(50), Long(50)],
-            command: Lcmp,
+            instruction: Lcmp,
             final_stack: [Int(0)],
         );
     }
 
     #[test]
     fn lcmp_greater() {
-        test_command!(
+        test_instruction!(
             start_stack: [Long(100), Long(10)],
-            command: Lcmp,
+            instruction: Lcmp,
             final_stack: [Int(-1)],
         );
     }

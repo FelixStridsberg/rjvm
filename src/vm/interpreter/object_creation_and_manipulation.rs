@@ -52,10 +52,10 @@ mod test {
     #[test]
     fn newarray() {
         let mut heap = Heap::default();
-        test_command!(
+        test_instruction!(
             heap: heap,
             start_stack: [Int(10)],
-            command: NewArray; [0x0a],
+            instruction: NewArray; [0x0a],
             final_stack: [Reference(0)],
         );
 
@@ -68,10 +68,10 @@ mod test {
         let mut heap = Heap::default();
         heap.allocate_int_array(10);
 
-        test_command!(
+        test_instruction!(
             heap: heap,
             start_stack: [Reference(0), Int(1), Int(2)],
-            command: Iastore; [],
+            instruction: Iastore; [],
             final_stack: [],
         );
 
@@ -89,10 +89,10 @@ mod test {
             array[4] = 10;
         }
 
-        test_command!(
+        test_instruction!(
             heap: heap,
             start_stack: [Reference(0), Int(4)],
-            command: Iaload; [],
+            instruction: Iaload; [],
             final_stack: [Int(10)],
         );
     }

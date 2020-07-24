@@ -1,6 +1,6 @@
 // TODO clean up macro
 #[macro_export]
-macro_rules! test_command {
+macro_rules! test_instruction {
         (
             $(heap: $heap:expr,)?
             $(constants: [$($constant:expr),*],)?
@@ -8,19 +8,18 @@ macro_rules! test_command {
             $(start_stack: [$($stack:expr),*],)?
             $(start_locals: {$($local_idx:expr => $local_value:expr),*},)?
             $(start_locals_long: {$($local_l_idx:expr => $local_l_value:expr),*},)?
-            command: $command:expr $(;[$($operands:expr),*])?,
+            instruction: $instruction:expr $(;[$($operands:expr),*])?,
             $(final_pc: $final_pc:expr,)?
             $(final_stack: [$($expect_stack:expr),*],)?
             $(final_locals: {$($expect_local_idx:expr => $expected_local:expr),*},)?
             $(final_locals_long: {$($expect_local_l_idx:expr => $expected_local_l:expr),*},)?
         ) => {{
-            // Setup
             let mut _constants = crate::class::constant::ConstantPool::new(2);
             $($(_constants.add($constant);)*)?
 
             let _class = crate::class::Class::from_constant_pool(_constants);
-            let code = crate::class::attribute::Code::new(10, 10, vec![], vec![]);
-            let _method = crate::class::MethodInfo::from_code(code);
+            let _code = crate::class::attribute::Code::new(10, 10, vec![], vec![]);
+            let _method = crate::class::MethodInfo::from_code(_code);
             let mut frame = crate::vm::Frame::new(&_class, &_method);
 
             $(frame.pc = $start_pc;)?
@@ -32,14 +31,12 @@ macro_rules! test_command {
             // Execute
             let mut _heap = crate::vm::heap::Heap::default();
             let _heap_ref = &mut _heap;
-            $(
-                let _heap_ref = &mut $heap;
-            )?
+            $(let _heap_ref = &mut $heap;)?
 
             crate::vm::interpreter::interpret_instruction(
                 &mut frame,
                 _heap_ref,
-                &crate::class::code::Instruction::new($command, vec![$($($operands),*)?])
+                &crate::class::code::Instruction::new($instruction, vec![$($($operands),*)?])
             ).expect("Interpretation failed.");
 
             // Assert

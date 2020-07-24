@@ -125,144 +125,144 @@ mod test {
 
     #[test]
     fn pop() {
-        test_command!(
+        test_instruction!(
             start_stack: [Int(32)],
-            command: Pop,
+            instruction: Pop,
             final_stack: [],
         );
     }
 
     #[test]
     fn pop2() {
-        test_command!(
+        test_instruction!(
             start_stack: [Int(32), Int(32)],
-            command: Pop2,
+            instruction: Pop2,
             final_stack: [],
         );
     }
 
     #[test]
     fn pop2_long() {
-        test_command!(
+        test_instruction!(
             start_stack: [Double(32.0)],
-            command: Pop2,
+            instruction: Pop2,
             final_stack: [],
         );
     }
 
     #[test]
     fn dup() {
-        test_command!(
+        test_instruction!(
             start_stack: [Int(21)],
-            command: Dup,
+            instruction: Dup,
             final_stack: [Int(21), Int(21)],
         );
     }
 
     #[test]
     fn dup2() {
-        test_command!(
+        test_instruction!(
             start_stack: [Long(21)],
-            command: Dup2,
+            instruction: Dup2,
             final_stack: [Long(21), Long(21)],
         );
     }
 
     #[test]
     fn dup2_short() {
-        test_command!(
+        test_instruction!(
             start_stack: [Int(2), Int(1)],
-            command: Dup2,
+            instruction: Dup2,
             final_stack: [Int(2), Int(1), Int(2), Int(1)],
         );
     }
 
     #[test]
     fn dup_x1() {
-        test_command!(
+        test_instruction!(
             start_stack: [Int(2), Int(1)],
-            command: DupX1,
+            instruction: DupX1,
             final_stack: [Int(1), Int(2), Int(1)],
         );
     }
 
     #[test]
     fn dup2_x1() {
-        test_command!(
+        test_instruction!(
             start_stack: [Int(3), Int(2), Int(1)],
-            command: Dup2X1,
+            instruction: Dup2X1,
             final_stack: [Int(2), Int(1), Int(3), Int(2), Int(1)],
         );
     }
 
     #[test]
     fn dup2_x1_long() {
-        test_command!(
+        test_instruction!(
             start_stack: [Long(2), Long(1)],
-            command: Dup2X1,
+            instruction: Dup2X1,
             final_stack: [Long(1), Long(2), Long(1)],
         );
     }
 
     #[test]
     fn dup_x2() {
-        test_command!(
+        test_instruction!(
             start_stack: [Int(3), Int(2), Int(1)],
-            command: DupX2,
+            instruction: DupX2,
             final_stack: [Int(1), Int(3), Int(2), Int(1)],
         );
     }
 
     #[test]
     fn dup_x2_long() {
-        test_command!(
+        test_instruction!(
             start_stack: [Long(2), Long(1)],
-            command: DupX2,
+            instruction: DupX2,
             final_stack: [Long(1), Long(2), Long(1)],
         );
     }
 
     #[test]
     fn dup2_x2_short_short() {
-        test_command!(
+        test_instruction!(
             start_stack: [Int(4), Int(3), Int(2), Int(1)],
-            command: Dup2X2,
+            instruction: Dup2X2,
             final_stack: [Int(2), Int(1), Int(4), Int(3), Int(2), Int(1)],
         );
     }
 
     #[test]
     fn dup2_x2_short_long() {
-        test_command!(
+        test_instruction!(
             start_stack: [Int(3), Int(2), Long(1)],
-            command: Dup2X2,
+            instruction: Dup2X2,
             final_stack: [Long(1), Int(3), Int(2), Long(1)],
         );
     }
 
     #[test]
     fn dup2_x2_long_short() {
-        test_command!(
+        test_instruction!(
             start_stack: [Long(3), Int(2), Int(1)],
-            command: Dup2X2,
+            instruction: Dup2X2,
             final_stack: [Int(2), Int(1), Long(3), Int(2), Int(1)],
         );
     }
 
     #[test]
     fn dup2_x2_long_long() {
-        test_command!(
+        test_instruction!(
             start_stack: [Long(2), Long(1)],
-            command: Dup2X2,
+            instruction: Dup2X2,
             final_stack: [Long(1), Long(2), Long(1)],
         );
     }
 
     #[test]
     fn swap() {
-        test_command!(
+        test_instruction!(
             start_stack: [Long(2), Long(1)],
-            command: Swap,
+            instruction: Swap,
             final_stack: [Long(1), Long(2)],
         );
     }

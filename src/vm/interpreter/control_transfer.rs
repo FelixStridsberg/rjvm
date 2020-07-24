@@ -184,327 +184,327 @@ mod test {
 
     #[test]
     fn ifeq_success() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Int(0)],
-            command: IfEq; [0x00, 0x05],
+            instruction: IfEq; [0x00, 0x05],
             final_pc: 9,
         );
     }
 
     #[test]
     fn ifeq_fail() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Int(1)],
-            command: IfEq; [0x00, 0x05],
+            instruction: IfEq; [0x00, 0x05],
             final_pc: 7,
         );
     }
 
     #[test]
     fn ifne_success() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Int(1)],
-            command: IfNe; [0x00, 0x05],
+            instruction: IfNe; [0x00, 0x05],
             final_pc: 9,
         );
     }
 
     #[test]
     fn ifne_fail() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Int(0)],
-            command: IfNe; [0x00, 0x05],
+            instruction: IfNe; [0x00, 0x05],
             final_pc: 7,
         );
     }
 
     #[test]
     fn iflt_success() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Int(-1)],
-            command: IfLt; [0x00, 0x05],
+            instruction: IfLt; [0x00, 0x05],
             final_pc: 9,
         );
     }
 
     #[test]
     fn iflt_fail() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Int(0)],
-            command: IfLt; [0x00, 0x05],
+            instruction: IfLt; [0x00, 0x05],
             final_pc: 7,
         );
     }
 
     #[test]
     fn ifle_success() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Int(0)],
-            command: IfLe; [0x00, 0x05],
+            instruction: IfLe; [0x00, 0x05],
             final_pc: 9,
         );
     }
 
     #[test]
     fn ifle_fail() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Int(1)],
-            command: IfLe; [0x00, 0x05],
+            instruction: IfLe; [0x00, 0x05],
             final_pc: 7,
         );
     }
 
     #[test]
     fn ifgt_success() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Int(1)],
-            command: IfGt; [0x00, 0x05],
+            instruction: IfGt; [0x00, 0x05],
             final_pc: 9,
         );
     }
 
     #[test]
     fn ifgt_fail() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Int(0)],
-            command: IfGt; [0x00, 0x05],
+            instruction: IfGt; [0x00, 0x05],
             final_pc: 7,
         );
     }
 
     #[test]
     fn ifge_success() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Int(0)],
-            command: IfGe; [0x00, 0x05],
+            instruction: IfGe; [0x00, 0x05],
             final_pc: 9,
         );
     }
 
     #[test]
     fn ifge_fail() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Int(-1)],
-            command: IfGt; [0x00, 0x05],
+            instruction: IfGt; [0x00, 0x05],
             final_pc: 7,
         );
     }
 
     #[test]
     fn ifnull_success() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Null],
-            command: IfNull; [0x00, 0x05],
+            instruction: IfNull; [0x00, 0x05],
             final_pc: 9,
         );
     }
 
     #[test]
     fn ifnull_fail() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Reference(10)],
-            command: IfNull; [0x00, 0x05],
+            instruction: IfNull; [0x00, 0x05],
             final_pc: 7,
         );
     }
 
     #[test]
     fn ifnonnull_success() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Reference(10)],
-            command: IfNonNull; [0x00, 0x05],
+            instruction: IfNonNull; [0x00, 0x05],
             final_pc: 9,
         );
     }
 
     #[test]
     fn ifnonnull_fail() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Null],
-            command: IfNonNull; [0x00, 0x05],
+            instruction: IfNonNull; [0x00, 0x05],
             final_pc: 7,
         );
     }
 
     #[test]
     fn ificmpeq_success() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Int(1), Int(1)],
-            command: IfIcmpEq; [0x00, 0x05],
+            instruction: IfIcmpEq; [0x00, 0x05],
             final_pc: 9,
         );
     }
 
     #[test]
     fn ificmpeq_fail() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Int(-1), Int(0)],
-            command: IfIcmpEq; [0x00, 0x05],
+            instruction: IfIcmpEq; [0x00, 0x05],
             final_pc: 7,
         );
     }
 
     #[test]
     fn ificmpne_success() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Int(0), Int(1)],
-            command: IfIcmpNe; [0x00, 0x05],
+            instruction: IfIcmpNe; [0x00, 0x05],
             final_pc: 9,
         );
     }
 
     #[test]
     fn ificmpne_fail() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Int(1), Int(1)],
-            command: IfIcmpNe; [0x00, 0x05],
+            instruction: IfIcmpNe; [0x00, 0x05],
             final_pc: 7,
         );
     }
 
     #[test]
     fn ificmplt_success() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Int(1), Int(0)],
-            command: IfIcmpLt; [0x00, 0x05],
+            instruction: IfIcmpLt; [0x00, 0x05],
             final_pc: 9,
         );
     }
 
     #[test]
     fn ificmplt_fail() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Int(1), Int(1)],
-            command: IfIcmpLt; [0x00, 0x05],
+            instruction: IfIcmpLt; [0x00, 0x05],
             final_pc: 7,
         );
     }
 
     #[test]
     fn ificmple_success() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Int(1), Int(1)],
-            command: IfIcmpLe; [0x00, 0x05],
+            instruction: IfIcmpLe; [0x00, 0x05],
             final_pc: 9,
         );
     }
 
     #[test]
     fn ificmple_fail() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Int(0), Int(1)],
-            command: IfIcmpLe; [0x00, 0x05],
+            instruction: IfIcmpLe; [0x00, 0x05],
             final_pc: 7,
         );
     }
 
     #[test]
     fn ificmpgt_success() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Int(1), Int(2)],
-            command: IfIcmpGt; [0x00, 0x05],
+            instruction: IfIcmpGt; [0x00, 0x05],
             final_pc: 9,
         );
     }
 
     #[test]
     fn ificmpgt_fail() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Int(1), Int(1)],
-            command: IfIcmpGt; [0x00, 0x05],
+            instruction: IfIcmpGt; [0x00, 0x05],
             final_pc: 7,
         );
     }
 
     #[test]
     fn ificmpge_success() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Int(1), Int(1)],
-            command: IfIcmpGe; [0x00, 0x05],
+            instruction: IfIcmpGe; [0x00, 0x05],
             final_pc: 9,
         );
     }
 
     #[test]
     fn ificmpge_fail() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Int(2), Int(1)],
-            command: IfIcmpGe; [0x00, 0x05],
+            instruction: IfIcmpGe; [0x00, 0x05],
             final_pc: 7,
         );
     }
 
     #[test]
     fn ifacmpeq_success() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Reference(1), Reference(1)],
-            command: IfAcmpEq; [0x00, 0x05],
+            instruction: IfAcmpEq; [0x00, 0x05],
             final_pc: 9,
         );
     }
 
     #[test]
     fn ifacmpeq_fail() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_stack: [Reference(10), Reference(0)],
-            command: IfAcmpEq; [0x00, 0x05],
+            instruction: IfAcmpEq; [0x00, 0x05],
             final_pc: 7,
         );
     }
 
     #[test]
     fn goto() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
-            command: Goto; [0x00, 0x05],
+            instruction: Goto; [0x00, 0x05],
             final_pc: 9,
         );
     }
 
     #[test]
     fn goto_w() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
-            command: GotoW; [0x00, 0x00, 0x00, 0x05],
+            instruction: GotoW; [0x00, 0x00, 0x00, 0x05],
             final_pc: 9,
         );
     }
 
     #[test]
     fn jsr() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
-            command: Jsr; [0x00, 0x05],
+            instruction: Jsr; [0x00, 0x05],
             final_pc: 9,
             final_stack: [ReturnAddress(7)],
         );
@@ -512,9 +512,9 @@ mod test {
 
     #[test]
     fn jsr_w() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
-            command: JsrW; [0x00, 0x00, 0x00, 0x07],
+            instruction: JsrW; [0x00, 0x00, 0x00, 0x07],
             final_pc: 11,
             final_stack: [ReturnAddress(9)],
         );
@@ -522,10 +522,10 @@ mod test {
 
     #[test]
     fn ret() {
-        test_command!(
+        test_instruction!(
             start_pc: 4,
             start_locals: {4 => 96},
-            command: Ret; [0x04],
+            instruction: Ret; [0x04],
             final_pc: 100,
         );
     }
