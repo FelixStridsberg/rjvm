@@ -1,7 +1,8 @@
 #[macro_use]
 extern crate bitflags;
 
-pub mod class;
+#[macro_use]
 pub mod error;
+pub mod class;
 pub mod io;
 pub mod vm;

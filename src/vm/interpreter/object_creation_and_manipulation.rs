@@ -1,16 +1,18 @@
+use crate::error::Result;
 use crate::vm::data_type::Value::{Int, Reference};
 use crate::vm::data_type::{IntType, ReferenceType};
 use crate::vm::frame::Frame;
 use crate::vm::heap::Heap;
 
-pub fn new_array(frame: &mut Frame, heap: &mut Heap, operands: &[u8]) {
+pub fn new_array(frame: &mut Frame, heap: &mut Heap, operands: &[u8]) -> Result<()> {
     let len = frame.pop_operand().expect_int();
     let reference = match operands[0] {
         10 => heap.allocate_int_array(len),
-        a => panic!("Unknown array type {}.", a),
+        a => runtime_error!("Unknown array type {}.", a),
     };
 
     frame.push_operand(Reference(reference as ReferenceType));
+    Ok(())
 }
 
 pub fn new_object(frame: &mut Frame, heap: &mut Heap, operands: &[u8]) {

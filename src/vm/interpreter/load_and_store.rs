@@ -2,7 +2,7 @@
 //! https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.11.2
 
 use crate::class::constant::Constant;
-use crate::error::{Error, Result};
+use crate::error::Result;
 use crate::vm::data_type::Value::*;
 use crate::vm::data_type::{DoubleType, FloatType, IntType, LongType, ReferenceType};
 use crate::vm::frame::Frame;
@@ -60,89 +60,91 @@ pub fn load_reference_n(frame: &mut Frame, index: u16) {
     frame.push_operand(Reference(int as ReferenceType));
 }
 
-pub fn store_int(frame: &mut Frame, operands: &[u8]) {
+pub fn store_int(frame: &mut Frame, operands: &[u8]) -> Result<()> {
     let index = operands[0] as u16;
-    store_int_n(frame, index);
+    store_int_n(frame, index)
 }
 
-pub fn store_int_n(frame: &mut Frame, index: u16) {
+pub fn store_int_n(frame: &mut Frame, index: u16) -> Result<()> {
     let operand = frame.pop_operand();
     if let Int(value) = operand {
         frame.set_local(index, value as u32);
+        Ok(())
     } else {
-        panic!(
+        runtime_error!(
             "istore_<n> expected an int value on top of the stack. Got {:?}",
             operand
         );
     }
 }
 
-pub fn store_long(frame: &mut Frame, operands: &[u8]) {
+pub fn store_long(frame: &mut Frame, operands: &[u8]) -> Result<()> {
     let index = operands[0] as u16;
-    store_long_n(frame, index);
+    store_long_n(frame, index)
 }
 
-pub fn store_long_n(frame: &mut Frame, index: u16) {
+pub fn store_long_n(frame: &mut Frame, index: u16) -> Result<()> {
     let operand = frame.pop_operand();
     if let Long(value) = operand {
         frame.set_local_long(index, value as u64);
+        Ok(())
     } else {
-        panic!(
+        runtime_error!(
             "lstore_<n> expected a long value on top of the stack. Got {:?}",
             operand
         );
     }
 }
 
-pub fn store_float(frame: &mut Frame, operands: &[u8]) {
+pub fn store_float(frame: &mut Frame, operands: &[u8]) -> Result<()> {
     let index = operands[0] as u16;
-    store_float_n(frame, index);
+    store_float_n(frame, index)
 }
 
-pub fn store_float_n(frame: &mut Frame, index: u16) {
+pub fn store_float_n(frame: &mut Frame, index: u16) -> Result<()> {
     let operand = frame.pop_operand();
     if let Float(value) = operand {
         frame.set_local(index, value.to_bits());
+        Ok(())
     } else {
-        panic!(
+        runtime_error!(
             "fstore_<n> expected an int value on top of the stack. Got {:?}",
             operand
         );
     }
 }
 
-pub fn store_double(frame: &mut Frame, operands: &[u8]) {
+pub fn store_double(frame: &mut Frame, operands: &[u8]) -> Result<()> {
     let index = operands[0] as u16;
-    store_double_n(frame, index);
+    store_double_n(frame, index)
 }
 
-pub fn store_double_n(frame: &mut Frame, index: u16) {
+pub fn store_double_n(frame: &mut Frame, index: u16) -> Result<()> {
     let operand = frame.pop_operand();
     if let Double(value) = operand {
         frame.set_local_long(index, value.to_bits());
+        Ok(())
     } else {
-        panic!(
+        runtime_error!(
             "fstore_<n> expected an int value on top of the stack. Got {:?}",
             operand
         );
     }
 }
 
-pub fn store_reference(frame: &mut Frame, operands: &[u8]) {
+pub fn store_reference(frame: &mut Frame, operands: &[u8]) -> Result<()> {
     let index = operands[0] as u16;
-    store_reference_n(frame, index);
+    store_reference_n(frame, index)
 }
 
 pub fn store_reference_n(frame: &mut Frame, index: u16) -> Result<()> {
     let value = match frame.pop_operand() {
         Reference(r) => r,
         ReturnAddress(r) => r,
-        operand => {
-            return Err(Error::runtime(format!(
-                "astore_<n> expected an int value on top of the stack. Got {:?}",
-                operand
-            )));
-        }
+        operand => runtime_error!(
+            "astore_<n> expected an int value on top of the stack. Got {:?}",
+            operand
+        ),
     };
     frame.set_local(index, value as u32);
     Ok(())
@@ -158,27 +160,28 @@ pub fn push_short(frame: &mut Frame, operands: &[u8]) {
     frame.push_operand(Short((b1 << 8) | b2));
 }
 
-pub fn push_constant(frame: &mut Frame, operands: &[u8]) {
+pub fn push_constant(frame: &mut Frame, operands: &[u8]) -> Result<()> {
     let index = operands[0] as u16;
-    push_constant_index(frame, index);
+    push_constant_index(frame, index)
 }
 
-pub fn push_constant_wide(frame: &mut Frame, operands: &[u8]) {
+pub fn push_constant_wide(frame: &mut Frame, operands: &[u8]) -> Result<()> {
     let index_b1 = operands[0] as u16;
     let index_b2 = operands[1] as u16;
-    push_constant_index(frame, (index_b1 << 2) | index_b2);
+    push_constant_index(frame, (index_b1 << 2) | index_b2)
 }
 
-fn push_constant_index(frame: &mut Frame, index: u16) {
+fn push_constant_index(frame: &mut Frame, index: u16) -> Result<()> {
     match frame.class.constants.get(index) {
         Constant::Integer(i) => frame.push_operand(Int(*i)),
         Constant::Float(f) => frame.push_operand(Float(*f)),
         // TODO reference and reference resolution
-        constant => panic!("ldc not implemented for constant {:?}", constant),
+        constant => runtime_error!("ldc not implemented for constant {:?}", constant),
     }
+    Ok(())
 }
 
-pub fn push_constant_long(frame: &mut Frame, operands: &[u8]) {
+pub fn push_constant_long(frame: &mut Frame, operands: &[u8]) -> Result<()> {
     let index_b1 = operands[0] as u16;
     let index_b2 = operands[1] as u16;
     let index = (index_b1 << 2) | index_b2;
@@ -187,8 +190,9 @@ pub fn push_constant_long(frame: &mut Frame, operands: &[u8]) {
         Constant::Long(l) => frame.push_operand(Long(*l)),
         Constant::Double(d) => frame.push_operand(Double(*d)),
         // TODO reference and reference resolution
-        constant => panic!("ldc2w not implemented for constant {:?}", constant),
+        constant => runtime_error!("ldc2w not implemented for constant {:?}", constant),
     }
+    Ok(())
 }
 
 pub fn push_null(_frame: &mut Frame) {

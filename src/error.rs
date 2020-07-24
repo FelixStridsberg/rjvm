@@ -5,6 +5,15 @@ use std::io;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
+/// Convenience macro for returning runtime error.
+/// Works the same way as `panic!` but returns a `Result` with error kind `RuntimeError`.
+#[macro_export]
+macro_rules! runtime_error(
+    ($($fmt:tt)*) => {
+        return Err(crate::error::Error::runtime(format!($($fmt)*)));
+    }
+);
+
 /// Represents errors that may occur when reading or writing osm.
 #[derive(Debug)]
 pub struct Error {
