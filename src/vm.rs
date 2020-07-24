@@ -7,7 +7,7 @@ use crate::vm::frame::Frame;
 use crate::vm::heap::Heap;
 use crate::vm::interpreter::interpret_frame;
 use crate::vm::stack::Stack;
-use crate::vm::Command::{VMInvokeSpecial, VMInvokeStatic, VMReturn};
+use crate::vm::Command::{VMInvokeSpecial, VMInvokeStatic, VMInvokeVirtual, VMReturn};
 use std::collections::HashMap;
 
 #[macro_export]
@@ -30,6 +30,7 @@ enum Command {
     VMReturn(Value),
     VMInvokeStatic(u16),
     VMInvokeSpecial(u16),
+    VMInvokeVirtual(u16),
 }
 
 #[derive(Debug)]
@@ -105,6 +106,10 @@ impl VirtualMachine {
                     stack.push(next_frame);
                 }
                 VMInvokeSpecial(index) => {
+                    let next_frame = self.invoke_special(index, stack.current_frame())?;
+                    stack.push(next_frame);
+                }
+                VMInvokeVirtual(index) => {
                     let next_frame = self.invoke_special(index, stack.current_frame())?;
                     stack.push(next_frame);
                 }

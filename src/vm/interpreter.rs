@@ -22,7 +22,7 @@ use crate::vm::interpreter::load_and_store::*;
 use crate::vm::interpreter::object_creation_and_manipulation::*;
 use crate::vm::interpreter::stack_management::*;
 use crate::vm::Command;
-use crate::vm::Command::{VMInvokeSpecial, VMInvokeStatic, VMReturn};
+use crate::vm::Command::{VMInvokeSpecial, VMInvokeStatic, VMInvokeVirtual, VMReturn};
 
 pub(super) fn interpret_frame(frame: &mut Frame, heap: &mut Heap) -> Result<Command> {
     loop {
@@ -264,6 +264,7 @@ fn interpret_instruction(
 
         Invokespecial => command = Some(VMInvokeSpecial(reference(&instruction.operands))),
         Invokestatic => command = Some(VMInvokeStatic(reference(&instruction.operands))),
+        Invokevirtual => command = Some(VMInvokeVirtual(reference(&instruction.operands))),
 
         // Throwing exceptions:
         // TODO
