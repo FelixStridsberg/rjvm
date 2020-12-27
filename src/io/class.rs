@@ -14,6 +14,7 @@ use std::convert::TryInto;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
+use std::rc::Rc;
 
 const SIGNATURE: &[u8] = &[0xCA, 0xFE, 0xBA, 0xBE];
 
@@ -106,11 +107,11 @@ impl<R: BufRead> ClassReader<R> {
         })
     }
 
-    fn read_methods(&mut self, constants: &ConstantPool) -> Result<Vec<MethodInfo>> {
+    fn read_methods(&mut self, constants: &ConstantPool) -> Result<Vec<Rc<MethodInfo>>> {
         let len = self.reader.read_u2()?;
         let mut fields = Vec::with_capacity(len as usize);
         for _ in 0..len {
-            fields.push(self.read_method(constants)?);
+            fields.push(Rc::new(self.read_method(constants)?));
         }
         Ok(fields)
     }
@@ -347,6 +348,7 @@ mod test {
     };
     use crate::io::class::ClassReader;
     use std::convert::TryInto;
+    use std::rc::Rc;
 
     #[test]
     fn read_signature() {
@@ -501,7 +503,7 @@ mod test {
         let indexes = reader.read_methods(&constants).unwrap();
         assert_eq!(
             indexes,
-            vec![MethodInfo {
+            vec![Rc::new(MethodInfo {
                 access_flags: MethodAccessFlags::ACC_PRIVATE,
                 name: "method_name".to_owned(),
                 descriptor: "()V".try_into().unwrap(),
@@ -509,7 +511,7 @@ mod test {
                     name: "attribute".to_owned(),
                     data: Unknown(vec![0x01, 0x02])
                 }]
-            }]
+            })]
         );
     }
 }

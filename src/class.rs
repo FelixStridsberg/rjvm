@@ -4,6 +4,7 @@ use crate::class::constant::ConstantPool;
 use crate::error::{Error, Result};
 use crate::vm::data_type::MethodDescriptor;
 use std::convert::TryInto;
+use std::rc::Rc;
 
 pub mod attribute;
 pub mod code;
@@ -63,7 +64,7 @@ pub struct Class {
     pub super_class: String,
     pub interfaces: Vec<String>,
     pub fields: Vec<FieldInfo>,
-    pub methods: Vec<MethodInfo>,
+    pub methods: Vec<Rc<MethodInfo>>,
     pub attributes: Vec<Attribute>,
 }
 
@@ -83,22 +84,26 @@ impl Class {
         }
     }
 
-    pub fn resolve_method(&self, name: &str, descriptor: &str) -> Result<&MethodInfo> {
+    pub fn resolve_method(&self, name: &str, descriptor: &str) -> Result<Rc<MethodInfo>> {
         Ok(self
             .methods
             .iter()
             .find(|m| m.name == name)
             .ok_or_else(|| {
                 Error::runtime(format!("Could not find method {}/{}", name, descriptor))
-            })?)
+            })?
+            .clone())
     }
 
-    pub fn find_public_static_method(&self, name: &str) -> Option<&MethodInfo> {
-        self.methods.iter().find(|m| {
-            m.name.ends_with(name)
-                && m.access_flags
-                    .contains(MethodAccessFlags::ACC_PUBLIC | MethodAccessFlags::ACC_STATIC)
-        })
+    pub fn find_public_static_method(&self, name: &str) -> Option<Rc<MethodInfo>> {
+        self.methods
+            .iter()
+            .find(|m| {
+                m.name.ends_with(name)
+                    && m.access_flags
+                        .contains(MethodAccessFlags::ACC_PUBLIC | MethodAccessFlags::ACC_STATIC)
+            })
+            .cloned()
     }
 }
 
@@ -139,10 +144,10 @@ impl MethodInfo {
         None
     }
 
-    pub fn get_code(&self) -> Option<&Code> {
+    pub fn get_code(&self) -> Option<Rc<Code>> {
         if let Some(attribute) = self.get_attribute("Code") {
             match &attribute.data {
-                CodeInfo(c) => Some(c),
+                CodeInfo(c) => Some(Rc::new(c.clone())),
                 _ => None,
             }
         } else {

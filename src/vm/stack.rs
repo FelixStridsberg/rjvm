@@ -3,12 +3,12 @@ use bitflags::_core::fmt::Formatter;
 use std::fmt;
 
 #[derive(Debug)]
-pub struct Stack<'a> {
-    stack: Vec<Frame<'a>>,
+pub struct Stack {
+    stack: Vec<Frame>,
 }
 
-impl<'a> Stack<'a> {
-    pub fn new() -> Stack<'a> {
+impl Stack {
+    pub fn new() -> Stack {
         Stack { stack: Vec::new() }
     }
 
@@ -16,7 +16,7 @@ impl<'a> Stack<'a> {
         self.stack.len() == 1
     }
 
-    pub fn push(&mut self, frame: Frame<'a>) {
+    pub fn push(&mut self, frame: Frame) {
         self.stack.push(frame);
     }
 
@@ -24,14 +24,14 @@ impl<'a> Stack<'a> {
         self.stack.pop().expect("Tried to pop from empty stack.")
     }
 
-    pub fn current_frame(&mut self) -> &mut Frame<'a> {
+    pub fn current_frame(&mut self) -> &mut Frame {
         self.stack
             .last_mut()
             .expect("Tried to get current frame on empty stack.")
     }
 }
 
-impl fmt::Display for Stack<'_> {
+impl fmt::Display for Stack {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         for (i, frame) in self.stack.iter().enumerate() {
             writeln!(f, "#{} {}", i, frame)?

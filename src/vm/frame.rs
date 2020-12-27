@@ -6,20 +6,21 @@ use crate::vm::data_type::{FieldType, Value};
 use core::fmt;
 use std::cmp::{max, min};
 use std::fmt::Formatter;
+use std::rc::Rc;
 
 #[derive(Debug)]
-pub struct Frame<'a> {
+pub struct Frame {
     pub pc: u32,
     pub local_variables: Vec<u32>,
     pub operand_stack: Vec<Value>,
     pub operand_stack_depth: u32,
-    pub class: &'a Class,
-    pub method: &'a MethodInfo,
-    pub code: &'a Code,
+    pub class: Rc<Class>,
+    pub method: Rc<MethodInfo>,
+    pub code: Rc<Code>,
 }
 
-impl Frame<'_> {
-    pub fn new<'a>(class: &'a Class, method: &'a MethodInfo) -> Frame<'a> {
+impl Frame {
+    pub fn new(class: Rc<Class>, method: Rc<MethodInfo>) -> Frame {
         let code = method.get_code().expect("No Code attribute on method.");
 
         Frame {
@@ -107,7 +108,7 @@ impl Frame<'_> {
     }
 }
 
-impl fmt::Display for Frame<'_> {
+impl fmt::Display for Frame {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         writeln!(f, "{}::{}", self.class.this_class, self.method.name)?;
 
@@ -142,13 +143,14 @@ mod test {
     use crate::class::{Class, MethodInfo};
     use crate::vm::data_type::Value;
     use crate::vm::frame::Frame;
+    use std::rc::Rc;
 
     #[test]
     fn pop_bool() {
         let constants = ConstantPool::new(0);
         let class = Class::from_constant_pool(constants);
         let method = MethodInfo::from_code(Code::new(1, 0, vec![], vec![]));
-        let mut frame = Frame::new(&class, &method);
+        let mut frame = Frame::new(Rc::new(class), Rc::new(method));
         frame.push_operand(Value::Boolean(true));
 
         assert_eq!(frame.pop_operand(), Value::Boolean(true));
@@ -159,7 +161,7 @@ mod test {
         let constants = ConstantPool::new(0);
         let class = Class::from_constant_pool(constants);
         let method = MethodInfo::from_code(Code::new(0, 2, vec![], vec![]));
-        let mut frame = Frame::new(&class, &method);
+        let mut frame = Frame::new(Rc::new(class), Rc::new(method));
 
         frame.set_local(1, 13);
         assert_eq!(frame.get_local(0), 0);

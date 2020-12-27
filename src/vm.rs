@@ -11,6 +11,7 @@ use crate::vm::Command::{
     VMGetField, VMInvokeSpecial, VMInvokeStatic, VMInvokeVirtual, VMPutField, VMReturn,
 };
 use std::collections::HashMap;
+use std::rc::Rc;
 
 #[macro_export]
 macro_rules! expect_type (
@@ -41,29 +42,73 @@ enum Command {
 pub struct Object {
     class: String,
     fields: HashMap<String, i32>, // TODO poc with ints only.
-                                  //  TODO fields etc
+                                  // TODO fields etc
 }
 
-pub struct VirtualMachine {
-    class_register: HashMap<String, Class>,
+#[derive(Clone)]
+pub struct ClassRegister {
+    classes: HashMap<String, Rc<Class>>,
+    paths: Vec<String>,
 }
 
-impl VirtualMachine {
-    pub fn register_class(&mut self, filename: &str) -> Result<()> {
-        let class = ClassReader::from_file(filename)?;
-        self.class_register.insert(class.this_class.clone(), class);
-
-        Ok(())
+impl ClassRegister {
+    pub fn new() -> Self {
+        ClassRegister {
+            classes: HashMap::new(),
+            paths: Vec::new(),
+        }
     }
 
-    pub fn run(&mut self, class_name: &str, method_name: &str, args: Vec<Value>) -> Value {
+    pub fn set_paths(&mut self, paths: Vec<&str>) {
+        self.paths = paths.iter().map(|s| String::from(*s)).collect();
+    }
+
+    pub fn register_class(&mut self, filename: &str) -> Result<Rc<Class>> {
+        let class = ClassReader::from_file(filename)?;
+
+        let c = Rc::new(class);
+        let r = c.clone();
+        self.classes = self.classes.clone();
+        self.classes.insert(c.this_class.clone(), c);
+
+        Ok(r)
+    }
+
+    fn resolve(&mut self, class_name: &str) -> Result<Rc<Class>> {
+        if let Some(class) = self.classes.get(class_name).map(|c| c.clone()) {
+            Ok(class)
+        } else {
+            let filename = format!("{}{}.class", self.paths[0], class_name);
+            self.register_class(&filename)
+        }
+    }
+}
+
+pub struct VirtualMachine {}
+
+impl VirtualMachine {
+    pub fn run(
+        &mut self,
+        class_register: ClassRegister,
+        class_name: &str,
+        method_name: &str,
+        args: Vec<Value>,
+    ) -> Value {
         let mut heap = Heap::default();
         let mut stack = Stack::new();
+        let mut class_register = class_register;
 
-        let result = self.execute(&mut heap, &mut stack, class_name, method_name, args);
+        let result = self.execute(
+            &mut heap,
+            &mut stack,
+            &mut class_register,
+            class_name,
+            method_name,
+            args.clone(),
+        );
 
         if let Ok(value) = result {
-            value
+            return value;
         } else {
             println!("Stack:\n{}", stack);
             println!("Heap: {:#?}", heap);
@@ -76,14 +121,16 @@ impl VirtualMachine {
     }
 
     pub fn execute<'a>(
-        &'a mut self,
+        &mut self,
         heap: &mut Heap,
-        stack: &mut Stack<'a>,
+        stack: &mut Stack,
+        class_register: &mut ClassRegister,
         init_class_name: &str,
         init_method_name: &str,
         args: Vec<Value>,
     ) -> Result<Value> {
-        let init_frame = self.prepare_static_method(init_class_name, init_method_name, args);
+        let init_frame =
+            self.prepare_static_method(class_register, init_class_name, init_method_name, args);
         stack.push(init_frame);
 
         loop {
@@ -107,15 +154,18 @@ impl VirtualMachine {
                     }
                 }
                 VMInvokeStatic(index) => {
-                    let next_frame = self.invoke_static(index, stack.current_frame())?;
+                    let next_frame =
+                        self.invoke_static(class_register, index, stack.current_frame())?;
                     stack.push(next_frame);
                 }
                 VMInvokeSpecial(index) => {
-                    let next_frame = self.invoke_special(index, stack.current_frame())?;
+                    let next_frame =
+                        self.invoke_special(class_register, index, stack.current_frame())?;
                     stack.push(next_frame);
                 }
                 VMInvokeVirtual(index) => {
-                    let next_frame = self.invoke_special(index, stack.current_frame())?;
+                    let next_frame =
+                        self.invoke_special(class_register, index, stack.current_frame())?;
                     stack.push(next_frame);
                 }
                 VMPutField(index) => {
@@ -132,7 +182,6 @@ impl VirtualMachine {
         let value = current_frame.pop_operand().expect_int(); // TODO other types than int
         let reference = current_frame.pop_operand().expect_reference();
 
-        println!("Reference {:?}", reference);
         if let HeapObject::Instance(object) = heap.get(reference) {
             let (class_name, field_name, field_type) =
                 current_frame.class.constants.get_field_ref(index).unwrap();
@@ -158,7 +207,6 @@ impl VirtualMachine {
     }
 
     fn get_field(&self, heap: &mut Heap, index: u16, current_frame: &mut Frame) {
-        println!("GET FIELD");
         let reference = current_frame.pop_operand().expect_reference();
         if let HeapObject::Instance(object) = heap.get(reference) {
             let (class_name, field_name, field_type) =
@@ -184,58 +232,61 @@ impl VirtualMachine {
         }
     }
 
-    fn invoke_special(&self, index: u16, current_frame: &mut Frame) -> Result<Frame> {
+    fn invoke_special(
+        &self,
+        class_register: &mut ClassRegister,
+        index: u16,
+        current_frame: &mut Frame,
+    ) -> Result<Frame> {
         let (class_name, method_name, descriptor) =
             current_frame.class.constants.get_method_ref(index)?;
-        let class = self.resolve_class(class_name)?;
+        let class = class_register.resolve(class_name)?;
         let method = class.resolve_method(method_name, descriptor)?;
         let mut args = current_frame.pop_field_types(&method.descriptor.argument_types);
         let object_ref = current_frame.pop_operand().expect_reference();
         args.insert(0, Reference(object_ref));
 
-        let mut frame = Frame::new(&class, &method);
+        let mut frame = Frame::new(class.clone(), method);
         frame.load_arguments(args);
         Ok(frame)
     }
 
-    fn invoke_static(&self, index: u16, current_frame: &mut Frame) -> Result<Frame> {
+    fn invoke_static(
+        &self,
+        class_register: &mut ClassRegister,
+        index: u16,
+        current_frame: &mut Frame,
+    ) -> Result<Frame> {
         let (class_name, method_name, descriptor) =
             current_frame.class.constants.get_method_ref(index)?;
-        let class = self.resolve_class(class_name)?;
+        let class = class_register.resolve(class_name)?;
         let method = class.resolve_method(method_name, descriptor)?;
         let args = current_frame.pop_field_types(&method.descriptor.argument_types);
 
-        let mut frame = Frame::new(&class, &method);
+        let mut frame = Frame::new(class.clone(), method);
         frame.load_arguments(args);
         Ok(frame)
     }
 
     fn prepare_static_method(
         &self,
+        class_register: &mut ClassRegister,
         class_name: &str,
         method_name: &str,
         args: Vec<Value>,
     ) -> Frame {
-        let class = self.class_register.get(class_name).expect("Unknown class");
+        let class = class_register.resolve(class_name).expect("Unknown class");
         let method = class.find_public_static_method(method_name).unwrap();
 
-        let mut frame = Frame::new(&class, &method);
+        let mut frame = Frame::new(class.clone(), method);
         frame.load_arguments(args);
 
         frame
-    }
-
-    fn resolve_class(&self, class_name: &str) -> Result<&Class> {
-        self.class_register
-            .get(class_name)
-            .ok_or_else(|| Error::runtime(format!("Could not find class {}", class_name)))
     }
 }
 
 impl Default for VirtualMachine {
     fn default() -> Self {
-        VirtualMachine {
-            class_register: HashMap::new(),
-        }
+        VirtualMachine {}
     }
 }

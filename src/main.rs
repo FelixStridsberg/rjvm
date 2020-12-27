@@ -1,4 +1,4 @@
-use rjvm::vm::VirtualMachine;
+use rjvm::vm::{ClassRegister, VirtualMachine};
 use std::env;
 
 fn main() {
@@ -10,9 +10,10 @@ fn main() {
     let mut file = class_name.clone();
     file.push_str(".class");
 
-    let mut vm = VirtualMachine::default();
-    vm.register_class(&file).unwrap();
+    let mut class_register = ClassRegister::new();
+    class_register.register_class(&file).unwrap();
 
-    let return_value = vm.run(class_name, method_name, vec![]);
+    let mut vm = VirtualMachine::default();
+    let return_value = vm.run(class_register, class_name, method_name, vec![]);
     println!("Returned {:?}", return_value);
 }

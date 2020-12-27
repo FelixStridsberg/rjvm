@@ -28,7 +28,7 @@ use crate::vm::Command::{
 
 pub(super) fn interpret_frame(frame: &mut Frame, heap: &mut Heap) -> Result<Command> {
     loop {
-        let instructions = &frame.code.instructions[frame.pc as usize];
+        let instructions = &frame.code.clone().instructions[frame.pc as usize];
         if let Some(vm_command) = interpret_instruction(frame, heap, instructions)? {
             return Ok(vm_command);
         }

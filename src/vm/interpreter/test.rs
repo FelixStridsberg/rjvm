@@ -20,7 +20,7 @@ macro_rules! test_instruction {
             let _class = crate::class::Class::from_constant_pool(_constants);
             let _code = crate::class::attribute::Code::new(10, 10, vec![], vec![]);
             let _method = crate::class::MethodInfo::from_code(_code);
-            let mut frame = crate::vm::Frame::new(&_class, &_method);
+            let mut frame = crate::vm::Frame::new(std::rc::Rc::new(_class), std::rc::Rc::new(_method));
 
             $(frame.pc = $start_pc;)?
             $(frame.set_operand_stack(vec![$($stack),*]);)?
