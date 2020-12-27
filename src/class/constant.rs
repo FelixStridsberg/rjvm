@@ -2,6 +2,8 @@ use crate::class::constant::Constant::{
     ClassRef, Double, FieldRef, Long, MethodRef, NameAndType, Utf8, NOOP,
 };
 use crate::error::{Error, ErrorKind, Result};
+use crate::vm::data_type::FieldType;
+use std::convert::TryInto;
 
 type Index = u16;
 
@@ -117,12 +119,15 @@ impl ConstantPool {
         }
     }
 
-    pub fn get_field_ref(&self, index: u16) -> Result<(&str, &str, &str)> {
+    pub fn get_field_ref(&self, index: u16) -> Result<(&str, &str, FieldType)> {
         let entry = self.get(index);
         if let FieldRef(class_index, name_type_index) = entry {
             let class_name = self.get_class_info_name(*class_index)?;
             let (method_name, descriptor_string) = self.get_name_and_type(*name_type_index)?;
-            Ok((class_name, method_name, descriptor_string))
+
+            let field_type: FieldType = descriptor_string.try_into().unwrap();
+
+            Ok((class_name, method_name, field_type))
         } else {
             runtime_error!("Tried to get {:?} as a field reference", entry)
         }

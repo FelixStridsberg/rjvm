@@ -1,6 +1,6 @@
 use crate::error::Result;
 use crate::vm::class_loader::ClassLoader;
-use crate::vm::data_type::Value;
+use crate::vm::data_type::{Value, FieldType};
 use crate::vm::data_type::Value::{Int, Reference};
 use crate::vm::frame::Frame;
 use crate::vm::heap::{Heap, HeapObject};
@@ -40,8 +40,8 @@ enum Command {
 #[derive(Debug)]
 pub struct Object {
     class: String,
-    fields: HashMap<String, i32>, // TODO poc with ints only.
-                                  // TODO fields etc
+    fields: HashMap<String, Value>,
+    // TODO fields etc
 }
 
 pub struct VirtualMachine {}
@@ -139,15 +139,12 @@ impl VirtualMachine {
     }
 
     fn put_field(&self, heap: &mut Heap, index: u16, current_frame: &mut Frame) {
-        let value = current_frame.pop_operand().expect_int(); // TODO other types than int
+        let value = current_frame.pop_operand();
         let reference = current_frame.pop_operand().expect_reference();
 
         if let HeapObject::Instance(object) = heap.get(reference) {
             let (class_name, field_name, field_type) =
                 current_frame.class.constants.get_field_ref(index).unwrap();
-            if field_type != "I" {
-                panic!("TODO Only int fields implemented.");
-            }
 
             if object.class != class_name {
                 panic!(
@@ -171,9 +168,6 @@ impl VirtualMachine {
         if let HeapObject::Instance(object) = heap.get(reference) {
             let (class_name, field_name, field_type) =
                 current_frame.class.constants.get_field_ref(index).unwrap();
-            if field_type != "I" {
-                panic!("TODO Only int fields implemented.");
-            }
 
             if object.class != class_name {
                 panic!(
@@ -182,7 +176,7 @@ impl VirtualMachine {
                 );
             }
 
-            current_frame.push_operand(Int(*object.fields.get(field_name).unwrap()));
+            current_frame.push_operand(object.fields.get(field_name).unwrap().clone());
         } else {
             panic!(
                 "Expected instance in heap at index {:?}, got {:?}.",
