@@ -7,12 +7,12 @@ use rjvm::vm::VirtualMachine;
 
 #[test]
 fn load_and_invoke_simple() -> Result<()> {
-    let mut class_register = ClassLoader::new();
-    class_register.set_paths(vec!["./tests/"]);
+    let mut class_loader = ClassLoader::new();
+    class_loader.set_paths(vec!["./tests/"]);
     let mut vm = VirtualMachine::default();
 
     let return_value = vm.run(
-        class_register,
+        class_loader,
         "test_data/Simple",
         "add",
         vec![Int(1), Int(5)],

@@ -7,13 +7,13 @@ use rjvm::vm::VirtualMachine;
 
 #[test]
 fn invoke_static_simple_no_args() -> Result<()> {
-    let mut class_register = ClassLoader::new();
-    class_register
+    let mut class_loader = ClassLoader::new();
+    class_loader
         .load_class_file("./tests/test_data/Simple.class")
         .unwrap();
     let mut vm = VirtualMachine::default();
 
-    let return_value = vm.run(class_register, "test_data/Simple", "no_args", vec![]);
+    let return_value = vm.run(class_loader, "test_data/Simple", "no_args", vec![]);
     assert_eq!(return_value, Int(1));
 
     Ok(())
@@ -21,14 +21,14 @@ fn invoke_static_simple_no_args() -> Result<()> {
 
 #[test]
 fn invoke_static_simple_add() -> Result<()> {
-    let mut class_register = ClassLoader::new();
-    class_register
+    let mut class_loader = ClassLoader::new();
+    class_loader
         .load_class_file("./tests/test_data/Simple.class")
         .unwrap();
     let mut vm = VirtualMachine::default();
 
     let return_value = vm.run(
-        class_register,
+        class_loader,
         "test_data/Simple",
         "add",
         vec![Int(1), Int(5)],
@@ -40,14 +40,14 @@ fn invoke_static_simple_add() -> Result<()> {
 
 #[test]
 fn invoke_static_simple_add_long() -> Result<()> {
-    let mut class_register = ClassLoader::new();
-    class_register
+    let mut class_loader = ClassLoader::new();
+    class_loader
         .load_class_file("./tests/test_data/Simple.class")
         .unwrap();
     let mut vm = VirtualMachine::default();
 
     let return_value = vm.run(
-        class_register,
+        class_loader,
         "test_data/Simple",
         "add_long",
         vec![Long(1), Long(5)],
@@ -59,14 +59,14 @@ fn invoke_static_simple_add_long() -> Result<()> {
 
 #[test]
 fn invoke_static_nested() -> Result<()> {
-    let mut class_register = ClassLoader::new();
-    class_register
+    let mut class_loader = ClassLoader::new();
+    class_loader
         .load_class_file("./tests/test_data/Simple.class")
         .unwrap();
     let mut vm = VirtualMachine::default();
 
     let return_value = vm.run(
-        class_register,
+        class_loader,
         "test_data/Simple",
         "add_nested",
         vec![Int(1), Int(5)],

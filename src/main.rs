@@ -11,10 +11,10 @@ fn main() {
     let mut file = class_name.clone();
     file.push_str(".class");
 
-    let mut class_register = ClassLoader::new();
-    class_register.load_class_file(&file).unwrap();
+    let mut class_loader = ClassLoader::new();
+    class_loader.load_class_file(&file).unwrap();
 
     let mut vm = VirtualMachine::default();
-    let return_value = vm.run(class_register, class_name, method_name, vec![]);
+    let return_value = vm.run(class_loader, class_name, method_name, vec![]);
     println!("Returned {:?}", return_value);
 }

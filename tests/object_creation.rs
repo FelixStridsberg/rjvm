@@ -7,14 +7,14 @@ use rjvm::vm::VirtualMachine;
 
 #[test]
 fn create_array() -> Result<()> {
-    let mut class_register = ClassLoader::new();
-    class_register
+    let mut class_loader = ClassLoader::new();
+    class_loader
         .load_class_file("./tests/test_data/Array.class")
         .unwrap();
     let mut vm = VirtualMachine::default();
 
     let return_value = vm.run(
-        class_register,
+        class_loader,
         "test_data/Array",
         "create_int_array",
         vec![],
@@ -26,16 +26,16 @@ fn create_array() -> Result<()> {
 
 #[test]
 fn create_object() -> Result<()> {
-    let mut class_register = ClassLoader::new();
-    class_register
+    let mut class_loader = ClassLoader::new();
+    class_loader
         .load_class_file("./tests/jre/java/lang/Object.class")
         .unwrap();
-    class_register
+    class_loader
         .load_class_file("./tests/test_data/Instance.class")
         .unwrap();
 
     let mut vm = VirtualMachine::default();
-    let return_value = vm.run(class_register, "test_data/Instance", "main", vec![]);
+    let return_value = vm.run(class_loader, "test_data/Instance", "main", vec![]);
     assert_eq!(return_value, Int(3));
 
     Ok(())

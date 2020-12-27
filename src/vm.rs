@@ -55,21 +55,21 @@ pub struct VirtualMachine {}
 impl VirtualMachine {
     pub fn run(
         &mut self,
-        class_register: ClassLoader,
+        class_loader: ClassLoader,
         class_name: &str,
         method_name: &str,
         args: Vec<Value>,
     ) -> Value {
         let mut heap = Heap::default();
         let mut stack = Stack::new();
-        let mut class_register = class_register;
+        let mut class_loader = class_loader;
         let mut static_context: StaticContext = HashMap::new();
 
         let result = self.execute(
             &mut static_context,
             &mut heap,
             &mut stack,
-            &mut class_register,
+            &mut class_loader,
             class_name,
             method_name,
             args,
@@ -93,13 +93,13 @@ impl VirtualMachine {
         static_context: &mut StaticContext,
         heap: &mut Heap,
         stack: &mut Stack,
-        class_register: &mut ClassLoader,
+        class_loader: &mut ClassLoader,
         init_class_name: &str,
         init_method_name: &str,
         args: Vec<Value>,
     ) -> Result<Value> {
         self.prepare_static_method(
-            class_register,
+            class_loader,
             init_class_name,
             init_method_name,
             args,
@@ -127,13 +127,13 @@ impl VirtualMachine {
                     }
                 }
                 VMInvokeStatic(index) => {
-                    self.invoke_static(class_register, index, stack)?;
+                    self.invoke_static(class_loader, index, stack)?;
                 }
                 VMInvokeSpecial(index) => {
-                    self.invoke_special(class_register, index, stack)?;
+                    self.invoke_special(class_loader, index, stack)?;
                 }
                 VMInvokeVirtual(index) => {
-                    self.invoke_special(class_register, index, stack)?;
+                    self.invoke_special(class_loader, index, stack)?;
                 }
                 VMPutField(index) => {
                     self.put_field(heap, index, stack);
@@ -145,7 +145,7 @@ impl VirtualMachine {
                     self.put_static(static_context, index, stack);
                 }
                 VMGetStatic(index) => {
-                    self.get_static(class_register, static_context, index, stack);
+                    self.get_static(class_loader, static_context, index, stack);
                 }
             }
         }
@@ -254,7 +254,7 @@ impl VirtualMachine {
 
     fn invoke_special(
         &self,
-        class_register: &mut ClassLoader,
+        class_loader: &mut ClassLoader,
         index: u16,
         stack: &mut Stack,
     ) -> Result<()> {
@@ -263,7 +263,7 @@ impl VirtualMachine {
             .class
             .constants
             .get_method_ref(index)?;
-        let (class, init_frame) = class_register.resolve(class_name)?;
+        let (class, init_frame) = class_loader.resolve(class_name)?;
         let method = class.resolve_method(method_name, descriptor)?;
         let mut args = stack
             .current_frame()
@@ -283,7 +283,7 @@ impl VirtualMachine {
 
     fn invoke_static(
         &self,
-        class_register: &mut ClassLoader,
+        class_loader: &mut ClassLoader,
         index: u16,
         stack: &mut Stack,
     ) -> Result<()> {
@@ -292,7 +292,7 @@ impl VirtualMachine {
             .class
             .constants
             .get_method_ref(index)?;
-        let (class, init_frame) = class_register.resolve(class_name)?;
+        let (class, init_frame) = class_loader.resolve(class_name)?;
         let method = class.resolve_method(method_name, descriptor)?;
         let args = stack
             .current_frame()
@@ -310,13 +310,13 @@ impl VirtualMachine {
 
     fn prepare_static_method(
         &self,
-        class_register: &mut ClassLoader,
+        class_loader: &mut ClassLoader,
         class_name: &str,
         method_name: &str,
         args: Vec<Value>,
         stack: &mut Stack,
     ) {
-        let (class, init_frame) = class_register.resolve(class_name).expect("Unknown class");
+        let (class, init_frame) = class_loader.resolve(class_name).expect("Unknown class");
         let method = class.find_public_static_method(method_name).unwrap();
 
         let mut frame = Frame::new(class, method);

@@ -6,11 +6,11 @@ use rjvm::vm::data_type::Value::{Boolean, Double, Float, Int, Long};
 use rjvm::vm::VirtualMachine;
 
 fn run_method(method_name: &str) -> Value {
-    let mut class_register = ClassLoader::new();
-    class_register.set_paths(vec!["./tests/", "./tests/jre/"]);
+    let mut class_loader = ClassLoader::new();
+    class_loader.set_paths(vec!["./tests/", "./tests/jre/"]);
     let mut vm = VirtualMachine::default();
 
-    vm.run(class_register, "test_data/Fields", method_name, vec![])
+    vm.run(class_loader, "test_data/Fields", method_name, vec![])
 }
 
 /*#[test]
