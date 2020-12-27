@@ -1,5 +1,5 @@
 use crate::class::Class;
-use crate::error::Result;
+use crate::error::{Error, ErrorKind, Result};
 use crate::io::class::ClassReader;
 use crate::vm::data_type::Value;
 use crate::vm::data_type::Value::{Int, Reference};
@@ -11,6 +11,7 @@ use crate::vm::Command::{
     VMGetField, VMInvokeSpecial, VMInvokeStatic, VMInvokeVirtual, VMPutField, VMReturn,
 };
 use std::collections::HashMap;
+use std::path::Path;
 use std::rc::Rc;
 
 #[macro_export]
@@ -74,12 +75,38 @@ impl ClassRegister {
         Ok(r)
     }
 
+    fn find_class_file(&self, class_name: &str) -> Option<String> {
+        let mut filename = class_name.to_string();
+        filename.push_str(".class");
+
+        for path in &self.paths {
+            let mut path = path.to_owned();
+            path.push_str(&filename);
+
+            if Path::new(&path).exists() {
+                return Some(path);
+            }
+        }
+
+        None
+    }
+
     fn resolve(&mut self, class_name: &str) -> Result<Rc<Class>> {
         if let Some(class) = self.classes.get(class_name).map(|c| c.clone()) {
             Ok(class)
         } else {
-            let filename = format!("{}{}.class", self.paths[0], class_name);
-            self.load_class_file(&filename)
+            self.find_class_file(class_name)
+                .map(|filename| self.load_class_file(&filename))
+                .unwrap_or_else(|| {
+                    Err(Error::new(
+                        ErrorKind::RuntimeError,
+                        Some(format!(
+                            "Could not resolve class {} in {}",
+                            class_name,
+                            self.paths.join(", ")
+                        )),
+                    ))
+                })
         }
     }
 }
