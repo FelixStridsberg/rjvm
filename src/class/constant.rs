@@ -53,11 +53,7 @@ impl ConstantPool {
     }
 
     pub fn add(&mut self, constant: Constant) {
-        let double = match constant {
-            Long(_) | Double(_) => true,
-            _ => false,
-        };
-
+        let double = matches!(constant, Long(_) | Double(_));
         self.constants.push(constant);
 
         // Long and doubles takes up two spaces. We have to add a noop to keep the indexes intact

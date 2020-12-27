@@ -1,5 +1,5 @@
 use crate::class::Class;
-use crate::error::{Error, Result};
+use crate::error::Result;
 use crate::io::class::ClassReader;
 use crate::vm::data_type::Value;
 use crate::vm::data_type::Value::{Int, Reference};
@@ -104,11 +104,11 @@ impl VirtualMachine {
             &mut class_register,
             class_name,
             method_name,
-            args.clone(),
+            args,
         );
 
         if let Ok(value) = result {
-            return value;
+            value
         } else {
             println!("Stack:\n{}", stack);
             println!("Heap: {:#?}", heap);
@@ -120,7 +120,7 @@ impl VirtualMachine {
         }
     }
 
-    pub fn execute<'a>(
+    pub fn execute(
         &mut self,
         heap: &mut Heap,
         stack: &mut Stack,
@@ -246,7 +246,7 @@ impl VirtualMachine {
         let object_ref = current_frame.pop_operand().expect_reference();
         args.insert(0, Reference(object_ref));
 
-        let mut frame = Frame::new(class.clone(), method);
+        let mut frame = Frame::new(class, method);
         frame.load_arguments(args);
         Ok(frame)
     }
@@ -263,7 +263,7 @@ impl VirtualMachine {
         let method = class.resolve_method(method_name, descriptor)?;
         let args = current_frame.pop_field_types(&method.descriptor.argument_types);
 
-        let mut frame = Frame::new(class.clone(), method);
+        let mut frame = Frame::new(class, method);
         frame.load_arguments(args);
         Ok(frame)
     }
@@ -278,7 +278,7 @@ impl VirtualMachine {
         let class = class_register.resolve(class_name).expect("Unknown class");
         let method = class.find_public_static_method(method_name).unwrap();
 
-        let mut frame = Frame::new(class.clone(), method);
+        let mut frame = Frame::new(class, method);
         frame.load_arguments(args);
 
         frame

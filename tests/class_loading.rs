@@ -1,7 +1,7 @@
 extern crate rjvm;
 
 use rjvm::error::Result;
-use rjvm::vm::data_type::Value::{Int, Long};
+use rjvm::vm::data_type::Value::Int;
 use rjvm::vm::{ClassRegister, VirtualMachine};
 
 #[test]
