@@ -8,7 +8,7 @@ use rjvm::vm::{ClassRegister, VirtualMachine};
 fn invoke_static_simple_no_args() -> Result<()> {
     let mut class_register = ClassRegister::new();
     class_register
-        .register_class("./tests/test_data/Simple.class")
+        .load_class_file("./tests/test_data/Simple.class")
         .unwrap();
     let mut vm = VirtualMachine::default();
 
@@ -22,7 +22,7 @@ fn invoke_static_simple_no_args() -> Result<()> {
 fn invoke_static_simple_add() -> Result<()> {
     let mut class_register = ClassRegister::new();
     class_register
-        .register_class("./tests/test_data/Simple.class")
+        .load_class_file("./tests/test_data/Simple.class")
         .unwrap();
     let mut vm = VirtualMachine::default();
 
@@ -41,7 +41,7 @@ fn invoke_static_simple_add() -> Result<()> {
 fn invoke_static_simple_add_long() -> Result<()> {
     let mut class_register = ClassRegister::new();
     class_register
-        .register_class("./tests/test_data/Simple.class")
+        .load_class_file("./tests/test_data/Simple.class")
         .unwrap();
     let mut vm = VirtualMachine::default();
 
@@ -60,7 +60,7 @@ fn invoke_static_simple_add_long() -> Result<()> {
 fn invoke_static_nested() -> Result<()> {
     let mut class_register = ClassRegister::new();
     class_register
-        .register_class("./tests/test_data/Simple.class")
+        .load_class_file("./tests/test_data/Simple.class")
         .unwrap();
     let mut vm = VirtualMachine::default();
 

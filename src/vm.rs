@@ -63,7 +63,7 @@ impl ClassRegister {
         self.paths = paths.iter().map(|s| String::from(*s)).collect();
     }
 
-    pub fn register_class(&mut self, filename: &str) -> Result<Rc<Class>> {
+    pub fn load_class_file(&mut self, filename: &str) -> Result<Rc<Class>> {
         let class = ClassReader::from_file(filename)?;
 
         let c = Rc::new(class);
@@ -79,7 +79,7 @@ impl ClassRegister {
             Ok(class)
         } else {
             let filename = format!("{}{}.class", self.paths[0], class_name);
-            self.register_class(&filename)
+            self.load_class_file(&filename)
         }
     }
 }

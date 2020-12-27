@@ -8,7 +8,7 @@ use rjvm::vm::{ClassRegister, VirtualMachine};
 fn create_array() -> Result<()> {
     let mut class_register = ClassRegister::new();
     class_register
-        .register_class("./tests/test_data/Array.class")
+        .load_class_file("./tests/test_data/Array.class")
         .unwrap();
     let mut vm = VirtualMachine::default();
 
@@ -27,10 +27,10 @@ fn create_array() -> Result<()> {
 fn create_object() -> Result<()> {
     let mut class_register = ClassRegister::new();
     class_register
-        .register_class("./tests/jre/java/lang/Object.class")
+        .load_class_file("./tests/jre/java/lang/Object.class")
         .unwrap();
     class_register
-        .register_class("./tests/test_data/Instance.class")
+        .load_class_file("./tests/test_data/Instance.class")
         .unwrap();
 
     let mut vm = VirtualMachine::default();

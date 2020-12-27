@@ -11,7 +11,7 @@ fn main() {
     file.push_str(".class");
 
     let mut class_register = ClassRegister::new();
-    class_register.register_class(&file).unwrap();
+    class_register.load_class_file(&file).unwrap();
 
     let mut vm = VirtualMachine::default();
     let return_value = vm.run(class_register, class_name, method_name, vec![]);
