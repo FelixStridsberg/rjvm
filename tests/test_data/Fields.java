@@ -13,6 +13,10 @@ public class Fields {
     public float t_float = 1.0f;
     public double t_double = 2.0d;
 
+    public static int other() {
+        return Other.static_field;
+    }
+
     public static boolean s_boolean() {
         return Fields.s_boolean;
     }

@@ -175,9 +175,14 @@ impl VirtualMachine {
             .constants
             .get_field_ref(index)
             .unwrap();
-        let (_class, _init_frame) = class_loader.resolve(&field.class_name).unwrap();
+        let (_class, init_frame) = class_loader.resolve(&field.class_name).unwrap();
 
-        // TODO if init_frame we must put it in the stack and revert the current frame "one pc" so it re-executes after init frame is run.
+        // The class we are trying to access is not yet initialized, we must initialize it and try again.
+        if let Some(frame) = init_frame {
+            stack.current_frame().pc -= 3; // Get static is 1 byte and 2 arguments
+            stack.push(frame);
+            return;
+        }
 
         let v = static_context
             .get(&field.class_name)

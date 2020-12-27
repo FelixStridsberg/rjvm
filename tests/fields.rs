@@ -38,6 +38,11 @@ fn test_static_double_field() {
     assert_eq!(run_method("s_double"), Double(400.0));
 }
 
+#[test]
+fn test_static_other() {
+    assert_eq!(run_method("other"), Int(10));
+}
+
 /*
 #[test]
 fn test_boolean_field() {
