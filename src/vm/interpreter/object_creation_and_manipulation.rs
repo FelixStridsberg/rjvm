@@ -15,6 +15,12 @@ pub fn new_array(frame: &mut Frame, heap: &mut Heap, operands: &[u8]) -> Result<
     Ok(())
 }
 
+pub fn array_length(frame: &mut Frame, heap: &Heap) {
+    let reference = frame.pop_operand().expect_reference();
+    let array = heap.get(reference).expect_int_array();
+    frame.push_operand(Int(array.len() as i32))
+}
+
 pub fn new_object(frame: &mut Frame, heap: &mut Heap, operands: &[u8]) {
     let index = ((operands[0] as u16) << 8) | operands[1] as u16;
     let class = frame
@@ -31,7 +37,7 @@ pub fn int_array_store(frame: &mut Frame, heap: &mut Heap) {
     let index: IntType = frame.pop_operand().expect_int();
     let reference = frame.pop_operand().expect_reference();
 
-    let array = heap.get(reference).expect_int_array();
+    let array = heap.get_mut(reference).expect_mut_int_array();
     array[index as usize] = value;
 }
 
@@ -39,7 +45,7 @@ pub fn int_array_load(frame: &mut Frame, heap: &mut Heap) {
     let index: IntType = frame.pop_operand().expect_int();
     let reference = frame.pop_operand().expect_reference();
 
-    let array = heap.get(reference).expect_int_array();
+    let array = heap.get_mut(reference).expect_mut_int_array();
     frame.push_operand(Int(array[index as usize]));
 }
 
@@ -59,7 +65,7 @@ mod test {
             final_stack: [Reference(0)],
         );
 
-        let array = heap.get(0).expect_int_array();
+        let array = heap.get_mut(0).expect_mut_int_array();
         assert_eq!(array.len(), 10);
     }
 
@@ -75,7 +81,7 @@ mod test {
             final_stack: [],
         );
 
-        let array = heap.get(0).expect_int_array();
+        let array = heap.get_mut(0).expect_mut_int_array();
         assert_eq!(array[1], 2);
     }
 
@@ -85,7 +91,7 @@ mod test {
         heap.allocate_int_array(10);
 
         {
-            let array = heap.get(0).expect_int_array();
+            let array = heap.get_mut(0).expect_mut_int_array();
             array[4] = 10;
         }
 

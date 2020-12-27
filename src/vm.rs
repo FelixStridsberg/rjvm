@@ -198,7 +198,7 @@ impl VirtualMachine {
         let value = stack.current_frame().pop_operand();
         let reference = stack.current_frame().pop_operand().expect_reference();
 
-        if let HeapObject::Instance(object) = heap.get(reference) {
+        if let HeapObject::Instance(object) = heap.get_mut(reference) {
             let field = stack
                 .current_frame()
                 .class
@@ -218,14 +218,14 @@ impl VirtualMachine {
             panic!(
                 "Expected instance in heap at index {:?}, got {:?}.",
                 reference,
-                heap.get(reference)
+                heap.get_mut(reference)
             );
         }
     }
 
     fn get_field(&self, heap: &mut Heap, index: u16, stack: &mut Stack) {
         let reference = stack.current_frame().pop_operand().expect_reference();
-        if let HeapObject::Instance(object) = heap.get(reference) {
+        if let HeapObject::Instance(object) = heap.get_mut(reference) {
             let field = stack
                 .current_frame()
                 .class
@@ -247,7 +247,7 @@ impl VirtualMachine {
             panic!(
                 "Expected instance in heap at index {:?}, got {:?}.",
                 reference,
-                heap.get(reference)
+                heap.get_mut(reference)
             );
         }
     }

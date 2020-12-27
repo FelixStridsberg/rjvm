@@ -9,3 +9,8 @@ mod java;
 fn create_array() {
     assert_eq!(java::run_method("test_data/Array", "create_int_array"), Int(3));
 }
+
+#[test]
+fn array_length() {
+    assert_eq!(java::run_method("test_data/Array", "array_length"), Int(100));
+}

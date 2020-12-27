@@ -10,4 +10,11 @@ class Array {
 
         return i[0] + i[1];
     }
+
+    public static int array_length() {
+        int[] f = new int[100];
+        return f.length;
+    }
+
+    // TODO different types of arrays
 }
