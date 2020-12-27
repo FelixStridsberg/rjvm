@@ -1,78 +1,26 @@
 extern crate rjvm;
 
-use rjvm::error::Result;
-use rjvm::vm::class_loader::ClassLoader;
 use rjvm::vm::data_type::Value::{Int, Long};
-use rjvm::vm::VirtualMachine;
+
+#[path="./java_utils.rs"]
+mod java;
 
 #[test]
-fn invoke_static_simple_no_args() -> Result<()> {
-    let mut class_loader = ClassLoader::new();
-    class_loader
-        .load_class_file("./tests/test_data/Simple.class")
-        .unwrap();
-    let mut vm = VirtualMachine::default();
-
-    let return_value = vm.run(class_loader, "test_data/Simple", "no_args", vec![]);
-    assert_eq!(return_value, Int(1));
-
-    Ok(())
+fn invoke_static_simple_no_args() {
+    assert_eq!(java::run_method("test_data/Simple", "no_args"), Int(1));
 }
 
 #[test]
-fn invoke_static_simple_add() -> Result<()> {
-    let mut class_loader = ClassLoader::new();
-    class_loader
-        .load_class_file("./tests/test_data/Simple.class")
-        .unwrap();
-    let mut vm = VirtualMachine::default();
-
-    let return_value = vm.run(
-        class_loader,
-        "test_data/Simple",
-        "add",
-        vec![Int(1), Int(5)],
-    );
-    assert_eq!(return_value, Int(6));
-
-    Ok(())
+fn invoke_static_simple_add() {
+    assert_eq!(java::run_method_args("test_data/Simple", "add", vec![Int(1), Int(5)]), Int(6));
 }
 
 #[test]
-fn invoke_static_simple_add_long() -> Result<()> {
-    let mut class_loader = ClassLoader::new();
-    class_loader
-        .load_class_file("./tests/test_data/Simple.class")
-        .unwrap();
-    let mut vm = VirtualMachine::default();
-
-    let return_value = vm.run(
-        class_loader,
-        "test_data/Simple",
-        "add_long",
-        vec![Long(1), Long(5)],
-    );
-    assert_eq!(return_value, Long(6));
-
-    Ok(())
+fn invoke_static_simple_add_long() {
+    assert_eq!(java::run_method_args("test_data/Simple", "add_long", vec![Long(1), Long(5)]), Long(6));
 }
 
 #[test]
-fn invoke_static_nested() -> Result<()> {
-    let mut class_loader = ClassLoader::new();
-    class_loader
-        .load_class_file("./tests/test_data/Simple.class")
-        .unwrap();
-    let mut vm = VirtualMachine::default();
-
-    let return_value = vm.run(
-        class_loader,
-        "test_data/Simple",
-        "add_nested",
-        vec![Int(1), Int(5)],
-    );
-
-    assert_eq!(return_value, Int(6));
-
-    Ok(())
+fn invoke_static_nested() {
+    assert_eq!(java::run_method_args("test_data/Simple", "add_nested", vec![Int(1), Int(5)]), Int(6));
 }
