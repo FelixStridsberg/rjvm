@@ -54,7 +54,7 @@ bitflags! {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Class {
     pub version: Version,
     pub constants: ConstantPool,
@@ -102,13 +102,13 @@ impl Class {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Version {
     pub minor: u16,
     pub major: u16,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct MethodInfo {
     pub access_flags: MethodAccessFlags,
     pub name: String,
@@ -151,7 +151,7 @@ impl MethodInfo {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct FieldInfo {
     pub access_flags: FieldAccessFlags,
     pub name: String,

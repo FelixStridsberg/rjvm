@@ -1,7 +1,7 @@
 use bitflags::_core::fmt::Formatter;
 use core::fmt;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Instruction {
     pub opcode: Opcode,
     pub operands: Vec<u8>,
@@ -27,7 +27,7 @@ impl fmt::Display for Instruction {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Opcode {
     Aaload,
     Aastore,

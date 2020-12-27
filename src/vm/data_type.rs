@@ -116,7 +116,7 @@ impl Value {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub enum FieldType {
     Byte,
     Char,
@@ -192,7 +192,7 @@ impl<'a> TryFrom<&'a str> for FieldType {
 ///
 /// Reference: https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-4.3.3
 ///
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct MethodDescriptor {
     pub argument_types: Vec<FieldType>,
     pub return_type: Option<FieldType>,

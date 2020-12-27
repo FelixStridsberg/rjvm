@@ -40,7 +40,7 @@ pub enum Constant {
     NOOP,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ConstantPool {
     constants: Vec<Constant>,
 }
