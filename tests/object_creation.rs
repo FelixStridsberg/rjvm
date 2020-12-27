@@ -1,8 +1,8 @@
 extern crate rjvm;
 
-use rjvm::vm::VirtualMachine;
 use rjvm::error::Result;
 use rjvm::vm::data_type::Value::Int;
+use rjvm::vm::VirtualMachine;
 
 #[test]
 fn create_array() -> Result<()> {
@@ -18,8 +18,10 @@ fn create_array() -> Result<()> {
 #[test]
 fn create_object() -> Result<()> {
     let mut vm = VirtualMachine::default();
-    vm.register_class("./tests/jre/java/lang/Object.class").unwrap();
-    vm.register_class("./tests/test_data/Instance.class").unwrap();
+    vm.register_class("./tests/jre/java/lang/Object.class")
+        .unwrap();
+    vm.register_class("./tests/test_data/Instance.class")
+        .unwrap();
 
     let return_value = vm.run("test_data/Instance", "main", vec![]);
     assert_eq!(return_value, Int(3));

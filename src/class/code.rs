@@ -111,7 +111,7 @@ pub enum Opcode {
     Fstore2,
     Fstore3,
     Fsub,
-    Getfield,
+    GetField,
     Getstatic,
     Goto,
     GotoW,

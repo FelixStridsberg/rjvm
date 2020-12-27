@@ -1,6 +1,7 @@
 use crate::vm::data_type::ReferenceType;
 use crate::vm::heap::HeapObject::{Instance, IntArray};
 use crate::vm::Object;
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub enum HeapObject {
@@ -31,6 +32,7 @@ impl Heap {
         let index = self.objects.len() as u32;
         self.objects.push(Instance(Object {
             class: class.to_owned(),
+            fields: HashMap::new(),
         }));
         index
     }

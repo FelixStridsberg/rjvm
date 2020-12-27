@@ -2,12 +2,14 @@ use crate::class::Class;
 use crate::error::{Error, Result};
 use crate::io::class::ClassReader;
 use crate::vm::data_type::Value;
-use crate::vm::data_type::Value::Reference;
+use crate::vm::data_type::Value::{Int, Reference};
 use crate::vm::frame::Frame;
-use crate::vm::heap::Heap;
+use crate::vm::heap::{Heap, HeapObject};
 use crate::vm::interpreter::interpret_frame;
 use crate::vm::stack::Stack;
-use crate::vm::Command::{VMInvokeSpecial, VMInvokeStatic, VMInvokeVirtual, VMReturn};
+use crate::vm::Command::{
+    VMGetField, VMInvokeSpecial, VMInvokeStatic, VMInvokeVirtual, VMPutField, VMReturn,
+};
 use std::collections::HashMap;
 
 #[macro_export]
@@ -31,12 +33,15 @@ enum Command {
     VMInvokeStatic(u16),
     VMInvokeSpecial(u16),
     VMInvokeVirtual(u16),
+    VMPutField(u16),
+    VMGetField(u16),
 }
 
 #[derive(Debug)]
 pub struct Object {
     class: String,
-    //  TODO fields etc
+    fields: HashMap<String, i32>, // TODO poc with ints only.
+                                  //  TODO fields etc
 }
 
 pub struct VirtualMachine {
@@ -113,7 +118,69 @@ impl VirtualMachine {
                     let next_frame = self.invoke_special(index, stack.current_frame())?;
                     stack.push(next_frame);
                 }
+                VMPutField(index) => {
+                    self.put_field(heap, index, stack.current_frame());
+                }
+                VMGetField(index) => {
+                    self.get_field(heap, index, stack.current_frame());
+                }
             }
+        }
+    }
+
+    fn put_field(&self, heap: &mut Heap, index: u16, current_frame: &mut Frame) {
+        let value = current_frame.pop_operand().expect_int(); // TODO other types than int
+        let reference = current_frame.pop_operand().expect_reference();
+
+        println!("Reference {:?}", reference);
+        if let HeapObject::Instance(object) = heap.get(reference) {
+            let (class_name, field_name, field_type) =
+                current_frame.class.constants.get_field_ref(index).unwrap();
+            if field_type != "I" {
+                panic!("TODO Only int fields implemented.");
+            }
+
+            if object.class != class_name {
+                panic!(
+                    "Put field expected class {} found class {}",
+                    object.class, class_name
+                );
+            }
+
+            object.fields.insert(field_name.to_owned(), value);
+        } else {
+            panic!(
+                "Expected instance in heap at index {:?}, got {:?}.",
+                reference,
+                heap.get(reference)
+            );
+        }
+    }
+
+    fn get_field(&self, heap: &mut Heap, index: u16, current_frame: &mut Frame) {
+        println!("GET FIELD");
+        let reference = current_frame.pop_operand().expect_reference();
+        if let HeapObject::Instance(object) = heap.get(reference) {
+            let (class_name, field_name, field_type) =
+                current_frame.class.constants.get_field_ref(index).unwrap();
+            if field_type != "I" {
+                panic!("TODO Only int fields implemented.");
+            }
+
+            if object.class != class_name {
+                panic!(
+                    "Get field expected class {} found class {}",
+                    object.class, class_name
+                );
+            }
+
+            current_frame.push_operand(Int(*object.fields.get(field_name).unwrap()));
+        } else {
+            panic!(
+                "Expected instance in heap at index {:?}, got {:?}.",
+                reference,
+                heap.get(reference)
+            );
         }
     }
 

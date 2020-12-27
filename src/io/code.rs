@@ -120,7 +120,7 @@ impl<'r, R: BufRead> CodeReader<'r, R> {
             0x45 => (Fstore2, 0),
             0x46 => (Fstore3, 0),
             0x66 => (Fsub, 0),
-            0xb4 => (Getfield, 2),
+            0xb4 => (GetField, 2),
             0xb2 => (Getstatic, 2),
             0xa7 => (Goto, 2),
             0xc8 => (GotoW, 4),
