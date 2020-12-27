@@ -23,7 +23,8 @@ use crate::vm::interpreter::object_creation_and_manipulation::*;
 use crate::vm::interpreter::stack_management::*;
 use crate::vm::Command;
 use crate::vm::Command::{
-    VMGetField, VMInvokeSpecial, VMInvokeStatic, VMInvokeVirtual, VMPutField, VMReturn,
+    VMGetField, VMGetStatic, VMInvokeSpecial, VMInvokeStatic, VMInvokeVirtual, VMPutField,
+    VMPutStatic, VMReturn,
 };
 
 pub(super) fn interpret_frame(frame: &mut Frame, heap: &mut Heap) -> Result<Command> {
@@ -216,6 +217,8 @@ fn interpret_instruction(
         Iaload => int_array_load(frame, heap),
         PutField => command = Some(VMPutField(reference(&instruction.operands))),
         GetField => command = Some(VMGetField(reference(&instruction.operands))),
+        PutStatic => command = Some(VMPutStatic(reference(&instruction.operands))),
+        Getstatic => command = Some(VMGetStatic(reference(&instruction.operands))),
 
         // Operand stack management:
         Pop => pop_operand(frame),

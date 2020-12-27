@@ -2,6 +2,7 @@ use crate::class::Class;
 use crate::error::Result;
 use crate::error::{Error, ErrorKind};
 use crate::io::class::ClassReader;
+use crate::vm::frame::Frame;
 use std::collections::HashMap;
 use std::path::Path;
 use std::rc::Rc;
@@ -34,11 +35,12 @@ impl ClassLoader {
         Ok(r)
     }
 
-    pub fn resolve(&mut self, class_name: &str) -> Result<Rc<Class>> {
+    pub fn resolve(&mut self, class_name: &str) -> Result<(Rc<Class>, Option<Frame>)> {
         if let Some(class) = self.classes.get(class_name) {
-            Ok(class.clone())
+            Ok((class.clone(), None))
         } else {
-            self.find_class_file(class_name)
+            let class = self
+                .find_class_file(class_name)
                 .map(|filename| self.load_class_file(&filename))
                 .unwrap_or_else(|| {
                     Err(Error::new(
@@ -49,7 +51,13 @@ impl ClassLoader {
                             self.paths.join(", ")
                         )),
                     ))
-                })
+                })?;
+
+            let init_frame = class
+                .find_static_method("<clinit>")
+                .map(|m| Frame::new(class.clone(), m));
+
+            Ok((class, init_frame))
         }
     }
 

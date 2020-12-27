@@ -163,6 +163,23 @@ impl<'a> TryFrom<&'a str> for FieldType {
     }
 }
 
+#[derive(Debug)]
+pub struct FieldRef {
+    pub class_name: String,
+    pub field_name: String,
+    pub field_type: FieldType,
+}
+
+impl FieldRef {
+    pub fn new(class_name: &str, field_name: &str, field_type: &str) -> Self {
+        FieldRef {
+            class_name: class_name.to_string(),
+            field_name: field_name.to_string(),
+            field_type: field_type.try_into().unwrap(),
+        }
+    }
+}
+
 /// Method descriptors defines a method signature; the argument and the return types.
 ///
 /// Raw JVM method descriptors are strings that looks like this: `(IJ)F`

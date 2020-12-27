@@ -105,6 +105,15 @@ impl Class {
             })
             .cloned()
     }
+
+    pub fn find_static_method(&self, name: &str) -> Option<Rc<MethodInfo>> {
+        self.methods
+            .iter()
+            .find(|m| {
+                m.name.ends_with(name) && m.access_flags.contains(MethodAccessFlags::ACC_STATIC)
+            })
+            .cloned()
+    }
 }
 
 #[derive(Debug, Eq, PartialEq, Clone)]
