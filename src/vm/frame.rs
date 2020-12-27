@@ -112,7 +112,7 @@ impl fmt::Display for Frame {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         writeln!(f, "{}::{}", self.class.this_class, self.method.name)?;
 
-        let code_start = max(self.pc as usize - 5, 0);
+        let code_start = max(self.pc as usize, 5) - 5;
         let code_end = min(self.pc as usize + 5, self.code.instructions.len());
 
         for i in code_start..code_end {
