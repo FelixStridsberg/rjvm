@@ -1,12 +1,13 @@
 extern crate rjvm;
 
 use rjvm::error::Result;
+use rjvm::vm::class_loader::ClassLoader;
 use rjvm::vm::data_type::Value::Int;
-use rjvm::vm::{ClassRegister, VirtualMachine};
+use rjvm::vm::VirtualMachine;
 
 #[test]
 fn create_array() -> Result<()> {
-    let mut class_register = ClassRegister::new();
+    let mut class_register = ClassLoader::new();
     class_register
         .load_class_file("./tests/test_data/Array.class")
         .unwrap();
@@ -25,7 +26,7 @@ fn create_array() -> Result<()> {
 
 #[test]
 fn create_object() -> Result<()> {
-    let mut class_register = ClassRegister::new();
+    let mut class_register = ClassLoader::new();
     class_register
         .load_class_file("./tests/jre/java/lang/Object.class")
         .unwrap();

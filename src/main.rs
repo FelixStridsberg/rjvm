@@ -1,4 +1,5 @@
-use rjvm::vm::{ClassRegister, VirtualMachine};
+use rjvm::vm::class_loader::ClassLoader;
+use rjvm::vm::VirtualMachine;
 use std::env;
 
 fn main() {
@@ -10,7 +11,7 @@ fn main() {
     let mut file = class_name.clone();
     file.push_str(".class");
 
-    let mut class_register = ClassRegister::new();
+    let mut class_register = ClassLoader::new();
     class_register.load_class_file(&file).unwrap();
 
     let mut vm = VirtualMachine::default();

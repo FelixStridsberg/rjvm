@@ -1,6 +1,5 @@
-use crate::class::Class;
-use crate::error::{Error, ErrorKind, Result};
-use crate::io::class::ClassReader;
+use crate::error::Result;
+use crate::vm::class_loader::ClassLoader;
 use crate::vm::data_type::Value;
 use crate::vm::data_type::Value::{Int, Reference};
 use crate::vm::frame::Frame;
@@ -11,8 +10,6 @@ use crate::vm::Command::{
     VMGetField, VMInvokeSpecial, VMInvokeStatic, VMInvokeVirtual, VMPutField, VMReturn,
 };
 use std::collections::HashMap;
-use std::path::Path;
-use std::rc::Rc;
 
 #[macro_export]
 macro_rules! expect_type (
@@ -24,6 +21,7 @@ macro_rules! expect_type (
     }
 );
 
+pub mod class_loader;
 pub mod data_type;
 mod frame;
 mod heap;
@@ -46,77 +44,12 @@ pub struct Object {
                                   // TODO fields etc
 }
 
-#[derive(Clone)]
-pub struct ClassRegister {
-    classes: HashMap<String, Rc<Class>>,
-    paths: Vec<String>,
-}
-
-impl ClassRegister {
-    pub fn new() -> Self {
-        ClassRegister {
-            classes: HashMap::new(),
-            paths: Vec::new(),
-        }
-    }
-
-    pub fn set_paths(&mut self, paths: Vec<&str>) {
-        self.paths = paths.iter().map(|s| String::from(*s)).collect();
-    }
-
-    pub fn load_class_file(&mut self, filename: &str) -> Result<Rc<Class>> {
-        let class = ClassReader::from_file(filename)?;
-
-        let c = Rc::new(class);
-        let r = c.clone();
-        self.classes = self.classes.clone();
-        self.classes.insert(c.this_class.clone(), c);
-
-        Ok(r)
-    }
-
-    fn find_class_file(&self, class_name: &str) -> Option<String> {
-        let mut filename = class_name.to_string();
-        filename.push_str(".class");
-
-        for path in &self.paths {
-            let mut path = path.to_owned();
-            path.push_str(&filename);
-
-            if Path::new(&path).exists() {
-                return Some(path);
-            }
-        }
-
-        None
-    }
-
-    fn resolve(&mut self, class_name: &str) -> Result<Rc<Class>> {
-        if let Some(class) = self.classes.get(class_name).map(|c| c.clone()) {
-            Ok(class)
-        } else {
-            self.find_class_file(class_name)
-                .map(|filename| self.load_class_file(&filename))
-                .unwrap_or_else(|| {
-                    Err(Error::new(
-                        ErrorKind::RuntimeError,
-                        Some(format!(
-                            "Could not resolve class {} in {}",
-                            class_name,
-                            self.paths.join(", ")
-                        )),
-                    ))
-                })
-        }
-    }
-}
-
 pub struct VirtualMachine {}
 
 impl VirtualMachine {
     pub fn run(
         &mut self,
-        class_register: ClassRegister,
+        class_register: ClassLoader,
         class_name: &str,
         method_name: &str,
         args: Vec<Value>,
@@ -151,7 +84,7 @@ impl VirtualMachine {
         &mut self,
         heap: &mut Heap,
         stack: &mut Stack,
-        class_register: &mut ClassRegister,
+        class_register: &mut ClassLoader,
         init_class_name: &str,
         init_method_name: &str,
         args: Vec<Value>,
@@ -261,7 +194,7 @@ impl VirtualMachine {
 
     fn invoke_special(
         &self,
-        class_register: &mut ClassRegister,
+        class_register: &mut ClassLoader,
         index: u16,
         current_frame: &mut Frame,
     ) -> Result<Frame> {
@@ -280,7 +213,7 @@ impl VirtualMachine {
 
     fn invoke_static(
         &self,
-        class_register: &mut ClassRegister,
+        class_register: &mut ClassLoader,
         index: u16,
         current_frame: &mut Frame,
     ) -> Result<Frame> {
@@ -297,7 +230,7 @@ impl VirtualMachine {
 
     fn prepare_static_method(
         &self,
-        class_register: &mut ClassRegister,
+        class_register: &mut ClassLoader,
         class_name: &str,
         method_name: &str,
         args: Vec<Value>,
