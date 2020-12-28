@@ -12,13 +12,13 @@ use std::rc::Rc;
 #[derive(Debug)]
 pub struct Frame {
     pub pc: u16,
-    pub last_pc: u16, // TODO refactor so this is not required
     pub local_variables: Vec<u32>,
     pub operand_stack: Vec<Value>,
     pub operand_stack_depth: u32,
     pub class: Rc<Class>,
     pub method: Rc<MethodInfo>,
     pub code: Rc<Code>,
+    pub implicit: bool, // Implicit frames are created by the VM and not by java code.
 }
 
 impl Frame {
@@ -27,14 +27,18 @@ impl Frame {
 
         Frame {
             pc: 0,
-            last_pc: 0,
             local_variables: vec![0; code.max_locals as usize],
             operand_stack: Vec::with_capacity(code.max_stack as usize),
             operand_stack_depth: 0,
             class,
             method,
             code,
+            implicit: false,
         }
+    }
+
+    pub fn pc_next(&mut self) {
+        self.pc += self.code.instructions[self.pc as usize].size();
     }
 
     pub fn pc_offset(&mut self, offset: i16) {
@@ -131,8 +135,8 @@ impl Frame {
         // TODO finally block catch_type is empty
         self.code.exception_handlers.iter().find(|e| {
             e.catch_type == exception.class
-                && (self.last_pc as u16) >= e.start_pc
-                && (self.last_pc as u16) < e.end_pc
+                && (self.pc as u16) >= e.start_pc
+                && (self.pc as u16) < e.end_pc
         })
     }
 }

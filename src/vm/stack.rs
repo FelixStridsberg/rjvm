@@ -12,6 +12,8 @@ impl Stack {
         Stack { stack: Vec::new() }
     }
 
+    pub fn len(&self) -> usize {self.stack.len()}
+
     pub fn last_frame(&self) -> bool {
         self.stack.len() == 1
     }

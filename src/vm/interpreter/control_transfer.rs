@@ -124,12 +124,12 @@ pub fn goto_wide(frame: &mut Frame, operands: &[u8]) {
 }
 
 pub fn jump_subroutine(frame: &mut Frame, operands: &[u8]) {
-    frame.push_operand(ReturnAddress(frame.pc as ReturnAddressType + 3));
+    frame.push_operand(ReturnAddress(frame.pc as ReturnAddressType));
     frame.pc_offset(offset(operands));
 }
 
 pub fn jump_subroutine_wide(frame: &mut Frame, operands: &[u8]) {
-    frame.push_operand(ReturnAddress(frame.pc as ReturnAddressType + 5));
+    frame.push_operand(ReturnAddress(frame.pc as ReturnAddressType));
     frame.pc_offset_wide(offset_wide(operands));
 }
 
@@ -476,7 +476,7 @@ mod test {
             start_pc: 4,
             instruction: Jsr; [0x00, 0x05],
             final_pc: 9,
-            final_stack: [ReturnAddress(7)],
+            final_stack: [ReturnAddress(4)],
         );
     }
 
@@ -486,7 +486,7 @@ mod test {
             start_pc: 4,
             instruction: JsrW; [0x00, 0x00, 0x00, 0x07],
             final_pc: 11,
-            final_stack: [ReturnAddress(9)],
+            final_stack: [ReturnAddress(4)],
         );
     }
 

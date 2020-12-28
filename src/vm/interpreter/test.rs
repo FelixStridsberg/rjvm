@@ -18,7 +18,9 @@ macro_rules! test_instruction {
             $($(_constants.add($constant);)*)?
 
             let _class = crate::class::Class::from_constant_pool(_constants);
-            let _code = crate::class::attribute::Code::new(10, 10, vec![], vec![], vec![]);
+            let _code = crate::class::attribute::Code::new(10, 10, vec![], vec![], vec![
+                crate::class::code::Instruction::new($instruction, vec![$($($operands),*)?])
+            ]);
             let _method = crate::class::MethodInfo::from_code(_code);
             let mut frame = crate::vm::Frame::new(std::rc::Rc::new(_class), std::rc::Rc::new(_method));
 

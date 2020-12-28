@@ -102,17 +102,26 @@ impl VirtualMachine {
         self.prepare_static_method(class_loader, init_class_name, init_method_name, args, stack);
 
         loop {
-            match interpret_frame(stack.current_frame(), heap)? {
+            let mut freeze_pc = false;
+            let stack_size = stack.len();
+
+            let frame = stack.current_frame();
+            match interpret_frame(frame, heap)? {
                 VMReturn(value) => {
                     if stack.last_frame() {
                         return Ok(value);
                     } else {
-                        let void_return = stack
-                            .current_frame()
+                        let frame = stack.current_frame();
+                        let void_return = frame
                             .method
                             .descriptor
                             .return_type
                             .is_none();
+
+                        // We must not update the pc when returning from implicit frames.
+                        if frame.implicit {
+                            freeze_pc = true;
+                        }
 
                         stack.pop();
 
@@ -143,8 +152,17 @@ impl VirtualMachine {
                     self.get_static(class_loader, static_context, index, stack);
                 }
                 VMException() => {
+                    // We must not update PC after exception resolution, the pc is placed at the
+                    // handler.
+                    freeze_pc = true;
                     self.handle_exception(heap, stack);
                 }
+            };
+
+            // Update pc only if we did not get a new frame, or the pc is frozen.
+            if !freeze_pc && stack.len() <= stack_size {
+                let frame = stack.current_frame();
+                frame.pc_next();
             }
         }
     }
@@ -199,7 +217,6 @@ impl VirtualMachine {
 
         // The class we are trying to access is not yet initialized, we must initialize it and try again.
         if let Some(frame) = init_frame {
-            stack.current_frame().pc -= 3; // Get static is 1 byte and 2 arguments
             stack.push(frame);
             return;
         }

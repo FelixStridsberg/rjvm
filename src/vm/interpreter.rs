@@ -26,13 +26,16 @@ use crate::vm::Command::{
     VMException, VMGetField, VMGetStatic, VMInvokeSpecial, VMInvokeStatic, VMInvokeVirtual,
     VMPutField, VMPutStatic, VMReturn,
 };
+use crate::vm::stack::Stack;
 
 pub(super) fn interpret_frame(frame: &mut Frame, heap: &mut Heap) -> Result<Command> {
     loop {
-        let instructions = &frame.code.clone().instructions[frame.pc as usize];
-        if let Some(vm_command) = interpret_instruction(frame, heap, instructions)? {
+        let instruction = &frame.code.clone().instructions[frame.pc as usize];
+        if let Some(vm_command) = interpret_instruction(frame, heap, instruction)? {
             return Ok(vm_command);
         }
+
+        frame.pc_next();
     }
 }
 
@@ -345,16 +348,6 @@ fn interpret_instruction(
             instruction.opcode
         ),
     }
-
-    frame.last_pc = frame.pc;
-
-    /*
-    if let Some(i) = offset {
-        frame.pc = (frame.pc as i32 + i) as u16;
-    } else {
-    }*/
-
-    frame.pc += instruction.size();
 
     Ok(command)
 }
