@@ -18,10 +18,18 @@ pub enum AttributeData {
 }
 
 #[derive(Debug, PartialEq, Clone)]
+pub struct ExceptionHandler {
+    pub start_pc: u16,
+    pub end_pc: u16,
+    pub handler_pc: u16,
+    pub catch_type: String,
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub struct Code {
     pub max_stack: u16,
     pub max_locals: u16,
-    // TODO exception table
+    pub exception_handlers: Vec<ExceptionHandler>,
     pub attributes: Vec<Attribute>,
     pub instructions: Vec<Instruction>,
 }
@@ -30,12 +38,14 @@ impl Code {
     pub fn new(
         max_stack: u16,
         max_locals: u16,
+        exception_handlers: Vec<ExceptionHandler>,
         attributes: Vec<Attribute>,
         instructions: Vec<Instruction>,
     ) -> Code {
         Code {
             max_stack,
             max_locals,
+            exception_handlers,
             attributes,
             instructions,
         }

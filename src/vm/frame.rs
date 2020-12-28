@@ -149,7 +149,7 @@ mod test {
     fn pop_bool() {
         let constants = ConstantPool::new(0);
         let class = Class::from_constant_pool(constants);
-        let method = MethodInfo::from_code(Code::new(1, 0, vec![], vec![]));
+        let method = MethodInfo::from_code(Code::new(1, 0, vec![], vec![], vec![]));
         let mut frame = Frame::new(Rc::new(class), Rc::new(method));
         frame.push_operand(Value::Boolean(true));
 
@@ -160,7 +160,7 @@ mod test {
     fn set_local() {
         let constants = ConstantPool::new(0);
         let class = Class::from_constant_pool(constants);
-        let method = MethodInfo::from_code(Code::new(0, 2, vec![], vec![]));
+        let method = MethodInfo::from_code(Code::new(0, 2, vec![], vec![], vec![]));
         let mut frame = Frame::new(Rc::new(class), Rc::new(method));
 
         frame.set_local(1, 13);

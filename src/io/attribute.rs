@@ -1,7 +1,7 @@
 use crate::class::attribute::AttributeData::{
     CodeInfo, ConstantValue, Exceptions, LineNumberTable, SourceFile, Unknown,
 };
-use crate::class::attribute::{Attribute, AttributeData, Code};
+use crate::class::attribute::{Attribute, AttributeData, Code, ExceptionHandler};
 use crate::class::constant::ConstantPool;
 use crate::error::Result;
 use crate::io::code::CodeReader;
@@ -77,19 +77,44 @@ impl<'r, 'c, R: BufRead> AttributeReader<'r, 'c, R> {
         let instructions = code_reader.read_code()?;
 
         let exception_table_length = self.reader.read_u2()?;
-        if exception_table_length > 0 {
-            panic!("Reading exception table not implemented.");
-        }
-        // TODO read exception table
+        let exception_handlers = if exception_table_length > 0 {
+            self.read_code_exception_table(exception_table_length)?
+        } else {
+            vec![]
+        };
 
         let attributes = self.read_attributes()?;
 
         Ok(CodeInfo(Code {
             max_stack,
             max_locals,
+            exception_handlers,
             attributes,
             instructions,
         }))
+    }
+
+    fn read_code_exception_table(&mut self, length: u16) -> Result<Vec<ExceptionHandler>> {
+        let mut result = Vec::with_capacity(length as usize);
+
+        for _ in 0..length {
+            let start_pc = self.reader.read_u2()?;
+            let end_pc = self.reader.read_u2()?;
+            let handler_pc = self.reader.read_u2()?;
+            let catch_type = self
+                .constants
+                .get_class_info_name(self.reader.read_u2()?)?
+                .to_owned();
+
+            result.push(ExceptionHandler {
+                start_pc,
+                end_pc,
+                handler_pc,
+                catch_type,
+            });
+        }
+
+        Ok(result)
     }
 
     fn read_line_number_table_attribute(&mut self) -> Result<AttributeData> {
@@ -119,7 +144,7 @@ mod test {
     use crate::class::attribute::AttributeData::{
         CodeInfo, ConstantValue, Exceptions, LineNumberTable, SourceFile, Unknown,
     };
-    use crate::class::attribute::{Attribute, Code};
+    use crate::class::attribute::{Attribute, Code, ExceptionHandler};
     use crate::class::code::Instruction;
     use crate::class::code::Opcode::Nop;
     use crate::class::constant::Constant::*;
@@ -246,6 +271,8 @@ mod test {
         let mut constants = ConstantPool::new(2);
         constants.add(Utf8("Code".to_owned()));
         constants.add(Utf8("LineNumberTable".to_owned()));
+        constants.add(ClassRef(4));
+        constants.add(Utf8("java/lang/Exception".to_owned()));
 
         let mut data = Cursor::new(vec![
             0x00, 0x01, // Attribute count
@@ -255,8 +282,11 @@ mod test {
             0x00, 0x01, // Max locals
             0x00, 0x00, 0x00, 0x01, // Code length
             0x00, // Code: nop
-            0x00, 0x00, // Exception table length
-            // (No exception table)
+            0x00, 0x01, // Exception table length
+            0x00, 0x00, // Start pc = 0
+            0x00, 0x03, // End pc = 3
+            0x00, 0x06, // Handler pc = 6
+            0x00, 0x03, // Catch type
             0x00, 0x01, // Attributes count
             0x00, 0x02, // Attribute name index
             0x00, 0x00, 0x00, 0x0a, // Attribute length
@@ -274,6 +304,13 @@ mod test {
                 data: CodeInfo(Code {
                     max_stack: 3,
                     max_locals: 1,
+                    exception_handlers: vec![ExceptionHandler {
+                        start_pc: 0,
+                        end_pc: 3,
+                        handler_pc: 6,
+                        catch_type: "java/lang/Exception".to_string()
+                    }
+                    ],
                     attributes: vec![Attribute {
                         name: "LineNumberTable".to_owned(),
                         data: LineNumberTable(vec![(0, 5), (4, 7)]),
