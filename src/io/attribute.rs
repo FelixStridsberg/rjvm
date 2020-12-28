@@ -309,8 +309,7 @@ mod test {
                         end_pc: 3,
                         handler_pc: 6,
                         catch_type: "java/lang/Exception".to_string()
-                    }
-                    ],
+                    }],
                     attributes: vec![Attribute {
                         name: "LineNumberTable".to_owned(),
                         data: LineNumberTable(vec![(0, 5), (4, 7)]),

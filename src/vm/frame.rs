@@ -1,8 +1,9 @@
-use crate::class::attribute::Code;
+use crate::class::attribute::{Code, ExceptionHandler};
 use crate::class::code::Opcode::OperationSpacer;
 use crate::class::{Class, MethodInfo};
 use crate::vm::data_type::Value::*;
 use crate::vm::data_type::{FieldType, Value};
+use crate::vm::Object;
 use core::fmt;
 use std::cmp::{max, min};
 use std::fmt::Formatter;
@@ -10,7 +11,8 @@ use std::rc::Rc;
 
 #[derive(Debug)]
 pub struct Frame {
-    pub pc: u32,
+    pub pc: u32,      // TODO this should be u16
+    pub last_pc: u32, // TODO refactor so this is not required
     pub local_variables: Vec<u32>,
     pub operand_stack: Vec<Value>,
     pub operand_stack_depth: u32,
@@ -25,6 +27,7 @@ impl Frame {
 
         Frame {
             pc: 0,
+            last_pc: 0,
             local_variables: vec![0; code.max_locals as usize],
             operand_stack: Vec::with_capacity(code.max_stack as usize),
             operand_stack_depth: 0,
@@ -105,6 +108,24 @@ impl Frame {
         } else {
             panic!("Tried to pop value from empty stack.");
         }
+    }
+
+    pub fn handle_exception(&mut self, exception: &Object) -> bool {
+        if let Some(handler) = self.find_exception_handler(exception) {
+            self.pc = handler.handler_pc as u32;
+            true
+        } else {
+            false
+        }
+    }
+
+    fn find_exception_handler(&self, exception: &Object) -> Option<&ExceptionHandler> {
+        // TODO finally block catch_type is empty
+        self.code.exception_handlers.iter().find(|e| {
+            e.catch_type == exception.class
+                && (self.last_pc as u16) >= e.start_pc
+                && (self.last_pc as u16) < e.end_pc
+        })
     }
 }
 

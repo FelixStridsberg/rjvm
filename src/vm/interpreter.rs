@@ -23,8 +23,8 @@ use crate::vm::interpreter::object_creation_and_manipulation::*;
 use crate::vm::interpreter::stack_management::*;
 use crate::vm::Command;
 use crate::vm::Command::{
-    VMGetField, VMGetStatic, VMInvokeSpecial, VMInvokeStatic, VMInvokeVirtual, VMPutField,
-    VMPutStatic, VMReturn,
+    VMException, VMGetField, VMGetStatic, VMInvokeSpecial, VMInvokeStatic, VMInvokeVirtual,
+    VMPutField, VMPutStatic, VMReturn,
 };
 
 pub(super) fn interpret_frame(frame: &mut Frame, heap: &mut Heap) -> Result<Command> {
@@ -275,13 +275,16 @@ fn interpret_instruction(
         Invokevirtual => command = Some(VMInvokeVirtual(reference(&instruction.operands))),
 
         // Throwing exceptions:
-        // TODO
+        Athrow => command = Some(VMException()),
+
         OperationSpacer => panic!("Tried to parse operation as instruction in {:?}", frame),
         _ => unimplemented!(
             "Opcode {:?} is not implemented in interpreter",
             instruction.opcode
         ),
     }
+
+    frame.last_pc = frame.pc;
 
     if let Some(i) = offset {
         frame.pc = (frame.pc as i32 + i) as u32;

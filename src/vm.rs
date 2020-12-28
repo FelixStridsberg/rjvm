@@ -7,8 +7,8 @@ use crate::vm::heap::{Heap, HeapObject};
 use crate::vm::interpreter::interpret_frame;
 use crate::vm::stack::Stack;
 use crate::vm::Command::{
-    VMGetField, VMGetStatic, VMInvokeSpecial, VMInvokeStatic, VMInvokeVirtual, VMPutField,
-    VMPutStatic, VMReturn,
+    VMException, VMGetField, VMGetStatic, VMInvokeSpecial, VMInvokeStatic, VMInvokeVirtual,
+    VMPutField, VMPutStatic, VMReturn,
 };
 use std::collections::HashMap;
 
@@ -39,6 +39,7 @@ enum Command {
     VMGetField(u16),
     VMPutStatic(u16),
     VMGetStatic(u16),
+    VMException(),
 }
 
 #[derive(Debug)]
@@ -141,7 +142,32 @@ impl VirtualMachine {
                 VMGetStatic(index) => {
                     self.get_static(class_loader, static_context, index, stack);
                 }
+                VMException() => {
+                    self.handle_exception(heap, stack);
+                }
             }
+        }
+    }
+
+    fn handle_exception(&self, heap: &Heap, stack: &mut Stack) {
+        let reference = stack.current_frame().pop_operand().expect_reference();
+        let exception = heap.get(reference).expect_instance();
+
+        println!("Exception thrown: {:?}", exception);
+
+        loop {
+            let frame = stack.current_frame();
+
+            if frame.handle_exception(&exception) {
+                frame.push_operand(Reference(reference));
+                break;
+            }
+
+            if stack.last_frame() {
+                panic!("Uncaught exception: {:?}", exception);
+            }
+
+            stack.pop();
         }
     }
 

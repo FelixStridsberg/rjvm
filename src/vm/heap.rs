@@ -17,6 +17,10 @@ impl HeapObject {
     pub fn expect_mut_int_array(&mut self) -> &mut Vec<i32> {
         expect_type!(self, IntArray)
     }
+
+    pub fn expect_instance(&self) -> &Object {
+        expect_type!(self, Instance)
+    }
 }
 
 // TODO implement a real heap
