@@ -11,8 +11,8 @@ use std::rc::Rc;
 
 #[derive(Debug)]
 pub struct Frame {
-    pub pc: u32,      // TODO this should be u16
-    pub last_pc: u32, // TODO refactor so this is not required
+    pub pc: u16,
+    pub last_pc: u16, // TODO refactor so this is not required
     pub local_variables: Vec<u32>,
     pub operand_stack: Vec<Value>,
     pub operand_stack_depth: u32,
@@ -112,7 +112,7 @@ impl Frame {
 
     pub fn handle_exception(&mut self, exception: &Object) -> bool {
         if let Some(handler) = self.find_exception_handler(exception) {
-            self.pc = handler.handler_pc as u32;
+            self.pc = handler.handler_pc;
             true
         } else {
             false
@@ -142,7 +142,7 @@ impl fmt::Display for Frame {
                 continue;
             }
 
-            if self.pc == i as u32 {
+            if self.pc == i as u16 {
                 write!(f, "> ")?;
             } else {
                 write!(f, "  ")?;

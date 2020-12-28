@@ -287,7 +287,7 @@ fn interpret_instruction(
     frame.last_pc = frame.pc;
 
     if let Some(i) = offset {
-        frame.pc = (frame.pc as i32 + i) as u32;
+        frame.pc = (frame.pc as i32 + i) as u16;
     } else {
         frame.pc += instruction.size();
     }
