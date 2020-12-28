@@ -37,6 +37,14 @@ impl Frame {
         }
     }
 
+    pub fn pc_offset(&mut self, offset: i16) {
+        self.pc = (self.pc as i16 + offset) as u16;
+    }
+
+    pub fn pc_offset_wide(&mut self, offset: i32) {
+        self.pc = (self.pc as i32 + offset) as u16;
+    }
+
     pub fn load_arguments(&mut self, args: Vec<Value>) {
         let mut index = 0;
         for arg in args {

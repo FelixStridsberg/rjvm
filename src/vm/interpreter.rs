@@ -41,7 +41,6 @@ fn interpret_instruction(
     heap: &mut Heap,
     instruction: &Instruction,
 ) -> Result<Option<Command>> {
-    let mut offset = None;
     let mut command = None;
 
     match &instruction.opcode {
@@ -233,33 +232,96 @@ fn interpret_instruction(
         Swap => swap_operand(frame),
 
         // Control transfer:
-        IfEq => offset = if_equals(frame, &instruction.operands),
-        IfNe => offset = if_not_equals(frame, &instruction.operands),
-        IfLt => offset = if_less_than(frame, &instruction.operands),
-        IfLe => offset = if_less_than_inclusive(frame, &instruction.operands),
-        IfGt => offset = if_greater_than(frame, &instruction.operands),
-        IfGe => offset = if_greater_than_inclusive(frame, &instruction.operands),
-        IfNull => offset = if_null(frame, &instruction.operands),
-        IfNonNull => offset = if_non_null(frame, &instruction.operands),
+        IfEq => {
+            if_equals(frame, &instruction.operands);
+            return Ok(None);
+        }
+        IfNe => {
+            if_not_equals(frame, &instruction.operands);
+            return Ok(None);
+        }
+        IfLt => {
+            if_less_than(frame, &instruction.operands);
+            return Ok(None);
+        }
+        IfLe => {
+            if_less_than_inclusive(frame, &instruction.operands);
+            return Ok(None);
+        }
+        IfGt => {
+            if_greater_than(frame, &instruction.operands);
+            return Ok(None);
+        }
+        IfGe => {
+            if_greater_than_inclusive(frame, &instruction.operands);
+            return Ok(None);
+        }
+        IfNull => {
+            if_null(frame, &instruction.operands);
+            return Ok(None);
+        }
+        IfNonNull => {
+            if_non_null(frame, &instruction.operands);
+            return Ok(None);
+        }
 
-        IfIcmpEq => offset = if_int_equals(frame, &instruction.operands),
-        IfIcmpNe => offset = if_int_not_equals(frame, &instruction.operands),
-        IfIcmpLt => offset = if_int_less_than(frame, &instruction.operands),
-        IfIcmpLe => offset = if_int_less_than_inclusive(frame, &instruction.operands),
-        IfIcmpGt => offset = if_int_greater_than(frame, &instruction.operands),
-        IfIcmpGe => offset = if_int_greater_than_inclusive(frame, &instruction.operands),
+        IfIcmpEq => {
+            if_int_equals(frame, &instruction.operands);
+            return Ok(None);
+        }
+        IfIcmpNe => {
+            if_int_not_equals(frame, &instruction.operands);
+            return Ok(None);
+        }
+        IfIcmpLt => {
+            if_int_less_than(frame, &instruction.operands);
+            return Ok(None);
+        }
+        IfIcmpLe => {
+            if_int_less_than_inclusive(frame, &instruction.operands);
+            return Ok(None);
+        }
+        IfIcmpGt => {
+            if_int_greater_than(frame, &instruction.operands);
+            return Ok(None);
+        }
+        IfIcmpGe => {
+            if_int_greater_than_inclusive(frame, &instruction.operands);
+            return Ok(None);
+        }
 
-        IfAcmpEq => offset = if_reference_equals(frame, &instruction.operands),
-        IfAcmpNe => offset = if_reference_not_equals(frame, &instruction.operands),
+        IfAcmpEq => {
+            if_reference_equals(frame, &instruction.operands);
+            return Ok(None);
+        }
+        IfAcmpNe => {
+            if_reference_not_equals(frame, &instruction.operands);
+            return Ok(None);
+        }
 
         TableSwitch => panic!("TableSwitch not implemented"),
         LookupSwitch => panic!("LookupSwitch not implemented"),
 
-        Goto => offset = goto(&instruction.operands),
-        GotoW => offset = goto_wide(&instruction.operands),
-        Jsr => offset = jump_subroutine(frame, &instruction.operands),
-        JsrW => offset = jump_subroutine_wide(frame, &instruction.operands),
-        Ret => offset = return_from_subroutine(frame, &instruction.operands),
+        Goto => {
+            goto(frame, &instruction.operands);
+            return Ok(None);
+        }
+        GotoW => {
+            goto_wide(frame, &instruction.operands);
+            return Ok(None);
+        }
+        Jsr => {
+            jump_subroutine(frame, &instruction.operands);
+            return Ok(None);
+        }
+        JsrW => {
+            jump_subroutine_wide(frame, &instruction.operands);
+            return Ok(None);
+        }
+        Ret => {
+            return_from_subroutine(frame, &instruction.operands);
+            return Ok(None);
+        }
 
         // Method invocation and return
         // TODO
@@ -286,11 +348,13 @@ fn interpret_instruction(
 
     frame.last_pc = frame.pc;
 
+    /*
     if let Some(i) = offset {
         frame.pc = (frame.pc as i32 + i) as u16;
     } else {
-        frame.pc += instruction.size();
-    }
+    }*/
+
+    frame.pc += instruction.size();
 
     Ok(command)
 }

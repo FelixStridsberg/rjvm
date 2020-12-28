@@ -3,174 +3,144 @@ use crate::vm::data_type::Value;
 use crate::vm::data_type::Value::ReturnAddress;
 use crate::vm::frame::Frame;
 
-pub fn if_equals(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
+pub fn if_equals(frame: &mut Frame, operands: &[u8]) {
     if frame.pop_operand().expect_int() == 0 {
-        Some(offset(operands))
-    } else {
-        None
+        frame.pc_offset(offset(operands));
     }
 }
 
-pub fn if_not_equals(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
+pub fn if_not_equals(frame: &mut Frame, operands: &[u8]) {
     if frame.pop_operand().expect_int() != 0 {
-        Some(offset(operands))
-    } else {
-        None
+        frame.pc_offset(offset(operands));
     }
 }
 
-pub fn if_less_than(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
+pub fn if_less_than(frame: &mut Frame, operands: &[u8]) {
     if frame.pop_operand().expect_int() < 0 {
-        Some(offset(operands))
-    } else {
-        None
+        frame.pc_offset(offset(operands));
     }
 }
 
-pub fn if_less_than_inclusive(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
+pub fn if_less_than_inclusive(frame: &mut Frame, operands: &[u8]) {
     if frame.pop_operand().expect_int() <= 0 {
-        Some(offset(operands))
-    } else {
-        None
+        frame.pc_offset(offset(operands));
     }
 }
 
-pub fn if_greater_than(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
+pub fn if_greater_than(frame: &mut Frame, operands: &[u8]) {
     if frame.pop_operand().expect_int() > 0 {
-        Some(offset(operands))
-    } else {
-        None
+        frame.pc_offset(offset(operands));
     }
 }
 
-pub fn if_greater_than_inclusive(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
+pub fn if_greater_than_inclusive(frame: &mut Frame, operands: &[u8]) {
     if frame.pop_operand().expect_int() >= 0 {
-        Some(offset(operands))
-    } else {
-        None
+        frame.pc_offset(offset(operands));
     }
 }
 
-pub fn if_null(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
-    match frame.pop_operand() {
-        Value::Null => Some(offset(operands)),
-        _ => None,
+pub fn if_null(frame: &mut Frame, operands: &[u8]) {
+    if matches!(frame.pop_operand(), Value::Null) {
+        frame.pc_offset(offset(operands));
     }
 }
 
-pub fn if_non_null(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
-    match frame.pop_operand() {
-        Value::Null => None,
-        _ => Some(offset(operands)),
+pub fn if_non_null(frame: &mut Frame, operands: &[u8]) {
+    if !matches!(frame.pop_operand(), Value::Null) {
+        frame.pc_offset(offset(operands));
     }
 }
 
-pub fn if_int_equals(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
+pub fn if_int_equals(frame: &mut Frame, operands: &[u8]) {
     let value1 = frame.pop_operand().expect_int();
     let value2 = frame.pop_operand().expect_int();
     if value1 == value2 {
-        Some(offset(operands))
-    } else {
-        None
+        frame.pc_offset(offset(operands));
     }
 }
 
-pub fn if_int_not_equals(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
+pub fn if_int_not_equals(frame: &mut Frame, operands: &[u8]) {
     let value1 = frame.pop_operand().expect_int();
     let value2 = frame.pop_operand().expect_int();
     if value1 != value2 {
-        Some(offset(operands))
-    } else {
-        None
+        frame.pc_offset(offset(operands));
     }
 }
 
-pub fn if_int_less_than(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
+pub fn if_int_less_than(frame: &mut Frame, operands: &[u8]) {
     let value1 = frame.pop_operand().expect_int();
     let value2 = frame.pop_operand().expect_int();
     if value1 < value2 {
-        Some(offset(operands))
-    } else {
-        None
+        frame.pc_offset(offset(operands));
     }
 }
 
-pub fn if_int_less_than_inclusive(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
+pub fn if_int_less_than_inclusive(frame: &mut Frame, operands: &[u8]) {
     let value1 = frame.pop_operand().expect_int();
     let value2 = frame.pop_operand().expect_int();
     if value1 <= value2 {
-        Some(offset(operands))
-    } else {
-        None
+        frame.pc_offset(offset(operands));
     }
 }
 
-pub fn if_int_greater_than(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
+pub fn if_int_greater_than(frame: &mut Frame, operands: &[u8]) {
     let value1 = frame.pop_operand().expect_int();
     let value2 = frame.pop_operand().expect_int();
     if value1 > value2 {
-        Some(offset(operands))
-    } else {
-        None
+        frame.pc_offset(offset(operands));
     }
 }
 
-pub fn if_int_greater_than_inclusive(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
+pub fn if_int_greater_than_inclusive(frame: &mut Frame, operands: &[u8]) {
     let value1 = frame.pop_operand().expect_int();
     let value2 = frame.pop_operand().expect_int();
     if value1 >= value2 {
-        Some(offset(operands))
-    } else {
-        None
+        frame.pc_offset(offset(operands));
     }
 }
 
-pub fn if_reference_equals(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
+pub fn if_reference_equals(frame: &mut Frame, operands: &[u8]) {
     let value1 = frame.pop_operand().expect_reference();
     let value2 = frame.pop_operand().expect_reference();
     if value1 == value2 {
-        Some(offset(operands))
-    } else {
-        None
+        frame.pc_offset(offset(operands));
     }
 }
 
-pub fn if_reference_not_equals(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
+pub fn if_reference_not_equals(frame: &mut Frame, operands: &[u8]) {
     let value1 = frame.pop_operand().expect_reference();
     let value2 = frame.pop_operand().expect_reference();
     if value1 != value2 {
-        Some(offset(operands))
-    } else {
-        None
+        frame.pc_offset(offset(operands));
     }
 }
 
-pub fn goto(operands: &[u8]) -> Option<i32> {
-    Some(offset(operands))
+pub fn goto(frame: &mut Frame, operands: &[u8]) {
+    frame.pc_offset(offset(operands));
 }
 
-pub fn goto_wide(operands: &[u8]) -> Option<i32> {
-    Some(offset_wide(operands))
+pub fn goto_wide(frame: &mut Frame, operands: &[u8]) {
+    frame.pc_offset_wide(offset_wide(operands));
 }
 
-pub fn jump_subroutine(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
+pub fn jump_subroutine(frame: &mut Frame, operands: &[u8]) {
     frame.push_operand(ReturnAddress(frame.pc as ReturnAddressType + 3));
-    Some(offset(operands))
+    frame.pc_offset(offset(operands));
 }
 
-pub fn jump_subroutine_wide(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
+pub fn jump_subroutine_wide(frame: &mut Frame, operands: &[u8]) {
     frame.push_operand(ReturnAddress(frame.pc as ReturnAddressType + 5));
-    Some(offset_wide(operands))
+    frame.pc_offset_wide(offset_wide(operands));
 }
 
-pub fn return_from_subroutine(frame: &mut Frame, operands: &[u8]) -> Option<i32> {
+pub fn return_from_subroutine(frame: &mut Frame, operands: &[u8]) {
     let index = operands[0] as u16;
-    let offset = frame.get_local(index) as i32;
-    Some(offset)
+    let offset = frame.get_local(index) as i16;
+    frame.pc_offset(offset);
 }
 
-fn offset(bytes: &[u8]) -> i32 {
-    (bytes[0] as i32) << 8 | bytes[1] as i32
+fn offset(bytes: &[u8]) -> i16 {
+    (bytes[0] as i16) << 8 | bytes[1] as i16
 }
 
 fn offset_wide(bytes: &[u8]) -> i32 {
@@ -198,7 +168,7 @@ mod test {
             start_pc: 4,
             start_stack: [Int(1)],
             instruction: IfEq; [0x00, 0x05],
-            final_pc: 7,
+            final_pc: 4,
         );
     }
 
@@ -218,7 +188,7 @@ mod test {
             start_pc: 4,
             start_stack: [Int(0)],
             instruction: IfNe; [0x00, 0x05],
-            final_pc: 7,
+            final_pc: 4,
         );
     }
 
@@ -238,7 +208,7 @@ mod test {
             start_pc: 4,
             start_stack: [Int(0)],
             instruction: IfLt; [0x00, 0x05],
-            final_pc: 7,
+            final_pc: 4,
         );
     }
 
@@ -258,7 +228,7 @@ mod test {
             start_pc: 4,
             start_stack: [Int(1)],
             instruction: IfLe; [0x00, 0x05],
-            final_pc: 7,
+            final_pc: 4,
         );
     }
 
@@ -278,7 +248,7 @@ mod test {
             start_pc: 4,
             start_stack: [Int(0)],
             instruction: IfGt; [0x00, 0x05],
-            final_pc: 7,
+            final_pc: 4,
         );
     }
 
@@ -298,7 +268,7 @@ mod test {
             start_pc: 4,
             start_stack: [Int(-1)],
             instruction: IfGt; [0x00, 0x05],
-            final_pc: 7,
+            final_pc: 4,
         );
     }
 
@@ -318,7 +288,7 @@ mod test {
             start_pc: 4,
             start_stack: [Reference(10)],
             instruction: IfNull; [0x00, 0x05],
-            final_pc: 7,
+            final_pc: 4,
         );
     }
 
@@ -338,7 +308,7 @@ mod test {
             start_pc: 4,
             start_stack: [Null],
             instruction: IfNonNull; [0x00, 0x05],
-            final_pc: 7,
+            final_pc: 4,
         );
     }
 
@@ -358,7 +328,7 @@ mod test {
             start_pc: 4,
             start_stack: [Int(-1), Int(0)],
             instruction: IfIcmpEq; [0x00, 0x05],
-            final_pc: 7,
+            final_pc: 4,
         );
     }
 
@@ -378,7 +348,7 @@ mod test {
             start_pc: 4,
             start_stack: [Int(1), Int(1)],
             instruction: IfIcmpNe; [0x00, 0x05],
-            final_pc: 7,
+            final_pc: 4,
         );
     }
 
@@ -398,7 +368,7 @@ mod test {
             start_pc: 4,
             start_stack: [Int(1), Int(1)],
             instruction: IfIcmpLt; [0x00, 0x05],
-            final_pc: 7,
+            final_pc: 4,
         );
     }
 
@@ -418,7 +388,7 @@ mod test {
             start_pc: 4,
             start_stack: [Int(0), Int(1)],
             instruction: IfIcmpLe; [0x00, 0x05],
-            final_pc: 7,
+            final_pc: 4,
         );
     }
 
@@ -438,7 +408,7 @@ mod test {
             start_pc: 4,
             start_stack: [Int(1), Int(1)],
             instruction: IfIcmpGt; [0x00, 0x05],
-            final_pc: 7,
+            final_pc: 4,
         );
     }
 
@@ -458,7 +428,7 @@ mod test {
             start_pc: 4,
             start_stack: [Int(2), Int(1)],
             instruction: IfIcmpGe; [0x00, 0x05],
-            final_pc: 7,
+            final_pc: 4,
         );
     }
 
@@ -478,7 +448,7 @@ mod test {
             start_pc: 4,
             start_stack: [Reference(10), Reference(0)],
             instruction: IfAcmpEq; [0x00, 0x05],
-            final_pc: 7,
+            final_pc: 4,
         );
     }
 
