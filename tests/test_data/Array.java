@@ -16,5 +16,10 @@ class Array {
         return f.length;
     }
 
+    public static int array_length_npe() {
+        int[] f = null;
+        return f.length;
+    }
+
     // TODO different types of arrays
 }

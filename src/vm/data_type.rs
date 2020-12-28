@@ -68,6 +68,7 @@ impl Value {
         expect_type!(self, Double)
     }
 
+    // TODO make this a result, it may throw null pointer exception rather than panic
     pub fn expect_reference(self) -> ReferenceType {
         expect_type!(self, Reference)
     }

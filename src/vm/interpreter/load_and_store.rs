@@ -195,8 +195,8 @@ pub fn push_constant_long(frame: &mut Frame, operands: &[u8]) -> Result<()> {
     Ok(())
 }
 
-pub fn push_null(_frame: &mut Frame) {
-    unimplemented!();
+pub fn push_null(frame: &mut Frame) {
+    frame.push_operand(Null);
 }
 
 #[cfg(test)]

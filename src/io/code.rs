@@ -48,7 +48,7 @@ impl<'r, R: BufRead> CodeReader<'r, R> {
             0x2d => (Aload3, 0),
             0xbd => (Anewarray, 2),
             0xb0 => (Areturn, 0),
-            0xbe => (Arraylength, 0),
+            0xbe => (ArrayLength, 0),
             0x3a => (Astore, 1),
             0x4b => (Astore0, 0),
             0x4c => (Astore1, 0),

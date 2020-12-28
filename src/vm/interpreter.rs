@@ -212,7 +212,7 @@ fn interpret_instruction(
         // Object creation and manipulation:
         // TODO
         NewArray => new_array(frame, heap, &instruction.operands)?,
-        Arraylength => array_length(frame, heap),
+        ArrayLength => array_length(frame, heap)?,
         New => new_object(frame, heap, &instruction.operands),
         Iastore => int_array_store(frame, heap),
         Iaload => int_array_load(frame, heap),

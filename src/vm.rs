@@ -98,13 +98,7 @@ impl VirtualMachine {
         init_method_name: &str,
         args: Vec<Value>,
     ) -> Result<Value> {
-        self.prepare_static_method(
-            class_loader,
-            init_class_name,
-            init_method_name,
-            args,
-            stack,
-        );
+        self.prepare_static_method(class_loader, init_class_name, init_method_name, args, stack);
 
         loop {
             match interpret_frame(stack.current_frame(), heap)? {

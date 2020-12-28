@@ -1,5 +1,5 @@
-use rjvm::vm::data_type::Value;
 use rjvm::vm::class_loader::ClassLoader;
+use rjvm::vm::data_type::Value;
 use rjvm::vm::VirtualMachine;
 
 pub fn run_method(class_name: &str, method_name: &str) -> Value {

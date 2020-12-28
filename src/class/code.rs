@@ -39,7 +39,7 @@ pub enum Opcode {
     Aload3,
     Anewarray,
     Areturn,
-    Arraylength,
+    ArrayLength,
     Astore,
     Astore0,
     Astore1,

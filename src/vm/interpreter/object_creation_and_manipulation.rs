@@ -15,10 +15,11 @@ pub fn new_array(frame: &mut Frame, heap: &mut Heap, operands: &[u8]) -> Result<
     Ok(())
 }
 
-pub fn array_length(frame: &mut Frame, heap: &Heap) {
+pub fn array_length(frame: &mut Frame, heap: &Heap) -> Result<()> {
     let reference = frame.pop_operand().expect_reference();
     let array = heap.get(reference).expect_int_array();
-    frame.push_operand(Int(array.len() as i32))
+    frame.push_operand(Int(array.len() as i32));
+    Ok(())
 }
 
 pub fn new_object(frame: &mut Frame, heap: &mut Heap, operands: &[u8]) {
