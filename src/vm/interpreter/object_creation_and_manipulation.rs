@@ -1,13 +1,16 @@
 use crate::error::Result;
-use crate::vm::data_type::Value::{Int, Reference};
+use crate::vm::data_type::Value::{Float, Int, Reference};
 use crate::vm::data_type::{IntType, ReferenceType};
 use crate::vm::frame::Frame;
 use crate::vm::heap::Heap;
+
+// TODO DRY up
 
 pub fn new_array(frame: &mut Frame, heap: &mut Heap, operands: &[u8]) -> Result<()> {
     let len = frame.pop_operand().expect_int();
     let reference = match operands[0] {
         5 => heap.allocate_char_array(len),
+        6 => heap.allocate_float_array(len),
         8 => heap.allocate_byte_array(len),
         10 => heap.allocate_int_array(len),
         a => runtime_error!("Unknown array type {}.", a),
@@ -53,6 +56,15 @@ pub fn char_array_store(frame: &mut Frame, heap: &mut Heap) {
     array[index as usize] = value as u8 as char;
 }
 
+pub fn float_array_store(frame: &mut Frame, heap: &mut Heap) {
+    let value = frame.pop_operand().expect_float();
+    let index: IntType = frame.pop_operand().expect_int();
+    let reference = frame.pop_operand().expect_reference();
+
+    let array = heap.get_mut(reference).expect_mut_float_array();
+    array[index as usize] = value;
+}
+
 pub fn int_array_store(frame: &mut Frame, heap: &mut Heap) {
     let value: IntType = frame.pop_operand().expect_int();
     let index: IntType = frame.pop_operand().expect_int();
@@ -76,6 +88,14 @@ pub fn char_array_load(frame: &mut Frame, heap: &mut Heap) {
 
     let array = heap.get_mut(reference).expect_char_array();
     frame.push_operand(Int(array[index as usize] as IntType));
+}
+
+pub fn float_array_load(frame: &mut Frame, heap: &mut Heap) {
+    let index: IntType = frame.pop_operand().expect_int();
+    let reference = frame.pop_operand().expect_reference();
+
+    let array = heap.get_mut(reference).expect_mut_float_array();
+    frame.push_operand(Float(array[index as usize]));
 }
 
 pub fn int_array_load(frame: &mut Frame, heap: &mut Heap) {

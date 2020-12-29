@@ -28,6 +28,14 @@ class Array {
         return b[2];
     }
 
+    public static float float_array() {
+        float[] b = new float[10];
+        b[1] = 2.222f;
+        b[2] = 10.222f;
+
+        return b[1] - b[2];
+    }
+
     public static int array_length() {
         int[] f = new int[100];
         return f.length;

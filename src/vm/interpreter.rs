@@ -226,7 +226,7 @@ fn interpret_instruction(
         // SaLoad => TODO
         IaLoad => int_array_load(frame, heap),
         // LaLoad => TODO
-        // FaLoad => TODO
+        FaLoad => float_array_load(frame, heap),
         // DaLoad => TODO
         // AaLoad => TODO
         BaStore => byte_array_store(frame, heap),
@@ -234,7 +234,7 @@ fn interpret_instruction(
         // SaStore => TODO
         IaStore => int_array_store(frame, heap),
         // LaStore => TODO
-        // FaStore => TODO
+        FaStore => float_array_store(frame, heap),
         // DaStore => TODO
         // AaStore => TODO
         ArrayLength => array_length(frame, heap)?,

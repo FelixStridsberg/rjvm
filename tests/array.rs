@@ -1,4 +1,4 @@
-use rjvm::vm::data_type::Value::Int;
+use rjvm::vm::data_type::Value::{Float, Int};
 
 #[path = "./java_utils.rs"]
 mod java;
@@ -18,6 +18,14 @@ fn char_array() {
     assert_eq!(
         java::run_method("test_data/Array", "char_array"),
         Int('b' as i32)
+    );
+}
+
+#[test]
+fn float_array() {
+    assert_eq!(
+        java::run_method("test_data/Array", "float_array"),
+        Float(8.0)
     );
 }
 
