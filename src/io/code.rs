@@ -1,3 +1,4 @@
+use crate::binary::bytes_to_i32;
 use crate::class::code::Opcode::*;
 use crate::class::code::{Instruction, Opcode};
 use crate::error::Result;
@@ -20,13 +21,11 @@ impl<'r, R: BufRead> CodeReader<'r, R> {
 
         loop {
             let (opcode, argc) = self.read_opcode()?;
-            let (mut instructions, byte_len) =
-                if !matches!(opcode, LookupSwitch /*| TableSwitch |  | Wide TODO*/) {
-                    self.read_static_width_instruction(opcode, argc)?
-                } else {
-                    self.read_dynamic_width_instruction(opcode, byte_pos + 1)?
-                };
-
+            let (mut instructions, byte_len) = match opcode {
+                LookupSwitch => self.read_lookup_switch(opcode, byte_pos + 1)?,
+                TableSwitch => self.read_table_switch(opcode, byte_pos + 1)?,
+                _ => self.read_static_width_instruction(opcode, argc)?,
+            };
             code.append(&mut instructions);
 
             byte_pos += byte_len;
@@ -55,7 +54,7 @@ impl<'r, R: BufRead> CodeReader<'r, R> {
         Ok((code, 1 + argc as u32))
     }
 
-    fn read_dynamic_width_instruction(
+    fn read_lookup_switch(
         &mut self,
         opcode: Opcode,
         byte_pos: u32,
@@ -68,10 +67,7 @@ impl<'r, R: BufRead> CodeReader<'r, R> {
         let mut default_jump_bytes = self.reader.read_bytes(4)?;
         let mut num_pairs_bytes = self.reader.read_bytes(4)?;
 
-        let num_pairs = (num_pairs_bytes[0] as u32) << 24
-            | (num_pairs_bytes[1] as u32) << 16
-            | (num_pairs_bytes[2] as u32) << 8
-            | num_pairs_bytes[3] as u32;
+        let num_pairs = bytes_to_i32(&num_pairs_bytes[..]);
 
         let mut match_offset_pairs = self.reader.read_bytes(num_pairs as usize * 8)?;
 
@@ -79,8 +75,47 @@ impl<'r, R: BufRead> CodeReader<'r, R> {
         operands.append(&mut num_pairs_bytes);
         operands.append(&mut match_offset_pairs);
 
-        let mut code = Vec::new();
         let byte_len = 1 + operands.len() as u32 + pad;
+
+        let mut code = Vec::new();
+        code.push(Instruction::new_with_pad(opcode, operands, pad as u8));
+
+        // Must add spacers to keep the indexes correct.
+        for _ in 0..byte_len {
+            code.push(Instruction::operation_spacer());
+        }
+
+        Ok((code, byte_len))
+    }
+
+    fn read_table_switch(
+        &mut self,
+        opcode: Opcode,
+        byte_pos: u32,
+    ) -> Result<(Vec<Instruction>, u32)> {
+        let mut operands = Vec::new();
+        let pad = (4 - byte_pos % 4) % 4;
+
+        self.reader.read_bytes(pad as usize)?; // Skip padding
+
+        let mut default_jump_bytes = self.reader.read_bytes(4)?;
+        let mut low_byte_bytes = self.reader.read_bytes(4)?;
+        let mut high_byte_bytes = self.reader.read_bytes(4)?;
+
+        let high = bytes_to_i32(&high_byte_bytes[..]);
+        let low = bytes_to_i32(&low_byte_bytes[..]);
+
+        let len = high - low + 1;
+        let mut jump_offset_bytes = self.reader.read_bytes(len as usize * 4)?;
+
+        operands.append(&mut default_jump_bytes);
+        operands.append(&mut low_byte_bytes);
+        operands.append(&mut high_byte_bytes);
+        operands.append(&mut jump_offset_bytes);
+
+        let byte_len = 1 + operands.len() as u32 + pad;
+
+        let mut code = Vec::new();
         code.push(Instruction::new_with_pad(opcode, operands, pad as u8));
 
         // Must add spacers to keep the indexes correct.
@@ -293,7 +328,7 @@ impl<'r, R: BufRead> CodeReader<'r, R> {
             0x56 => (Sastore, 0),
             0x11 => (Sipush, 2),
             0x5f => (Swap, 0),
-            // 0xaa => (TableSwitch, variable),
+            0xaa => (TableSwitch, 0),
             // 0xc4 => (Wide, opcode specific length),
             0xca => (BreakPoint, 0),
             x => panic!("Unknown opcode {:x?}", x),
@@ -356,6 +391,56 @@ mod test {
                     vec![
                         0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02,
                         0x00, 0x00, 0x00, 0x02
+                    ],
+                    3
+                ),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+            ]
+        );
+    }
+
+    #[test]
+    fn read_table_switch() {
+        let mut data = Cursor::new(vec![
+            0x00, 0x00, 0x00, 0x14, // Length
+            0xaa, // Opcode
+            0x00, 0x00, 0x00, // Padding
+            0x00, 0x00, 0x00, 0x01, // Default
+            0x00, 0x00, 0x00, 0x01, // low
+            0x00, 0x00, 0x00, 0x01, // high
+            0x00, 0x00, 0x00, 0x03, // Jump offset
+        ]);
+
+        let mut reader = CodeReader::new(&mut data);
+        let instructions = reader.read_code().unwrap();
+
+        assert_eq!(
+            instructions,
+            vec![
+                Instruction::new_with_pad(
+                    TableSwitch,
+                    vec![
+                        0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+                        0x00, 0x00, 0x00, 0x03
                     ],
                     3
                 ),

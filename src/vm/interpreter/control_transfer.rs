@@ -1,3 +1,4 @@
+use crate::binary::*;
 use crate::vm::data_type::ReturnAddressType;
 use crate::vm::data_type::Value;
 use crate::vm::data_type::Value::ReturnAddress;
@@ -156,14 +157,6 @@ pub fn return_from_subroutine(frame: &mut Frame, operands: &[u8]) {
     let index = operands[0] as u16;
     let offset = frame.get_local(index) as i16;
     frame.pc_offset(offset);
-}
-
-fn bytes_to_i16(bytes: &[u8]) -> i16 {
-    (bytes[0] as i16) << 8 | bytes[1] as i16
-}
-
-fn bytes_to_i32(bytes: &[u8]) -> i32 {
-    (bytes[0] as i32) << 24 | (bytes[1] as i32) << 16 | (bytes[2] as i32) << 8 | bytes[3] as i32
 }
 
 #[cfg(test)]

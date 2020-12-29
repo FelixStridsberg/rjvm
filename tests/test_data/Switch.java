@@ -7,6 +7,8 @@ class Switch {
         switch (i) {
             case 1:
                 return 2;
+            case 200:
+                return -1;
         }
 
         return 0;
@@ -18,6 +20,8 @@ class Switch {
         switch (i) {
             case 2:
                 return 2;
+            case 200:
+                return -1;
         }
 
         return 0;
@@ -30,8 +34,21 @@ class Switch {
         switch (i) {
             case 2:
                 return 2;
+            case 200:
+                return -1;
             default:
                 return 1;
+        }
+    }
+
+    public static int table_switch() {
+        int i = 0;
+
+        switch (i) {
+            case 1: return 1;
+            case 2: return 2;
+            case 3: return 3;
+            default: return 4;
         }
     }
 }

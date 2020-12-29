@@ -17,3 +17,8 @@ fn switch_no_match() {
 fn switch_default() {
     assert_eq!(java::run_method("test_data/Switch", "default_case"), Int(1));
 }
+
+#[test]
+fn table_switch_default() {
+    assert_eq!(java::run_method("test_data/Switch", "default_case"), Int(1));
+}
