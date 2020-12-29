@@ -4,11 +4,13 @@ use rjvm::vm::data_type::Value::Int;
 mod java;
 
 #[test]
-fn create_array() {
-    assert_eq!(
-        java::run_method("test_data/Array", "create_int_array"),
-        Int(3)
-    );
+fn int_array() {
+    assert_eq!(java::run_method("test_data/Array", "int_array"), Int(3));
+}
+
+#[test]
+fn byte_array() {
+    assert_eq!(java::run_method("test_data/Array", "byte_array"), Int(0xff));
 }
 
 #[test]

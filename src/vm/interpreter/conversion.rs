@@ -34,7 +34,7 @@ pub fn float_to_double(frame: &mut Frame) {
 
 pub fn int_to_byte(frame: &mut Frame) {
     let int: IntType = frame.pop_operand().expect_int();
-    frame.push_operand(Byte(int as u8));
+    frame.push_operand(Int(int & 0xff));
 }
 
 pub fn int_to_char(frame: &mut Frame) {
@@ -141,7 +141,7 @@ mod test {
         test_instruction!(
             start_stack: [Int(0x101)],
             instruction: I2b,
-            final_stack: [Byte(1)],
+            final_stack: [Int(1)],
         );
     }
 

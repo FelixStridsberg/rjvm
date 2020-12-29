@@ -151,7 +151,7 @@ pub fn store_reference_n(frame: &mut Frame, index: u16) -> Result<()> {
 }
 
 pub fn push_byte(frame: &mut Frame, operands: &[u8]) {
-    frame.push_operand(Int(operands[0] as i32));
+    frame.push_operand(Int(operands[0] as IntType));
 }
 
 pub fn push_short(frame: &mut Frame, operands: &[u8]) {

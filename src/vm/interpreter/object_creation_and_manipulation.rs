@@ -7,6 +7,7 @@ use crate::vm::heap::Heap;
 pub fn new_array(frame: &mut Frame, heap: &mut Heap, operands: &[u8]) -> Result<()> {
     let len = frame.pop_operand().expect_int();
     let reference = match operands[0] {
+        8 => heap.allocate_byte_array(len),
         10 => heap.allocate_int_array(len),
         a => runtime_error!("Unknown array type {}.", a),
     };
@@ -33,6 +34,15 @@ pub fn new_object(frame: &mut Frame, heap: &mut Heap, operands: &[u8]) {
     frame.push_operand(Reference(reference as ReferenceType));
 }
 
+pub fn byte_array_store(frame: &mut Frame, heap: &mut Heap) {
+    let value: IntType = frame.pop_operand().expect_int();
+    let index: IntType = frame.pop_operand().expect_int();
+    let reference = frame.pop_operand().expect_reference();
+
+    let array = heap.get_mut(reference).expect_mut_byte_array();
+    array[index as usize] = value as u8;
+}
+
 pub fn int_array_store(frame: &mut Frame, heap: &mut Heap) {
     let value: IntType = frame.pop_operand().expect_int();
     let index: IntType = frame.pop_operand().expect_int();
@@ -40,6 +50,14 @@ pub fn int_array_store(frame: &mut Frame, heap: &mut Heap) {
 
     let array = heap.get_mut(reference).expect_mut_int_array();
     array[index as usize] = value;
+}
+
+pub fn byte_array_load(frame: &mut Frame, heap: &mut Heap) {
+    let index: IntType = frame.pop_operand().expect_int();
+    let reference = frame.pop_operand().expect_reference();
+
+    let array = heap.get_mut(reference).expect_byte_array();
+    frame.push_operand(Int(array[index as usize] as IntType));
 }
 
 pub fn int_array_load(frame: &mut Frame, heap: &mut Heap) {
@@ -57,7 +75,21 @@ mod test {
     use crate::vm::heap::Heap;
 
     #[test]
-    fn newarray() {
+    fn newarray_byte() {
+        let mut heap = Heap::default();
+        test_instruction!(
+            heap: heap,
+            start_stack: [Int(10)],
+            instruction: NewArray; [0x08],
+            final_stack: [Reference(0)],
+        );
+
+        let array = heap.get_mut(0).expect_byte_array();
+        assert_eq!(array.len(), 10);
+    }
+
+    #[test]
+    fn newarray_int() {
         let mut heap = Heap::default();
         test_instruction!(
             heap: heap,
@@ -66,7 +98,7 @@ mod test {
             final_stack: [Reference(0)],
         );
 
-        let array = heap.get_mut(0).expect_mut_int_array();
+        let array = heap.get_mut(0).expect_int_array();
         assert_eq!(array.len(), 10);
     }
 

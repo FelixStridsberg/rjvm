@@ -349,8 +349,10 @@ impl VirtualMachine {
         args: Vec<Value>,
         stack: &mut Stack,
     ) {
-        let (class, init_frame) = class_loader.resolve(class_name).expect("Unknown class");
-        let method = class.find_public_static_method(method_name).unwrap();
+        let (class, init_frame) = class_loader.resolve(class_name).expect("Unknown class"); // TODO more info in errors
+        let method = class
+            .find_public_static_method(method_name)
+            .expect("Method not found");
 
         let mut frame = Frame::new(class, method);
         frame.load_arguments(args);

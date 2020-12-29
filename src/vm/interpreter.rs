@@ -210,42 +210,37 @@ fn interpret_instruction(
         D2l => double_to_long(frame),
         D2f => double_to_float(frame),
 
-
         // Object creation and manipulation:
         New => new_object(frame, heap, &instruction.operands),
 
         NewArray => new_array(frame, heap, &instruction.operands)?,
         // Anewarray => TODO
         // Multianewarray => TODO
-
         GetField => return Ok(Some(VMGetField(reference(&instruction.operands)))),
         PutField => return Ok(Some(VMPutField(reference(&instruction.operands)))),
         GetStatic => return Ok(Some(VMGetStatic(reference(&instruction.operands)))),
         PutStatic => return Ok(Some(VMPutStatic(reference(&instruction.operands)))),
 
-        // Baload => TODO
-        // Caload => TODO
-        // Saload => TODO
+        BaLoad => byte_array_load(frame, heap),
+        // CaLoad => TODO
+        // SaLoad => TODO
         IaLoad => int_array_load(frame, heap),
-        // Laload => TODO
-        // Faload => TODO
-        // Daload => TODO
-        // Aaload => TODO
-
-        // Bastore => TODO
-        // Castore => TODO
-        // Sastore => TODO
+        // LaLoad => TODO
+        // FaLoad => TODO
+        // DaLoad => TODO
+        // AaLoad => TODO
+        BaStore => byte_array_store(frame, heap),
+        // CaStore => TODO
+        // SaStore => TODO
         IaStore => int_array_store(frame, heap),
-        // Lastore => TODO
-        // Fastore => TODO
-        // Dastore => TODO
-        // Aastore => TODO
-
+        // LaStore => TODO
+        // FaStore => TODO
+        // DaStore => TODO
+        // AaStore => TODO
         ArrayLength => array_length(frame, heap)?,
 
         // Checkcast => TODO
         // Instanceof => TODO
-
 
         // Operand stack management:
         Pop => pop_operand(frame),
@@ -257,7 +252,6 @@ fn interpret_instruction(
         DupX2 => duplicate_operand_back2(frame),
         Dup2X2 => duplicate_operand_long_back2(frame),
         Swap => swap_operand(frame),
-
 
         // Control transfer:
         IfEq => if_equals(frame, &instruction.operands),
@@ -287,14 +281,12 @@ fn interpret_instruction(
         JsrW => jump_subroutine_wide(frame, &instruction.operands),
         Ret => return_from_subroutine(frame, &instruction.operands),
 
-
         // Method invocation and return
         InvokeVirtual => return Ok(Some(VMInvokeVirtual(reference(&instruction.operands)))),
         // Invokeinterface => TODO
         InvokeSpecial => return Ok(Some(VMInvokeSpecial(reference(&instruction.operands)))),
         InvokeStatic => return Ok(Some(VMInvokeStatic(reference(&instruction.operands)))),
         // Invokedynamic => TODO
-
         Return => return Ok(Some(VMReturn(Null))),
         IReturn => return Ok(Some(VMReturn(Int(frame.pop_operand().expect_int())))),
         LReturn => return Ok(Some(VMReturn(Long(frame.pop_operand().expect_long())))),
@@ -305,7 +297,6 @@ fn interpret_instruction(
                 frame.pop_operand().expect_reference(),
             ))))
         }
-
 
         // Throwing exceptions:
         AThrow => return Ok(Some(VMException())),
@@ -319,8 +310,6 @@ fn interpret_instruction(
             "Opcode {:?} is not implemented in interpreter",
             instruction.opcode
         ),
-
-
         // Synchronization
         // MonitorEnter => TODO
         // MonitorExit => TODO

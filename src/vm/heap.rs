@@ -1,15 +1,24 @@
 use crate::vm::data_type::ReferenceType;
-use crate::vm::heap::HeapObject::{Instance, IntArray};
+use crate::vm::heap::HeapObject::{ByteArray, Instance, IntArray};
 use crate::vm::Object;
 use std::collections::HashMap;
 
 #[derive(Debug)]
 pub enum HeapObject {
+    ByteArray(Vec<u8>),
     IntArray(Vec<i32>),
     Instance(Object),
 }
 
 impl HeapObject {
+    pub fn expect_byte_array(&self) -> &Vec<u8> {
+        expect_type!(self, ByteArray)
+    }
+
+    pub fn expect_mut_byte_array(&mut self) -> &mut Vec<u8> {
+        expect_type!(self, ByteArray)
+    }
+
     pub fn expect_int_array(&self) -> &Vec<i32> {
         expect_type!(self, IntArray)
     }
@@ -30,6 +39,12 @@ pub struct Heap {
 }
 
 impl Heap {
+    pub fn allocate_byte_array(&mut self, size: i32) -> u32 {
+        let index = self.objects.len() as u32;
+        self.objects.push(ByteArray(vec![0; size as usize]));
+        index
+    }
+
     pub fn allocate_int_array(&mut self, size: i32) -> u32 {
         let index = self.objects.len() as u32;
         self.objects.push(IntArray(vec![0; size as usize]));
