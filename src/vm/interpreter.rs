@@ -301,7 +301,10 @@ fn interpret_instruction(
             if_reference_not_equals(frame, &instruction.operands);
             return Ok(None);
         }
-        TableSwitch => panic!("TableSwitch not implemented"),
+        TableSwitch => {
+            table_switch(frame, &instruction.operands);
+            return Ok(None);
+        }
         LookupSwitch => {
             lookup_switch(frame, &instruction.operands);
             return Ok(None);

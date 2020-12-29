@@ -116,6 +116,23 @@ pub fn if_reference_not_equals(frame: &mut Frame, operands: &[u8]) {
     }
 }
 
+pub fn table_switch(frame: &mut Frame, operands: &[u8]) {
+    let index = frame.pop_operand().expect_int();
+    let default_offset = bytes_to_i32(&operands[0..4]);
+    let low = bytes_to_i32(&operands[4..8]);
+    let high = bytes_to_i32(&operands[8..12]);
+
+    if index < low || index > high {
+        frame.pc_offset_wide(default_offset);
+        return;
+    }
+
+    let offset_index = ((index - low) * 4 + 12) as usize;
+    let offset = bytes_to_i32(&operands[offset_index..(offset_index + 8)]);
+
+    frame.pc_offset_wide(offset);
+}
+
 pub fn lookup_switch(frame: &mut Frame, operands: &[u8]) {
     let key = frame.pop_operand().expect_int();
     let mut offset = bytes_to_i32(&operands[0..4]);

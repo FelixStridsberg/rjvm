@@ -41,8 +41,20 @@ class Switch {
         }
     }
 
+    public static int table_switch_simple() {
+        int i = 2;
+
+        switch (i) {
+            case 1: return 1;
+            case 2: return 2;
+            case 3: return 3;
+            default: return 4;
+        }
+    }
+
     public static int table_switch() {
-        int i = 0;
+        int i = 3;
+        i += 100;
 
         switch (i) {
             case 1: return 1;
