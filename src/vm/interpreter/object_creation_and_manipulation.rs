@@ -52,7 +52,7 @@ pub fn int_array_load(frame: &mut Frame, heap: &mut Heap) {
 
 #[cfg(test)]
 mod test {
-    use crate::class::code::Opcode::{Iaload, Iastore, NewArray};
+    use crate::class::code::Opcode::{IaLoad, IaStore, NewArray};
     use crate::vm::data_type::Value::{Int, Reference};
     use crate::vm::heap::Heap;
 
@@ -78,7 +78,7 @@ mod test {
         test_instruction!(
             heap: heap,
             start_stack: [Reference(0), Int(1), Int(2)],
-            instruction: Iastore; [],
+            instruction: IaStore; [],
             final_stack: [],
         );
 
@@ -99,7 +99,7 @@ mod test {
         test_instruction!(
             heap: heap,
             start_stack: [Reference(0), Int(4)],
-            instruction: Iaload; [],
+            instruction: IaLoad; [],
             final_stack: [Int(10)],
         );
     }

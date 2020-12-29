@@ -209,7 +209,7 @@ mod test {
     fn iload() {
         test_instruction!(
             start_locals: { 5 => 6 },
-            instruction: Iload; [0x05],
+            instruction: ILoad; [0x05],
             final_stack: [Int(6)],
         );
     }
@@ -218,7 +218,7 @@ mod test {
     fn iload0() {
         test_instruction!(
             start_locals: { 0 => 1 },
-            instruction: Iload0,
+            instruction: ILoad0,
             final_stack: [Int(1)],
         );
     }
@@ -227,7 +227,7 @@ mod test {
     fn iload1() {
         test_instruction!(
             start_locals: { 1 => 2 },
-            instruction: Iload1,
+            instruction: ILoad1,
             final_stack: [Int(2)],
         );
     }
@@ -236,7 +236,7 @@ mod test {
     fn iload2() {
         test_instruction!(
             start_locals: { 2 => 3 },
-            instruction: Iload2,
+            instruction: ILoad2,
             final_stack: [Int(3)],
         );
     }
@@ -245,7 +245,7 @@ mod test {
     fn iload3() {
         test_instruction!(
             start_locals: { 3 => 4 },
-            instruction: Iload3,
+            instruction: ILoad3,
             final_stack: [Int(4)],
         );
     }
@@ -254,7 +254,7 @@ mod test {
     fn lload() {
         test_instruction!(
             start_locals_long: { 4 => 8 },
-            instruction: Lload; [0x04],
+            instruction: LLoad; [0x04],
             final_stack: [Long(8)],
         );
     }
@@ -263,7 +263,7 @@ mod test {
     fn lload0() {
         test_instruction!(
             start_locals_long: { 0 => 1 },
-            instruction: Lload0,
+            instruction: LLoad0,
             final_stack: [Long(1)],
         );
     }
@@ -272,7 +272,7 @@ mod test {
     fn lload1() {
         test_instruction!(
             start_locals_long: { 1 => 2 },
-            instruction: Lload1,
+            instruction: LLoad1,
             final_stack: [Long(2)],
         );
     }
@@ -281,7 +281,7 @@ mod test {
     fn lload2() {
         test_instruction!(
             start_locals_long: { 2 => 3 },
-            instruction: Lload2,
+            instruction: LLoad2,
             final_stack: [Long(3)],
         );
     }
@@ -290,7 +290,7 @@ mod test {
     fn lload3() {
         test_instruction!(
             start_locals_long: { 3 => 4 },
-            instruction: Lload3,
+            instruction: LLoad3,
             final_stack: [Long(4)],
         );
     }
@@ -299,7 +299,7 @@ mod test {
     fn fload() {
         test_instruction!(
             start_locals: { 5 => 6.8_f32.to_bits() },
-            instruction: Fload; [0x05],
+            instruction: FLoad; [0x05],
             final_stack: [Float(6.8)],
         );
     }
@@ -308,7 +308,7 @@ mod test {
     fn fload0() {
         test_instruction!(
             start_locals: { 0 => 1.2_f32.to_bits() },
-            instruction: Fload0,
+            instruction: FLoad0,
             final_stack: [Float(1.2)],
         );
     }
@@ -317,7 +317,7 @@ mod test {
     fn fload1() {
         test_instruction!(
             start_locals: { 1 => 2.3_f32.to_bits() },
-            instruction: Fload1,
+            instruction: FLoad1,
             final_stack: [Float(2.3)],
         );
     }
@@ -326,7 +326,7 @@ mod test {
     fn fload2() {
         test_instruction!(
             start_locals: { 2 => 3.4_f32.to_bits() },
-            instruction: Fload2,
+            instruction: FLoad2,
             final_stack: [Float(3.4)],
         );
     }
@@ -335,7 +335,7 @@ mod test {
     fn fload3() {
         test_instruction!(
             start_locals: { 3 => 4.5_f32.to_bits() },
-            instruction: Fload3,
+            instruction: FLoad3,
             final_stack: [Float(4.5)],
         );
     }
@@ -344,7 +344,7 @@ mod test {
     fn dload() {
         test_instruction!(
             start_locals_long: { 4 => 5.6_f64.to_bits() },
-            instruction: Dload; [0x04],
+            instruction: DLoad; [0x04],
             final_stack: [Double(5.6)],
         );
     }
@@ -353,7 +353,7 @@ mod test {
     fn dload0() {
         test_instruction!(
             start_locals_long: { 0 => 1.2_f64.to_bits() },
-            instruction: Dload0,
+            instruction: DLoad0,
             final_stack: [Double(1.2)],
         );
     }
@@ -362,7 +362,7 @@ mod test {
     fn dload1() {
         test_instruction!(
             start_locals_long: { 1 => 2.3_f64.to_bits() },
-            instruction: Dload1,
+            instruction: DLoad1,
             final_stack: [Double(2.3)],
         );
     }
@@ -371,7 +371,7 @@ mod test {
     fn dload2() {
         test_instruction!(
             start_locals_long: { 2 => 3.4_f64.to_bits() },
-            instruction: Dload2,
+            instruction: DLoad2,
             final_stack: [Double(3.4)],
         );
     }
@@ -380,7 +380,7 @@ mod test {
     fn dload3() {
         test_instruction!(
             start_locals_long: { 3 => 4.5_f64.to_bits() },
-            instruction: Dload3,
+            instruction: DLoad3,
             final_stack: [Double(4.5)],
         );
     }
@@ -389,7 +389,7 @@ mod test {
     fn aload() {
         test_instruction!(
             start_locals: { 5 => 6 },
-            instruction: Aload; [0x05],
+            instruction: ALoad; [0x05],
             final_stack: [Reference(6)],
         );
     }
@@ -398,7 +398,7 @@ mod test {
     fn aload0() {
         test_instruction!(
             start_locals: { 0 => 1 },
-            instruction: Aload0,
+            instruction: ALoad0,
             final_stack: [Reference(1)],
         );
     }
@@ -407,7 +407,7 @@ mod test {
     fn aload1() {
         test_instruction!(
             start_locals: { 1 => 2 },
-            instruction: Aload1,
+            instruction: ALoad1,
             final_stack: [Reference(2)],
         );
     }
@@ -416,7 +416,7 @@ mod test {
     fn aload2() {
         test_instruction!(
             start_locals: { 2 => 3 },
-            instruction: Aload2,
+            instruction: ALoad2,
             final_stack: [Reference(3)],
         );
     }
@@ -425,7 +425,7 @@ mod test {
     fn aload3() {
         test_instruction!(
             start_locals: { 3 => 4 },
-            instruction: Aload3,
+            instruction: ALoad3,
             final_stack: [Reference(4)],
         );
     }
@@ -434,7 +434,7 @@ mod test {
     fn istore() {
         test_instruction!(
             start_stack: [Int(0), Int(0), Int(0), Int(0), Int(0), Int(10)],
-            instruction: Istore; [0x05],
+            instruction: IStore; [0x05],
             final_locals: { 5 => 10 },
         );
     }
@@ -443,7 +443,7 @@ mod test {
     fn istore0() {
         test_instruction!(
             start_stack: [Int(1)],
-            instruction: Istore0,
+            instruction: IStore0,
             final_locals: { 0 => 1 },
         );
     }
@@ -452,7 +452,7 @@ mod test {
     fn istore1() {
         test_instruction!(
             start_stack: [Int(2)],
-            instruction: Istore1,
+            instruction: IStore1,
             final_locals: { 1 => 2 },
         );
     }
@@ -461,7 +461,7 @@ mod test {
     fn istore2() {
         test_instruction!(
             start_stack: [Int(3)],
-            instruction: Istore2,
+            instruction: IStore2,
             final_locals: { 2 => 3 },
         );
     }
@@ -470,7 +470,7 @@ mod test {
     fn istore3() {
         test_instruction!(
             start_stack: [Int(4)],
-            instruction: Istore3,
+            instruction: IStore3,
             final_locals: { 3 => 4 },
         );
     }
@@ -479,7 +479,7 @@ mod test {
     fn lstore() {
         test_instruction!(
             start_stack: [Int(0), Int(0), Int(0), Int(0), Int(0), Long(10)],
-            instruction: Lstore; [0x05],
+            instruction: LStore; [0x05],
             final_locals_long: { 5 => 10 },
         );
     }
@@ -488,7 +488,7 @@ mod test {
     fn lstore0() {
         test_instruction!(
             start_stack: [Long(1)],
-            instruction: Lstore0,
+            instruction: LStore0,
             final_locals_long: { 0 => 1 },
         );
     }
@@ -497,7 +497,7 @@ mod test {
     fn lstore1() {
         test_instruction!(
             start_stack: [Long(2)],
-            instruction: Lstore1,
+            instruction: LStore1,
             final_locals_long: { 1 => 2 },
         );
     }
@@ -506,7 +506,7 @@ mod test {
     fn lstore2() {
         test_instruction!(
             start_stack: [Long(3)],
-            instruction: Lstore2,
+            instruction: LStore2,
             final_locals_long: { 2 => 3 },
         );
     }
@@ -515,7 +515,7 @@ mod test {
     fn lstore3() {
         test_instruction!(
             start_stack: [Long(4)],
-            instruction: Lstore3,
+            instruction: LStore3,
             final_locals_long: { 3 => 4 },
         );
     }
@@ -524,7 +524,7 @@ mod test {
     fn fstore() {
         test_instruction!(
             start_stack: [Int(0), Int(0), Int(0), Int(0), Int(0), Float(5.1)],
-            instruction: Fstore; [0x05],
+            instruction: FStore; [0x05],
             final_locals: { 5 => 5.1_f32.to_bits() },
         );
     }
@@ -533,7 +533,7 @@ mod test {
     fn fstore0() {
         test_instruction!(
             start_stack: [Float(1.1)],
-            instruction: Fstore0,
+            instruction: FStore0,
             final_locals: { 0 => 1.1_f32.to_bits() },
         );
     }
@@ -542,7 +542,7 @@ mod test {
     fn fstore1() {
         test_instruction!(
             start_stack: [Float(2.2)],
-            instruction: Fstore1,
+            instruction: FStore1,
             final_locals: { 1 => 2.2_f32.to_bits() },
         );
     }
@@ -551,7 +551,7 @@ mod test {
     fn fstore2() {
         test_instruction!(
             start_stack: [Float(3.3)],
-            instruction: Fstore2,
+            instruction: FStore2,
             final_locals: { 2 => 3.3_f32.to_bits() },
         );
     }
@@ -560,7 +560,7 @@ mod test {
     fn fstore3() {
         test_instruction!(
             start_stack: [Float(4.4)],
-            instruction: Fstore3,
+            instruction: FStore3,
             final_locals: { 3 => 4.4_f32.to_bits() },
         );
     }
@@ -569,7 +569,7 @@ mod test {
     fn dstore() {
         test_instruction!(
             start_stack: [Int(0), Int(0), Int(0), Int(0), Int(0), Double(5.1)],
-            instruction: Dstore; [0x05],
+            instruction: DStore; [0x05],
             final_locals_long: { 5 => 5.1_f64.to_bits() },
         );
     }
@@ -578,7 +578,7 @@ mod test {
     fn dstore0() {
         test_instruction!(
             start_stack: [Double(1.1)],
-            instruction: Dstore0,
+            instruction: DStore0,
             final_locals_long: { 0 => 1.1_f64.to_bits() },
         );
     }
@@ -587,7 +587,7 @@ mod test {
     fn dstore1() {
         test_instruction!(
             start_stack: [Double(2.2)],
-            instruction: Dstore1,
+            instruction: DStore1,
             final_locals_long: { 1 => 2.2_f64.to_bits() },
         );
     }
@@ -596,7 +596,7 @@ mod test {
     fn dstore2() {
         test_instruction!(
             start_stack: [Double(3.3)],
-            instruction: Dstore2,
+            instruction: DStore2,
             final_locals_long: { 2 => 3.3_f64.to_bits() },
         );
     }
@@ -605,7 +605,7 @@ mod test {
     fn dstore3() {
         test_instruction!(
             start_stack: [Double(4.4)],
-            instruction: Dstore3,
+            instruction: DStore3,
             final_locals_long: { 3 => 4.4_f64.to_bits() },
         );
     }
@@ -614,7 +614,7 @@ mod test {
     fn astore() {
         test_instruction!(
             start_stack: [Int(0), Int(0), Int(0), Int(0), Int(0), ReturnAddress(10)],
-            instruction: Astore; [0x05],
+            instruction: AStore; [0x05],
             final_locals: { 5 => 10 },
         );
     }
@@ -623,7 +623,7 @@ mod test {
     fn astore0() {
         test_instruction!(
             start_stack: [Reference(1)],
-            instruction: Astore0,
+            instruction: AStore0,
             final_locals: { 0 => 1 },
         );
     }
@@ -632,7 +632,7 @@ mod test {
     fn astore1() {
         test_instruction!(
             start_stack: [Reference(2)],
-            instruction: Astore1,
+            instruction: AStore1,
             final_locals: { 1 => 2 },
         );
     }
@@ -641,7 +641,7 @@ mod test {
     fn astore2() {
         test_instruction!(
             start_stack: [Reference(3)],
-            instruction: Astore2,
+            instruction: AStore2,
             final_locals: { 2 => 3 },
         );
     }
@@ -650,7 +650,7 @@ mod test {
     fn astore3() {
         test_instruction!(
             start_stack: [Reference(4)],
-            instruction: Astore3,
+            instruction: AStore3,
             final_locals: { 3 => 4 },
         );
     }
@@ -658,7 +658,7 @@ mod test {
     #[test]
     fn bipush() {
         test_instruction!(
-            instruction: Bipush; [0x05],
+            instruction: BiPush; [0x05],
             final_stack: [Int(5)],
         );
     }
@@ -666,7 +666,7 @@ mod test {
     #[test]
     fn sipush() {
         test_instruction!(
-            instruction: Sipush; [0x01, 0x10],
+            instruction: SiPush; [0x01, 0x10],
             final_stack: [Short(272)],
         );
     }

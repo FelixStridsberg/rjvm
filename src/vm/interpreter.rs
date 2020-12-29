@@ -9,7 +9,7 @@ mod method_invocation_and_return;
 mod object_creation_and_manipulation;
 mod stack_management;
 
-use crate::class::code::Instruction;
+use crate::class::code::{Instruction, Opcode};
 use crate::class::code::Opcode::*;
 use crate::error::Result;
 use crate::vm::data_type::Value::{Double, Float, Int, Long, Null, Reference};
@@ -45,151 +45,153 @@ fn interpret_instruction(
     instruction: &Instruction,
 ) -> Result<Option<Command>> {
     match &instruction.opcode {
+        Nop => {}
+
         // Load and store:
-        Iload => load_int(frame, &instruction.operands),
-        Iload0 => load_int_n(frame, 0),
-        Iload1 => load_int_n(frame, 1),
-        Iload2 => load_int_n(frame, 2),
-        Iload3 => load_int_n(frame, 3),
+        ILoad => load_int(frame, &instruction.operands),
+        ILoad0 => load_int_n(frame, 0),
+        ILoad1 => load_int_n(frame, 1),
+        ILoad2 => load_int_n(frame, 2),
+        ILoad3 => load_int_n(frame, 3),
 
-        Lload => load_long(frame, &instruction.operands),
-        Lload0 => load_long_n(frame, 0),
-        Lload1 => load_long_n(frame, 1),
-        Lload2 => load_long_n(frame, 2),
-        Lload3 => load_long_n(frame, 3),
+        LLoad => load_long(frame, &instruction.operands),
+        LLoad0 => load_long_n(frame, 0),
+        LLoad1 => load_long_n(frame, 1),
+        LLoad2 => load_long_n(frame, 2),
+        LLoad3 => load_long_n(frame, 3),
 
-        Fload => load_float(frame, &instruction.operands),
-        Fload0 => load_float_n(frame, 0),
-        Fload1 => load_float_n(frame, 1),
-        Fload2 => load_float_n(frame, 2),
-        Fload3 => load_float_n(frame, 3),
+        FLoad => load_float(frame, &instruction.operands),
+        FLoad0 => load_float_n(frame, 0),
+        FLoad1 => load_float_n(frame, 1),
+        FLoad2 => load_float_n(frame, 2),
+        FLoad3 => load_float_n(frame, 3),
 
-        Dload => load_double(frame, &instruction.operands),
-        Dload0 => load_double_n(frame, 0),
-        Dload1 => load_double_n(frame, 1),
-        Dload2 => load_double_n(frame, 2),
-        Dload3 => load_double_n(frame, 3),
+        DLoad => load_double(frame, &instruction.operands),
+        DLoad0 => load_double_n(frame, 0),
+        DLoad1 => load_double_n(frame, 1),
+        DLoad2 => load_double_n(frame, 2),
+        DLoad3 => load_double_n(frame, 3),
 
-        Aload => load_reference(frame, &instruction.operands),
-        Aload0 => load_reference_n(frame, 0),
-        Aload1 => load_reference_n(frame, 1),
-        Aload2 => load_reference_n(frame, 2),
-        Aload3 => load_reference_n(frame, 3),
+        ALoad => load_reference(frame, &instruction.operands),
+        ALoad0 => load_reference_n(frame, 0),
+        ALoad1 => load_reference_n(frame, 1),
+        ALoad2 => load_reference_n(frame, 2),
+        ALoad3 => load_reference_n(frame, 3),
 
-        Istore => store_int(frame, &instruction.operands)?,
-        Istore0 => store_int_n(frame, 0)?,
-        Istore1 => store_int_n(frame, 1)?,
-        Istore2 => store_int_n(frame, 2)?,
-        Istore3 => store_int_n(frame, 3)?,
+        IStore => store_int(frame, &instruction.operands)?,
+        IStore0 => store_int_n(frame, 0)?,
+        IStore1 => store_int_n(frame, 1)?,
+        IStore2 => store_int_n(frame, 2)?,
+        IStore3 => store_int_n(frame, 3)?,
 
-        Lstore => store_long(frame, &instruction.operands)?,
-        Lstore0 => store_long_n(frame, 0)?,
-        Lstore1 => store_long_n(frame, 1)?,
-        Lstore2 => store_long_n(frame, 2)?,
-        Lstore3 => store_long_n(frame, 3)?,
+        LStore => store_long(frame, &instruction.operands)?,
+        LStore0 => store_long_n(frame, 0)?,
+        LStore1 => store_long_n(frame, 1)?,
+        LStore2 => store_long_n(frame, 2)?,
+        LStore3 => store_long_n(frame, 3)?,
 
-        Fstore => store_float(frame, &instruction.operands)?,
-        Fstore0 => store_float_n(frame, 0)?,
-        Fstore1 => store_float_n(frame, 1)?,
-        Fstore2 => store_float_n(frame, 2)?,
-        Fstore3 => store_float_n(frame, 3)?,
+        FStore => store_float(frame, &instruction.operands)?,
+        FStore0 => store_float_n(frame, 0)?,
+        FStore1 => store_float_n(frame, 1)?,
+        FStore2 => store_float_n(frame, 2)?,
+        FStore3 => store_float_n(frame, 3)?,
 
-        Dstore => store_double(frame, &instruction.operands)?,
-        Dstore0 => store_double_n(frame, 0)?,
-        Dstore1 => store_double_n(frame, 1)?,
-        Dstore2 => store_double_n(frame, 2)?,
-        Dstore3 => store_double_n(frame, 3)?,
+        DStore => store_double(frame, &instruction.operands)?,
+        DStore0 => store_double_n(frame, 0)?,
+        DStore1 => store_double_n(frame, 1)?,
+        DStore2 => store_double_n(frame, 2)?,
+        DStore3 => store_double_n(frame, 3)?,
 
-        Astore => store_reference(frame, &instruction.operands)?,
-        Astore0 => store_reference_n(frame, 0)?,
-        Astore1 => store_reference_n(frame, 1)?,
-        Astore2 => store_reference_n(frame, 2)?,
-        Astore3 => store_reference_n(frame, 3)?,
+        AStore => store_reference(frame, &instruction.operands)?,
+        AStore0 => store_reference_n(frame, 0)?,
+        AStore1 => store_reference_n(frame, 1)?,
+        AStore2 => store_reference_n(frame, 2)?,
+        AStore3 => store_reference_n(frame, 3)?,
 
-        Bipush => push_byte(frame, &instruction.operands),
-        Sipush => push_short(frame, &instruction.operands),
+        BiPush => push_byte(frame, &instruction.operands),
+        SiPush => push_short(frame, &instruction.operands),
         Ldc => push_constant(frame, &instruction.operands)?,
         LdcW => push_constant_wide(frame, &instruction.operands)?,
         Ldc2W => push_constant_long(frame, &instruction.operands)?,
-        AconstNull => push_null(frame),
+        AConstNull => push_null(frame),
 
-        IconstM1 => frame.push_operand(Int(-1)),
-        Iconst0 => frame.push_operand(Int(0)),
-        Iconst1 => frame.push_operand(Int(1)),
-        Iconst2 => frame.push_operand(Int(2)),
-        Iconst3 => frame.push_operand(Int(3)),
-        Iconst4 => frame.push_operand(Int(4)),
-        Iconst5 => frame.push_operand(Int(5)),
+        IConstM1 => frame.push_operand(Int(-1)),
+        IConst0 => frame.push_operand(Int(0)),
+        IConst1 => frame.push_operand(Int(1)),
+        IConst2 => frame.push_operand(Int(2)),
+        IConst3 => frame.push_operand(Int(3)),
+        IConst4 => frame.push_operand(Int(4)),
+        IConst5 => frame.push_operand(Int(5)),
 
-        Lconst0 => frame.push_operand(Long(0)),
-        Lconst1 => frame.push_operand(Long(1)),
+        LConst0 => frame.push_operand(Long(0)),
+        LConst1 => frame.push_operand(Long(1)),
 
-        Fconst0 => frame.push_operand(Float(0.0)),
-        Fconst1 => frame.push_operand(Float(1.0)),
-        Fconst2 => frame.push_operand(Float(2.0)),
+        FConst0 => frame.push_operand(Float(0.0)),
+        FConst1 => frame.push_operand(Float(1.0)),
+        FConst2 => frame.push_operand(Float(2.0)),
 
-        Dconst0 => frame.push_operand(Double(0.0)),
-        Dconst1 => frame.push_operand(Double(1.0)),
+        DConst0 => frame.push_operand(Double(0.0)),
+        DConst1 => frame.push_operand(Double(1.0)),
 
         Wide => unimplemented!("wide not implemented."),
 
         // Arithmetic:
-        Iadd => add_int(frame),
-        Ladd => add_long(frame),
-        Fadd => add_float(frame),
-        Dadd => add_double(frame),
+        IAdd => add_int(frame),
+        LAdd => add_long(frame),
+        FAdd => add_float(frame),
+        DAdd => add_double(frame),
 
         Isub => sub_int(frame),
-        Lsub => sub_long(frame),
-        Fsub => sub_float(frame),
-        Dsub => sub_double(frame),
+        LSub => sub_long(frame),
+        FSub => sub_float(frame),
+        DSub => sub_double(frame),
 
-        Imul => mul_int(frame),
-        Lmul => mul_long(frame),
-        Fmul => mul_float(frame),
-        Dmul => mul_double(frame),
+        IMul => mul_int(frame),
+        LMul => mul_long(frame),
+        FMul => mul_float(frame),
+        DMul => mul_double(frame),
 
-        Idiv => div_int(frame),
-        Ldiv => div_long(frame),
-        Fdiv => div_float(frame),
-        Ddiv => div_double(frame),
+        IDiv => div_int(frame),
+        LDiv => div_long(frame),
+        FDiv => div_float(frame),
+        DDiv => div_double(frame),
 
-        Irem => rem_int(frame),
-        Lrem => rem_long(frame),
-        Frem => rem_float(frame),
-        Drem => rem_double(frame),
+        IRem => rem_int(frame),
+        LRem => rem_long(frame),
+        FRem => rem_float(frame),
+        DRem => rem_double(frame),
 
-        Ineg => neg_int(frame),
-        Lneg => neg_long(frame),
-        Fneg => neg_float(frame),
-        Dneg => neg_double(frame),
+        INeg => neg_int(frame),
+        LNeg => neg_long(frame),
+        FNeg => neg_float(frame),
+        DNeg => neg_double(frame),
 
-        Ishl => int_shift_left(frame),
-        Ishr => int_shift_right(frame),
-        Iushr => int_logical_shift_right(frame),
+        IShl => int_shift_left(frame),
+        IShr => int_shift_right(frame),
+        IUshr => int_logical_shift_right(frame),
 
-        Lshl => long_shift_left(frame),
-        Lshr => long_shift_right(frame),
-        Lushr => long_logical_shift_right(frame),
+        LShl => long_shift_left(frame),
+        LShr => long_shift_right(frame),
+        LUshr => long_logical_shift_right(frame),
 
-        Ior => int_bitwise_or(frame),
-        Lor => long_bitwise_or(frame),
+        IOr => int_bitwise_or(frame),
+        LOr => long_bitwise_or(frame),
 
-        Iand => int_bitwise_and(frame),
-        Land => long_bitwise_and(frame),
+        IAnd => int_bitwise_and(frame),
+        LAnd => long_bitwise_and(frame),
 
         Ixor => int_bitwise_exclusive_or(frame),
-        Lxor => long_bitwise_exclusive_or(frame),
+        LXor => long_bitwise_exclusive_or(frame),
 
-        Iinc => int_increase(frame, &instruction.operands),
+        IInc => int_increase(frame, &instruction.operands),
 
-        Dcmpg => double_compare_g(frame),
-        Dcmpl => double_compare_l(frame),
+        DCmpg => double_compare_g(frame),
+        DCmpl => double_compare_l(frame),
 
-        Fcmpg => float_compare_g(frame),
-        Fcmpl => float_compare_l(frame),
+        FCmpg => float_compare_g(frame),
+        FCmpl => float_compare_l(frame),
 
-        Lcmp => long_compare(frame),
+        LCmp => long_compare(frame),
 
         // Conversion:
         I2l => int_to_long(frame),
@@ -209,19 +211,42 @@ fn interpret_instruction(
         D2l => double_to_long(frame),
         D2f => double_to_float(frame),
 
+
         // Object creation and manipulation:
-        // TODO
-        NewArray => new_array(frame, heap, &instruction.operands)?,
-        ArrayLength => array_length(frame, heap)?,
         New => new_object(frame, heap, &instruction.operands),
 
-        Iastore => int_array_store(frame, heap),
-        Iaload => int_array_load(frame, heap),
+        NewArray => new_array(frame, heap, &instruction.operands)?,
+        // Anewarray => TODO
+        // Multianewarray => TODO
 
-        PutField => return Ok(Some(VMPutField(reference(&instruction.operands)))),
         GetField => return Ok(Some(VMGetField(reference(&instruction.operands)))),
+        PutField => return Ok(Some(VMPutField(reference(&instruction.operands)))),
+        GetStatic => return Ok(Some(VMGetStatic(reference(&instruction.operands)))),
         PutStatic => return Ok(Some(VMPutStatic(reference(&instruction.operands)))),
-        Getstatic => return Ok(Some(VMGetStatic(reference(&instruction.operands)))),
+
+        // Baload => TODO
+        // Caload => TODO
+        // Saload => TODO
+        IaLoad => int_array_load(frame, heap),
+        // Laload => TODO
+        // Faload => TODO
+        // Daload => TODO
+        // Aaload => TODO
+
+        // Bastore => TODO
+        // Castore => TODO
+        // Sastore => TODO
+        IaStore => int_array_store(frame, heap),
+        // Lastore => TODO
+        // Fastore => TODO
+        // Dastore => TODO
+        // Aastore => TODO
+
+        ArrayLength => array_length(frame, heap)?,
+
+        // Checkcast => TODO
+        // Instanceof => TODO
+
 
         // Operand stack management:
         Pop => pop_operand(frame),
@@ -233,6 +258,7 @@ fn interpret_instruction(
         DupX2 => duplicate_operand_back2(frame),
         Dup2X2 => duplicate_operand_long_back2(frame),
         Swap => swap_operand(frame),
+
 
         // Control transfer:
         IfEq => if_equals(frame, &instruction.operands),
@@ -262,31 +288,43 @@ fn interpret_instruction(
         JsrW => jump_subroutine_wide(frame, &instruction.operands),
         Ret => return_from_subroutine(frame, &instruction.operands),
 
+
         // Method invocation and return
-        // TODO
+        InvokeVirtual => return Ok(Some(VMInvokeVirtual(reference(&instruction.operands)))),
+        // Invokeinterface => TODO
+        InvokeSpecial => return Ok(Some(VMInvokeSpecial(reference(&instruction.operands)))),
+        InvokeStatic => return Ok(Some(VMInvokeStatic(reference(&instruction.operands)))),
+        // Invokedynamic => TODO
+
         Return => return Ok(Some(VMReturn(Null))),
-        Ireturn => return Ok(Some(VMReturn(Int(frame.pop_operand().expect_int())))),
-        Lreturn => return Ok(Some(VMReturn(Long(frame.pop_operand().expect_long())))),
-        Freturn => return Ok(Some(VMReturn(Float(frame.pop_operand().expect_float())))),
-        Dreturn => return Ok(Some(VMReturn(Double(frame.pop_operand().expect_double())))),
-        Areturn => {
+        IReturn => return Ok(Some(VMReturn(Int(frame.pop_operand().expect_int())))),
+        LReturn => return Ok(Some(VMReturn(Long(frame.pop_operand().expect_long())))),
+        FReturn => return Ok(Some(VMReturn(Float(frame.pop_operand().expect_float())))),
+        DReturn => return Ok(Some(VMReturn(Double(frame.pop_operand().expect_double())))),
+        AReturn => {
             return Ok(Some(VMReturn(Reference(
                 frame.pop_operand().expect_reference(),
             ))))
         }
 
-        Invokespecial => return Ok(Some(VMInvokeSpecial(reference(&instruction.operands)))),
-        Invokestatic => return Ok(Some(VMInvokeStatic(reference(&instruction.operands)))),
-        Invokevirtual => return Ok(Some(VMInvokeVirtual(reference(&instruction.operands)))),
 
         // Throwing exceptions:
-        Athrow => return Ok(Some(VMException())),
+        AThrow => return Ok(Some(VMException())),
 
+        // Implementation specific
         OperationSpacer => panic!("Tried to parse operation as instruction in {}", frame),
+        ImpDep2 => eprintln!("ImpDep2 not implemented"),
+        BreakPoint => eprintln!("Breakpoint not implemented"),
+
         _ => unimplemented!(
             "Opcode {:?} is not implemented in interpreter",
             instruction.opcode
         ),
+
+
+        // Synchronization
+        // MonitorEnter => TODO
+        // MonitorExit => TODO
     }
 
     Ok(None)
