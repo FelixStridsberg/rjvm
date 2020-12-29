@@ -222,7 +222,7 @@ fn interpret_instruction(
         PutStatic => return Ok(Some(VMPutStatic(reference(&instruction.operands)))),
 
         BaLoad => byte_array_load(frame, heap),
-        // CaLoad => TODO
+        CaLoad => char_array_load(frame, heap),
         // SaLoad => TODO
         IaLoad => int_array_load(frame, heap),
         // LaLoad => TODO
@@ -230,7 +230,7 @@ fn interpret_instruction(
         // DaLoad => TODO
         // AaLoad => TODO
         BaStore => byte_array_store(frame, heap),
-        // CaStore => TODO
+        CaStore => char_array_store(frame, heap),
         // SaStore => TODO
         IaStore => int_array_store(frame, heap),
         // LaStore => TODO

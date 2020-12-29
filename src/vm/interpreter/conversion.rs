@@ -39,7 +39,7 @@ pub fn int_to_byte(frame: &mut Frame) {
 
 pub fn int_to_char(frame: &mut Frame) {
     let int: IntType = frame.pop_operand().expect_int();
-    frame.push_operand(Char(int as u8 as char));
+    frame.push_operand(Int(int as u8 as char as IntType));
 }
 
 pub fn int_to_short(frame: &mut Frame) {
@@ -150,7 +150,7 @@ mod test {
         test_instruction!(
             start_stack: [Int(65)],
             instruction: I2c,
-            final_stack: [Char('A')],
+            final_stack: [Int('A' as i32)],
         );
     }
 

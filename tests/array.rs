@@ -14,6 +14,14 @@ fn byte_array() {
 }
 
 #[test]
+fn char_array() {
+    assert_eq!(
+        java::run_method("test_data/Array", "char_array"),
+        Int('b' as i32)
+    );
+}
+
+#[test]
 fn array_length() {
     assert_eq!(
         java::run_method("test_data/Array", "array_length"),
