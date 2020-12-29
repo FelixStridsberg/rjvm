@@ -5,11 +5,22 @@ use core::fmt;
 pub struct Instruction {
     pub opcode: Opcode,
     pub operands: Vec<u8>,
+    pad: u8,
 }
 
 impl Instruction {
     pub fn new(opcode: Opcode, operands: Vec<u8>) -> Self {
-        Instruction { opcode, operands }
+        Instruction {
+            opcode,
+            operands,
+            pad: 0,
+        }
+    }
+
+    pub fn new_with_pad(opcode: Opcode, operands: Vec<u8>, pad: u8) -> Self {
+        let mut instruction = Self::new(opcode, operands);
+        instruction.pad = pad;
+        instruction
     }
 
     pub fn operation_spacer() -> Self {
@@ -17,7 +28,7 @@ impl Instruction {
     }
 
     pub fn size(&self) -> u16 {
-        1 + self.operands.len() as u16
+        1 + self.operands.len() as u16 + self.pad as u16
     }
 }
 

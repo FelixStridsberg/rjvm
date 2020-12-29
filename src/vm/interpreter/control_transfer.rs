@@ -5,49 +5,49 @@ use crate::vm::frame::Frame;
 
 pub fn if_equals(frame: &mut Frame, operands: &[u8]) {
     if frame.pop_operand().expect_int() == 0 {
-        frame.pc_offset(offset(operands));
+        frame.pc_offset(bytes_to_i16(operands));
     }
 }
 
 pub fn if_not_equals(frame: &mut Frame, operands: &[u8]) {
     if frame.pop_operand().expect_int() != 0 {
-        frame.pc_offset(offset(operands));
+        frame.pc_offset(bytes_to_i16(operands));
     }
 }
 
 pub fn if_less_than(frame: &mut Frame, operands: &[u8]) {
     if frame.pop_operand().expect_int() < 0 {
-        frame.pc_offset(offset(operands));
+        frame.pc_offset(bytes_to_i16(operands));
     }
 }
 
 pub fn if_less_than_inclusive(frame: &mut Frame, operands: &[u8]) {
     if frame.pop_operand().expect_int() <= 0 {
-        frame.pc_offset(offset(operands));
+        frame.pc_offset(bytes_to_i16(operands));
     }
 }
 
 pub fn if_greater_than(frame: &mut Frame, operands: &[u8]) {
     if frame.pop_operand().expect_int() > 0 {
-        frame.pc_offset(offset(operands));
+        frame.pc_offset(bytes_to_i16(operands));
     }
 }
 
 pub fn if_greater_than_inclusive(frame: &mut Frame, operands: &[u8]) {
     if frame.pop_operand().expect_int() >= 0 {
-        frame.pc_offset(offset(operands));
+        frame.pc_offset(bytes_to_i16(operands));
     }
 }
 
 pub fn if_null(frame: &mut Frame, operands: &[u8]) {
     if matches!(frame.pop_operand(), Value::Null) {
-        frame.pc_offset(offset(operands));
+        frame.pc_offset(bytes_to_i16(operands));
     }
 }
 
 pub fn if_non_null(frame: &mut Frame, operands: &[u8]) {
     if !matches!(frame.pop_operand(), Value::Null) {
-        frame.pc_offset(offset(operands));
+        frame.pc_offset(bytes_to_i16(operands));
     }
 }
 
@@ -55,7 +55,7 @@ pub fn if_int_equals(frame: &mut Frame, operands: &[u8]) {
     let value1 = frame.pop_operand().expect_int();
     let value2 = frame.pop_operand().expect_int();
     if value1 == value2 {
-        frame.pc_offset(offset(operands));
+        frame.pc_offset(bytes_to_i16(operands));
     }
 }
 
@@ -63,7 +63,7 @@ pub fn if_int_not_equals(frame: &mut Frame, operands: &[u8]) {
     let value1 = frame.pop_operand().expect_int();
     let value2 = frame.pop_operand().expect_int();
     if value1 != value2 {
-        frame.pc_offset(offset(operands));
+        frame.pc_offset(bytes_to_i16(operands));
     }
 }
 
@@ -71,7 +71,7 @@ pub fn if_int_less_than(frame: &mut Frame, operands: &[u8]) {
     let value1 = frame.pop_operand().expect_int();
     let value2 = frame.pop_operand().expect_int();
     if value1 < value2 {
-        frame.pc_offset(offset(operands));
+        frame.pc_offset(bytes_to_i16(operands));
     }
 }
 
@@ -79,7 +79,7 @@ pub fn if_int_less_than_inclusive(frame: &mut Frame, operands: &[u8]) {
     let value1 = frame.pop_operand().expect_int();
     let value2 = frame.pop_operand().expect_int();
     if value1 <= value2 {
-        frame.pc_offset(offset(operands));
+        frame.pc_offset(bytes_to_i16(operands));
     }
 }
 
@@ -87,7 +87,7 @@ pub fn if_int_greater_than(frame: &mut Frame, operands: &[u8]) {
     let value1 = frame.pop_operand().expect_int();
     let value2 = frame.pop_operand().expect_int();
     if value1 > value2 {
-        frame.pc_offset(offset(operands));
+        frame.pc_offset(bytes_to_i16(operands));
     }
 }
 
@@ -95,7 +95,7 @@ pub fn if_int_greater_than_inclusive(frame: &mut Frame, operands: &[u8]) {
     let value1 = frame.pop_operand().expect_int();
     let value2 = frame.pop_operand().expect_int();
     if value1 >= value2 {
-        frame.pc_offset(offset(operands));
+        frame.pc_offset(bytes_to_i16(operands));
     }
 }
 
@@ -103,7 +103,7 @@ pub fn if_reference_equals(frame: &mut Frame, operands: &[u8]) {
     let value1 = frame.pop_operand().expect_reference();
     let value2 = frame.pop_operand().expect_reference();
     if value1 == value2 {
-        frame.pc_offset(offset(operands));
+        frame.pc_offset(bytes_to_i16(operands));
     }
 }
 
@@ -111,26 +111,45 @@ pub fn if_reference_not_equals(frame: &mut Frame, operands: &[u8]) {
     let value1 = frame.pop_operand().expect_reference();
     let value2 = frame.pop_operand().expect_reference();
     if value1 != value2 {
-        frame.pc_offset(offset(operands));
+        frame.pc_offset(bytes_to_i16(operands));
     }
 }
 
+pub fn lookup_switch(frame: &mut Frame, operands: &[u8]) {
+    let key = frame.pop_operand().expect_int();
+    let mut offset = bytes_to_i32(&operands[0..4]);
+    let len = bytes_to_i32(&operands[4..8]);
+
+    for i in 0..len {
+        let o = (8 + i * 8) as usize;
+        let lookup_match = bytes_to_i32(&operands[o..(o + 4)]);
+        let lookup_offset = bytes_to_i32(&operands[(o + 4)..(o + 8)]);
+
+        if key == lookup_match {
+            offset = lookup_offset;
+            break;
+        }
+    }
+
+    frame.pc_offset_wide(offset);
+}
+
 pub fn goto(frame: &mut Frame, operands: &[u8]) {
-    frame.pc_offset(offset(operands));
+    frame.pc_offset(bytes_to_i16(operands));
 }
 
 pub fn goto_wide(frame: &mut Frame, operands: &[u8]) {
-    frame.pc_offset_wide(offset_wide(operands));
+    frame.pc_offset_wide(bytes_to_i32(operands));
 }
 
 pub fn jump_subroutine(frame: &mut Frame, operands: &[u8]) {
     frame.push_operand(ReturnAddress(frame.pc as ReturnAddressType));
-    frame.pc_offset(offset(operands));
+    frame.pc_offset(bytes_to_i16(operands));
 }
 
 pub fn jump_subroutine_wide(frame: &mut Frame, operands: &[u8]) {
     frame.push_operand(ReturnAddress(frame.pc as ReturnAddressType));
-    frame.pc_offset_wide(offset_wide(operands));
+    frame.pc_offset_wide(bytes_to_i32(operands));
 }
 
 pub fn return_from_subroutine(frame: &mut Frame, operands: &[u8]) {
@@ -139,11 +158,11 @@ pub fn return_from_subroutine(frame: &mut Frame, operands: &[u8]) {
     frame.pc_offset(offset);
 }
 
-fn offset(bytes: &[u8]) -> i16 {
+fn bytes_to_i16(bytes: &[u8]) -> i16 {
     (bytes[0] as i16) << 8 | bytes[1] as i16
 }
 
-fn offset_wide(bytes: &[u8]) -> i32 {
+fn bytes_to_i32(bytes: &[u8]) -> i32 {
     (bytes[0] as i32) << 24 | (bytes[1] as i32) << 16 | (bytes[2] as i32) << 8 | bytes[3] as i32
 }
 

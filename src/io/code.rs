@@ -14,26 +14,81 @@ impl<'r, R: BufRead> CodeReader<'r, R> {
     }
 
     pub fn read_code(&mut self) -> Result<Vec<Instruction>> {
-        let mut byte_count = self.reader.read_u4()?;
+        let byte_count = self.reader.read_u4()?;
+        let mut byte_pos = 0;
         let mut code = Vec::with_capacity(byte_count as usize);
 
         loop {
             let (opcode, argc) = self.read_opcode()?;
-            let operands = self.reader.read_bytes(argc as usize)?;
-            code.push(Instruction::new(opcode, operands));
+            let (mut instructions, byte_len) =
+                if !matches!(opcode, LookupSwitch /*| TableSwitch |  | Wide TODO*/) {
+                    self.read_static_width_instruction(opcode, argc)?
+                } else {
+                    self.read_dynamic_width_instruction(opcode, byte_pos + 1)?
+                };
 
-            for _ in 0..argc {
-                code.push(Instruction::operation_spacer());
-            }
+            code.append(&mut instructions);
 
-            // Must do this to keep the indexes correct.
-            byte_count -= 1 + argc as u32;
-            if byte_count == 0 {
+            byte_pos += byte_len;
+            if byte_count == byte_pos {
                 break;
             }
         }
-
         Ok(code)
+    }
+
+    fn read_static_width_instruction(
+        &mut self,
+        opcode: Opcode,
+        argc: u8,
+    ) -> Result<(Vec<Instruction>, u32)> {
+        let mut code = Vec::new();
+
+        let operands = self.reader.read_bytes(argc as usize)?;
+        code.push(Instruction::new(opcode, operands));
+
+        // Must add spacers to keep the indexes correct.
+        for _ in 0..argc {
+            code.push(Instruction::operation_spacer());
+        }
+
+        Ok((code, 1 + argc as u32))
+    }
+
+    fn read_dynamic_width_instruction(
+        &mut self,
+        opcode: Opcode,
+        byte_pos: u32,
+    ) -> Result<(Vec<Instruction>, u32)> {
+        let mut operands = Vec::new();
+        let pad = (4 - byte_pos % 4) % 4;
+
+        self.reader.read_bytes(pad as usize)?; // Skip padding
+
+        let mut default_jump_bytes = self.reader.read_bytes(4)?;
+        let mut num_pairs_bytes = self.reader.read_bytes(4)?;
+
+        let num_pairs = (num_pairs_bytes[0] as u32) << 24
+            | (num_pairs_bytes[1] as u32) << 16
+            | (num_pairs_bytes[2] as u32) << 8
+            | num_pairs_bytes[3] as u32;
+
+        let mut match_offset_pairs = self.reader.read_bytes(num_pairs as usize * 8)?;
+
+        operands.append(&mut default_jump_bytes);
+        operands.append(&mut num_pairs_bytes);
+        operands.append(&mut match_offset_pairs);
+
+        let mut code = Vec::new();
+        let byte_len = 1 + operands.len() as u32 + pad;
+        code.push(Instruction::new_with_pad(opcode, operands, pad as u8));
+
+        // Must add spacers to keep the indexes correct.
+        for _ in 0..byte_len {
+            code.push(Instruction::operation_spacer());
+        }
+
+        Ok((code, byte_len))
     }
 
     fn read_opcode(&mut self) -> Result<(Opcode, u8)> {
@@ -208,7 +263,7 @@ impl<'r, R: BufRead> CodeReader<'r, R> {
             0x21 => (Lload3, 0),
             0x69 => (Lmul, 0),
             0x75 => (Lneg, 0),
-            //            0xab => (LookupSwitch, variable)
+            0xab => (LookupSwitch, 0), // Variable width
             0x81 => (Lor, 0),
             0x71 => (Lrem, 0),
             0xad => (Lreturn, 0),
@@ -275,6 +330,55 @@ mod test {
                 Instruction::operation_spacer(),
                 Instruction::operation_spacer(),
                 Instruction::new(Return, vec![]),
+            ]
+        );
+    }
+
+    #[test]
+    fn read_lookup_switch() {
+        let mut data = Cursor::new(vec![
+            0x00, 0x00, 0x00, 0x14, // Length
+            0xab, // Opcode
+            0x00, 0x00, 0x00, // Padding
+            0x00, 0x00, 0x00, 0x01, // Default
+            0x00, 0x00, 0x00, 0x01, // npairs
+            0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x02, // match offset pair
+        ]);
+
+        let mut reader = CodeReader::new(&mut data);
+        let instructions = reader.read_code().unwrap();
+
+        assert_eq!(
+            instructions,
+            vec![
+                Instruction::new_with_pad(
+                    LookupSwitch,
+                    vec![
+                        0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02,
+                        0x00, 0x00, 0x00, 0x02
+                    ],
+                    3
+                ),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
+                Instruction::operation_spacer(),
             ]
         );
     }

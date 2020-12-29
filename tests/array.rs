@@ -1,6 +1,4 @@
-use rjvm::vm::class_loader::ClassLoader;
 use rjvm::vm::data_type::Value::Int;
-use rjvm::vm::VirtualMachine;
 
 #[path = "./java_utils.rs"]
 mod java;

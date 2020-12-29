@@ -301,10 +301,11 @@ fn interpret_instruction(
             if_reference_not_equals(frame, &instruction.operands);
             return Ok(None);
         }
-
         TableSwitch => panic!("TableSwitch not implemented"),
-        LookupSwitch => panic!("LookupSwitch not implemented"),
-
+        LookupSwitch => {
+            lookup_switch(frame, &instruction.operands);
+            return Ok(None);
+        }
         Goto => {
             goto(frame, &instruction.operands);
             return Ok(None);
@@ -342,7 +343,7 @@ fn interpret_instruction(
         // Throwing exceptions:
         Athrow => command = Some(VMException()),
 
-        OperationSpacer => panic!("Tried to parse operation as instruction in {:?}", frame),
+        OperationSpacer => panic!("Tried to parse operation as instruction in {}", frame),
         _ => unimplemented!(
             "Opcode {:?} is not implemented in interpreter",
             instruction.opcode
