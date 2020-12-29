@@ -70,6 +70,7 @@ pub struct Class {
 
 impl Class {
     // Only used by tests, probably put somewhere else?
+    #[cfg(test)]
     pub(crate) fn from_constant_pool(constants: ConstantPool) -> Class {
         Class {
             version: Version { minor: 0, major: 0 },

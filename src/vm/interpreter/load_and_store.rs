@@ -172,12 +172,15 @@ pub fn push_constant_wide(frame: &mut Frame, operands: &[u8]) -> Result<()> {
 }
 
 fn push_constant_index(frame: &mut Frame, index: u16) -> Result<()> {
-    match frame.class.constants.get(index) {
-        Constant::Integer(i) => frame.push_operand(Int(*i)),
-        Constant::Float(f) => frame.push_operand(Float(*f)),
+    let value = match frame.class.constants.get(index) {
+        Constant::Integer(i) => Int(*i),
+        Constant::Float(f) => Float(*f),
         // TODO reference and reference resolution
         constant => runtime_error!("ldc not implemented for constant {:?}", constant),
-    }
+    };
+
+    frame.push_operand(value);
+
     Ok(())
 }
 
@@ -186,12 +189,15 @@ pub fn push_constant_long(frame: &mut Frame, operands: &[u8]) -> Result<()> {
     let index_b2 = operands[1] as u16;
     let index = (index_b1 << 2) | index_b2;
 
-    match frame.class.constants.get(index) {
-        Constant::Long(l) => frame.push_operand(Long(*l)),
-        Constant::Double(d) => frame.push_operand(Double(*d)),
+    let value = match frame.class.constants.get(index) {
+        Constant::Long(l) => Long(*l),
+        Constant::Double(d) => Double(*d),
         // TODO reference and reference resolution
         constant => runtime_error!("ldc2w not implemented for constant {:?}", constant),
-    }
+    };
+
+    frame.push_operand(value);
+
     Ok(())
 }
 

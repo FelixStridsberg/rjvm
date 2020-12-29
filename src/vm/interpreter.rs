@@ -9,7 +9,7 @@ mod method_invocation_and_return;
 mod object_creation_and_manipulation;
 mod stack_management;
 
-use crate::class::code::{Instruction, Opcode};
+use crate::class::code::Instruction;
 use crate::class::code::Opcode::*;
 use crate::error::Result;
 use crate::vm::data_type::Value::{Double, Float, Int, Long, Null, Reference};
@@ -21,7 +21,6 @@ use crate::vm::interpreter::conversion::*;
 use crate::vm::interpreter::load_and_store::*;
 use crate::vm::interpreter::object_creation_and_manipulation::*;
 use crate::vm::interpreter::stack_management::*;
-use crate::vm::stack::Stack;
 use crate::vm::Command;
 use crate::vm::Command::{
     VMException, VMGetField, VMGetStatic, VMInvokeSpecial, VMInvokeStatic, VMInvokeVirtual,
