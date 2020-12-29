@@ -223,19 +223,19 @@ fn interpret_instruction(
 
         BaLoad => byte_array_load(frame, heap),
         CaLoad => char_array_load(frame, heap),
-        // SaLoad => TODO
+        SaLoad => short_array_load(frame, heap),
         IaLoad => int_array_load(frame, heap),
         // LaLoad => TODO
         FaLoad => float_array_load(frame, heap),
-        // DaLoad => TODO
+        DaLoad => double_array_load(frame, heap),
         // AaLoad => TODO
         BaStore => byte_array_store(frame, heap),
         CaStore => char_array_store(frame, heap),
-        // SaStore => TODO
+        SaStore => short_array_store(frame, heap),
         IaStore => int_array_store(frame, heap),
         // LaStore => TODO
         FaStore => float_array_store(frame, heap),
-        // DaStore => TODO
+        DaStore => double_array_store(frame, heap),
         // AaStore => TODO
         ArrayLength => array_length(frame, heap)?,
 

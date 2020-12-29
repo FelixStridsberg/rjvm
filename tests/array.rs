@@ -1,4 +1,4 @@
-use rjvm::vm::data_type::Value::{Float, Int};
+use rjvm::vm::data_type::Value::{Double, Float, Int};
 
 #[path = "./java_utils.rs"]
 mod java;
@@ -25,8 +25,21 @@ fn char_array() {
 fn float_array() {
     assert_eq!(
         java::run_method("test_data/Array", "float_array"),
-        Float(8.0)
+        Float(-8.0)
     );
+}
+
+#[test]
+fn double_array() {
+    assert_eq!(
+        java::run_method("test_data/Array", "double_array"),
+        Double(8.0)
+    );
+}
+
+#[test]
+fn short_array() {
+    assert_eq!(java::run_method("test_data/Array", "short_array"), Int(3));
 }
 
 #[test]

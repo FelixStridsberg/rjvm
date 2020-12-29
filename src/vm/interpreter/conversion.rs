@@ -44,7 +44,7 @@ pub fn int_to_char(frame: &mut Frame) {
 
 pub fn int_to_short(frame: &mut Frame) {
     let int: IntType = frame.pop_operand().expect_int();
-    frame.push_operand(Short(int as ShortType));
+    frame.push_operand(Int(int as ShortType as IntType));
 }
 
 pub fn long_to_int(frame: &mut Frame) {
@@ -157,9 +157,9 @@ mod test {
     #[test]
     fn i2s() {
         test_instruction!(
-            start_stack: [Int(65)],
+            start_stack: [Int(0xffffff)],
             instruction: I2s,
-            final_stack: [Short(65)],
+            final_stack: [Int(-1)],
         );
     }
 

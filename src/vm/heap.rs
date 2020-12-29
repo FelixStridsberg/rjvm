@@ -1,5 +1,7 @@
 use crate::vm::data_type::ReferenceType;
-use crate::vm::heap::HeapObject::{ByteArray, CharArray, FloatArray, Instance, IntArray};
+use crate::vm::heap::HeapObject::{
+    ByteArray, CharArray, DoubleArray, FloatArray, Instance, IntArray, ShortArray,
+};
 use crate::vm::Object;
 use std::collections::HashMap;
 
@@ -8,7 +10,9 @@ pub enum HeapObject {
     ByteArray(Vec<u8>),
     CharArray(Vec<char>),
     IntArray(Vec<i32>),
+    ShortArray(Vec<i16>),
     FloatArray(Vec<f32>),
+    DoubleArray(Vec<f64>),
     Instance(Object),
 }
 
@@ -37,12 +41,28 @@ impl HeapObject {
         expect_type!(self, FloatArray)
     }
 
+    pub fn expect_double_array(&self) -> &Vec<f64> {
+        expect_type!(self, DoubleArray)
+    }
+
+    pub fn expect_mut_double_array(&mut self) -> &mut Vec<f64> {
+        expect_type!(self, DoubleArray)
+    }
+
     pub fn expect_int_array(&self) -> &Vec<i32> {
         expect_type!(self, IntArray)
     }
 
     pub fn expect_mut_int_array(&mut self) -> &mut Vec<i32> {
         expect_type!(self, IntArray)
+    }
+
+    pub fn expect_short_array(&self) -> &Vec<i16> {
+        expect_type!(self, ShortArray)
+    }
+
+    pub fn expect_mut_short_array(&mut self) -> &mut Vec<i16> {
+        expect_type!(self, ShortArray)
     }
 
     pub fn expect_instance(&self) -> &Object {
@@ -76,9 +96,21 @@ impl Heap {
         index
     }
 
+    pub fn allocate_double_array(&mut self, size: i32) -> u32 {
+        let index = self.objects.len() as u32;
+        self.objects.push(DoubleArray(vec![0.0; size as usize]));
+        index
+    }
+
     pub fn allocate_int_array(&mut self, size: i32) -> u32 {
         let index = self.objects.len() as u32;
         self.objects.push(IntArray(vec![0; size as usize]));
+        index
+    }
+
+    pub fn allocate_short_array(&mut self, size: i32) -> u32 {
+        let index = self.objects.len() as u32;
+        self.objects.push(ShortArray(vec![0; size as usize]));
         index
     }
 

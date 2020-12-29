@@ -36,6 +36,22 @@ class Array {
         return b[1] - b[2];
     }
 
+    public static double double_array() {
+        double[] b = new double[10];
+        b[1] = 2.222;
+        b[2] = 10.222;
+
+        return b[2] - b[1];
+    }
+
+    public static short short_array() {
+        short[] b = new short[10];
+        b[1] = 2;
+        b[2] = 5;
+
+        return (short)(b[2] - b[1]);
+    }
+
     public static int array_length() {
         int[] f = new int[100];
         return f.length;
