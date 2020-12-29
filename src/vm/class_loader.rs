@@ -53,13 +53,11 @@ impl ClassLoader {
                     ))
                 })?;
 
-            let init_frame = class
-                .find_static_method("<clinit>")
-                .map(|m| {
-                    let mut frame = Frame::new(class.clone(), m);
-                    frame.implicit = true;
-                    frame
-                });
+            let init_frame = class.find_static_method("<clinit>").map(|m| {
+                let mut frame = Frame::new(class.clone(), m);
+                frame.implicit = true;
+                frame
+            });
 
             Ok((class, init_frame))
         }

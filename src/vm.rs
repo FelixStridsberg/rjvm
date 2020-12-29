@@ -112,11 +112,7 @@ impl VirtualMachine {
                         return Ok(value);
                     } else {
                         let frame = stack.current_frame();
-                        let void_return = frame
-                            .method
-                            .descriptor
-                            .return_type
-                            .is_none();
+                        let void_return = frame.method.descriptor.return_type.is_none();
 
                         // We must not update the pc when returning from implicit frames.
                         if frame.implicit {

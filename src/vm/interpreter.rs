@@ -21,12 +21,12 @@ use crate::vm::interpreter::conversion::*;
 use crate::vm::interpreter::load_and_store::*;
 use crate::vm::interpreter::object_creation_and_manipulation::*;
 use crate::vm::interpreter::stack_management::*;
+use crate::vm::stack::Stack;
 use crate::vm::Command;
 use crate::vm::Command::{
     VMException, VMGetField, VMGetStatic, VMInvokeSpecial, VMInvokeStatic, VMInvokeVirtual,
     VMPutField, VMPutStatic, VMReturn,
 };
-use crate::vm::stack::Stack;
 
 pub(super) fn interpret_frame(frame: &mut Frame, heap: &mut Heap) -> Result<Command> {
     loop {
