@@ -44,8 +44,6 @@ fn interpret_instruction(
     heap: &mut Heap,
     instruction: &Instruction,
 ) -> Result<Option<Command>> {
-    let mut command = None;
-
     match &instruction.opcode {
         // Load and store:
         Iload => load_int(frame, &instruction.operands),
@@ -216,12 +214,14 @@ fn interpret_instruction(
         NewArray => new_array(frame, heap, &instruction.operands)?,
         ArrayLength => array_length(frame, heap)?,
         New => new_object(frame, heap, &instruction.operands),
+
         Iastore => int_array_store(frame, heap),
         Iaload => int_array_load(frame, heap),
-        PutField => command = Some(VMPutField(reference(&instruction.operands))),
-        GetField => command = Some(VMGetField(reference(&instruction.operands))),
-        PutStatic => command = Some(VMPutStatic(reference(&instruction.operands))),
-        Getstatic => command = Some(VMGetStatic(reference(&instruction.operands))),
+
+        PutField => return Ok(Some(VMPutField(reference(&instruction.operands)))),
+        GetField => return Ok(Some(VMGetField(reference(&instruction.operands)))),
+        PutStatic => return Ok(Some(VMPutStatic(reference(&instruction.operands)))),
+        Getstatic => return Ok(Some(VMGetStatic(reference(&instruction.operands)))),
 
         // Operand stack management:
         Pop => pop_operand(frame),
@@ -235,116 +235,52 @@ fn interpret_instruction(
         Swap => swap_operand(frame),
 
         // Control transfer:
-        IfEq => {
-            if_equals(frame, &instruction.operands);
-            return Ok(None);
-        }
-        IfNe => {
-            if_not_equals(frame, &instruction.operands);
-            return Ok(None);
-        }
-        IfLt => {
-            if_less_than(frame, &instruction.operands);
-            return Ok(None);
-        }
-        IfLe => {
-            if_less_than_inclusive(frame, &instruction.operands);
-            return Ok(None);
-        }
-        IfGt => {
-            if_greater_than(frame, &instruction.operands);
-            return Ok(None);
-        }
-        IfGe => {
-            if_greater_than_inclusive(frame, &instruction.operands);
-            return Ok(None);
-        }
-        IfNull => {
-            if_null(frame, &instruction.operands);
-            return Ok(None);
-        }
-        IfNonNull => {
-            if_non_null(frame, &instruction.operands);
-            return Ok(None);
-        }
+        IfEq => if_equals(frame, &instruction.operands),
+        IfNe => if_not_equals(frame, &instruction.operands),
+        IfLt => if_less_than(frame, &instruction.operands),
+        IfLe => if_less_than_inclusive(frame, &instruction.operands),
+        IfGt => if_greater_than(frame, &instruction.operands),
+        IfGe => if_greater_than_inclusive(frame, &instruction.operands),
+        IfNull => if_null(frame, &instruction.operands),
+        IfNonNull => if_non_null(frame, &instruction.operands),
 
-        IfIcmpEq => {
-            if_int_equals(frame, &instruction.operands);
-            return Ok(None);
-        }
-        IfIcmpNe => {
-            if_int_not_equals(frame, &instruction.operands);
-            return Ok(None);
-        }
-        IfIcmpLt => {
-            if_int_less_than(frame, &instruction.operands);
-            return Ok(None);
-        }
-        IfIcmpLe => {
-            if_int_less_than_inclusive(frame, &instruction.operands);
-            return Ok(None);
-        }
-        IfIcmpGt => {
-            if_int_greater_than(frame, &instruction.operands);
-            return Ok(None);
-        }
-        IfIcmpGe => {
-            if_int_greater_than_inclusive(frame, &instruction.operands);
-            return Ok(None);
-        }
+        IfIcmpEq => if_int_equals(frame, &instruction.operands),
+        IfIcmpNe => if_int_not_equals(frame, &instruction.operands),
+        IfIcmpLt => if_int_less_than(frame, &instruction.operands),
+        IfIcmpLe => if_int_less_than_inclusive(frame, &instruction.operands),
+        IfIcmpGt => if_int_greater_than(frame, &instruction.operands),
+        IfIcmpGe => if_int_greater_than_inclusive(frame, &instruction.operands),
+        IfAcmpEq => if_reference_equals(frame, &instruction.operands),
+        IfAcmpNe => if_reference_not_equals(frame, &instruction.operands),
 
-        IfAcmpEq => {
-            if_reference_equals(frame, &instruction.operands);
-            return Ok(None);
-        }
-        IfAcmpNe => {
-            if_reference_not_equals(frame, &instruction.operands);
-            return Ok(None);
-        }
-        TableSwitch => {
-            table_switch(frame, &instruction.operands);
-            return Ok(None);
-        }
-        LookupSwitch => {
-            lookup_switch(frame, &instruction.operands);
-            return Ok(None);
-        }
-        Goto => {
-            goto(frame, &instruction.operands);
-            return Ok(None);
-        }
-        GotoW => {
-            goto_wide(frame, &instruction.operands);
-            return Ok(None);
-        }
-        Jsr => {
-            jump_subroutine(frame, &instruction.operands);
-            return Ok(None);
-        }
-        JsrW => {
-            jump_subroutine_wide(frame, &instruction.operands);
-            return Ok(None);
-        }
-        Ret => {
-            return_from_subroutine(frame, &instruction.operands);
-            return Ok(None);
-        }
+        TableSwitch => table_switch(frame, &instruction.operands),
+        LookupSwitch => lookup_switch(frame, &instruction.operands),
+
+        Goto => goto(frame, &instruction.operands),
+        GotoW => goto_wide(frame, &instruction.operands),
+        Jsr => jump_subroutine(frame, &instruction.operands),
+        JsrW => jump_subroutine_wide(frame, &instruction.operands),
+        Ret => return_from_subroutine(frame, &instruction.operands),
 
         // Method invocation and return
         // TODO
-        Return => command = Some(VMReturn(Null)),
-        Ireturn => command = Some(VMReturn(Int(frame.pop_operand().expect_int()))),
-        Lreturn => command = Some(VMReturn(Long(frame.pop_operand().expect_long()))),
-        Freturn => command = Some(VMReturn(Float(frame.pop_operand().expect_float()))),
-        Dreturn => command = Some(VMReturn(Double(frame.pop_operand().expect_double()))),
-        Areturn => command = Some(VMReturn(Reference(frame.pop_operand().expect_reference()))),
+        Return => return Ok(Some(VMReturn(Null))),
+        Ireturn => return Ok(Some(VMReturn(Int(frame.pop_operand().expect_int())))),
+        Lreturn => return Ok(Some(VMReturn(Long(frame.pop_operand().expect_long())))),
+        Freturn => return Ok(Some(VMReturn(Float(frame.pop_operand().expect_float())))),
+        Dreturn => return Ok(Some(VMReturn(Double(frame.pop_operand().expect_double())))),
+        Areturn => {
+            return Ok(Some(VMReturn(Reference(
+                frame.pop_operand().expect_reference(),
+            ))))
+        }
 
-        Invokespecial => command = Some(VMInvokeSpecial(reference(&instruction.operands))),
-        Invokestatic => command = Some(VMInvokeStatic(reference(&instruction.operands))),
-        Invokevirtual => command = Some(VMInvokeVirtual(reference(&instruction.operands))),
+        Invokespecial => return Ok(Some(VMInvokeSpecial(reference(&instruction.operands)))),
+        Invokestatic => return Ok(Some(VMInvokeStatic(reference(&instruction.operands)))),
+        Invokevirtual => return Ok(Some(VMInvokeVirtual(reference(&instruction.operands)))),
 
         // Throwing exceptions:
-        Athrow => command = Some(VMException()),
+        Athrow => return Ok(Some(VMException())),
 
         OperationSpacer => panic!("Tried to parse operation as instruction in {}", frame),
         _ => unimplemented!(
@@ -353,7 +289,7 @@ fn interpret_instruction(
         ),
     }
 
-    Ok(command)
+    Ok(None)
 }
 
 fn reference(operands: &[u8]) -> u16 {
