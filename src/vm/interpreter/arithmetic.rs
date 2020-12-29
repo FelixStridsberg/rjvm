@@ -9,7 +9,7 @@ macro_rules! pop2(
     ($type:path, $frame:expr) => {{
         let left = expect_type!($frame.pop_operand(), $type);
         let right = expect_type!($frame.pop_operand(), $type);
-        (left, right)
+        (right, left)
     }}
 );
 
@@ -247,7 +247,7 @@ mod test {
     #[test]
     fn iadd() {
         test_instruction!(
-            start_stack: [Int(1), Int(2)],
+            start_stack: [Int(2), Int(1)],
             instruction: IAdd,
             final_stack: [Int(3)],
         );
@@ -256,7 +256,7 @@ mod test {
     #[test]
     fn ladd() {
         test_instruction!(
-            start_stack: [Long(3), Long(4)],
+            start_stack: [Long(4), Long(3)],
             instruction: LAdd,
             final_stack: [Long(7)],
         );
@@ -265,7 +265,7 @@ mod test {
     #[test]
     fn fadd() {
         test_instruction!(
-            start_stack: [Float(1.0), Float(2.2)],
+            start_stack: [Float(2.2), Float(1.0)],
             instruction: FAdd,
             final_stack: [Float(3.2)],
         );
@@ -274,7 +274,7 @@ mod test {
     #[test]
     fn dadd() {
         test_instruction!(
-            start_stack: [Double(3.1), Double(4.0)],
+            start_stack: [Double(4.0), Double(3.1)],
             instruction: DAdd,
             final_stack: [Double(7.1)],
         );
@@ -283,7 +283,7 @@ mod test {
     #[test]
     fn isub() {
         test_instruction!(
-            start_stack: [Int(3), Int(2)],
+            start_stack: [Int(2), Int(3)],
             instruction: Isub,
             final_stack: [Int(-1)],
         );
@@ -292,7 +292,7 @@ mod test {
     #[test]
     fn lsub() {
         test_instruction!(
-            start_stack: [Long(2), Long(4)],
+            start_stack: [Long(4), Long(2)],
             instruction: LSub,
             final_stack: [Long(2)],
         );
@@ -301,7 +301,7 @@ mod test {
     #[test]
     fn fsub() {
         test_instruction!(
-            start_stack: [Float(1.0), Float(2.2)],
+            start_stack: [Float(2.2), Float(1.0)],
             instruction: FSub,
             final_stack: [Float(1.2)],
         );
@@ -310,7 +310,7 @@ mod test {
     #[test]
     fn dsub() {
         test_instruction!(
-            start_stack: [Double(3.0), Double(4.0)],
+            start_stack: [Double(4.0), Double(3.0)],
             instruction: DSub,
             final_stack: [Double(1.0)],
         );
@@ -319,7 +319,7 @@ mod test {
     #[test]
     fn imul() {
         test_instruction!(
-            start_stack: [Int(1), Int(2)],
+            start_stack: [Int(2), Int(1)],
             instruction: IMul,
             final_stack: [Int(2)],
         );
@@ -328,7 +328,7 @@ mod test {
     #[test]
     fn lmul() {
         test_instruction!(
-            start_stack: [Long(3), Long(4)],
+            start_stack: [Long(4), Long(3)],
             instruction: LMul,
             final_stack: [Long(12)],
         );
@@ -337,7 +337,7 @@ mod test {
     #[test]
     fn fmul() {
         test_instruction!(
-            start_stack: [Float(1.0), Float(2.2)],
+            start_stack: [Float(2.2), Float(1.0)],
             instruction: FMul,
             final_stack: [Float(2.2)],
         );
@@ -346,7 +346,7 @@ mod test {
     #[test]
     fn dmul() {
         test_instruction!(
-            start_stack: [Double(3.1), Double(4.0)],
+            start_stack: [Double(4.0), Double(3.1)],
             instruction: DMul,
             final_stack: [Double(12.4)],
         );
@@ -355,7 +355,7 @@ mod test {
     #[test]
     fn idiv() {
         test_instruction!(
-            start_stack: [Int(2), Int(4)],
+            start_stack: [Int(4), Int(2)],
             instruction: IDiv,
             final_stack: [Int(2)],
         );
@@ -364,7 +364,7 @@ mod test {
     #[test]
     fn ldiv() {
         test_instruction!(
-            start_stack: [Long(3), Long(4)],
+            start_stack: [Long(4), Long(3)],
             instruction: LDiv,
             final_stack: [Long(1)],
         );
@@ -373,7 +373,7 @@ mod test {
     #[test]
     fn fdiv() {
         test_instruction!(
-            start_stack: [Float(1.1), Float(2.2)],
+            start_stack: [Float(2.2), Float(1.1)],
             instruction: FDiv,
             final_stack: [Float(2.0)],
         );
@@ -382,7 +382,7 @@ mod test {
     #[test]
     fn ddiv() {
         test_instruction!(
-            start_stack: [Double(4.0), Double(3.1)],
+            start_stack: [Double(3.1), Double(4.0)],
             instruction: DDiv,
             final_stack: [Double(0.775)],
         );
@@ -391,7 +391,7 @@ mod test {
     #[test]
     fn irem() {
         test_instruction!(
-            start_stack: [Int(2), Int(4)],
+            start_stack: [Int(4), Int(2)],
             instruction: IRem,
             final_stack: [Int(0)],
         );
@@ -400,7 +400,7 @@ mod test {
     #[test]
     fn lrem() {
         test_instruction!(
-            start_stack: [Long(3), Long(4)],
+            start_stack: [Long(4), Long(3)],
             instruction: LRem,
             final_stack: [Long(1)],
         );
@@ -409,7 +409,7 @@ mod test {
     #[test]
     fn frem() {
         test_instruction!(
-            start_stack: [Float(1.1), Float(2.2)],
+            start_stack: [Float(2.2), Float(1.1)],
             instruction: FRem,
             final_stack: [Float(0.0)],
         );
@@ -418,7 +418,7 @@ mod test {
     #[test]
     fn drem() {
         test_instruction!(
-            start_stack: [Double(4.0), Double(3.1)],
+            start_stack: [Double(3.1), Double(4.0)],
             instruction: DRem,
             final_stack: [Double(3.1)],
         );
@@ -463,7 +463,7 @@ mod test {
     #[test]
     fn ishl() {
         test_instruction!(
-            start_stack: [Int(1), Int(0x08)],
+            start_stack: [Int(0x08), Int(1)],
             instruction: IShl,
             final_stack: [Int(0x10)],
         );
@@ -472,7 +472,7 @@ mod test {
     #[test]
     fn ishr() {
         test_instruction!(
-            start_stack: [Int(2), Int(-0x01)],
+            start_stack: [Int(-0x01), Int(2)],
             instruction: IShr,
             final_stack: [Int(-1)],
         );
@@ -481,7 +481,7 @@ mod test {
     #[test]
     fn iushr() {
         test_instruction!(
-            start_stack: [Int(2), Int(-0x01)],
+            start_stack: [Int(-0x01), Int(2)],
             instruction: IUshr,
             final_stack: [Int(1073741823)],
         );
@@ -490,7 +490,7 @@ mod test {
     #[test]
     fn lshl() {
         test_instruction!(
-            start_stack: [Long(1), Long(0x08)],
+            start_stack: [Long(0x08), Long(1)],
             instruction: LShl,
             final_stack: [Long(0x10)],
         );
@@ -499,7 +499,7 @@ mod test {
     #[test]
     fn lshr() {
         test_instruction!(
-            start_stack: [Long(2), Long(-0x01)],
+            start_stack: [Long(-0x01), Long(2)],
             instruction: LShr,
             final_stack: [Long(-1)],
         );
@@ -508,7 +508,7 @@ mod test {
     #[test]
     fn lushr() {
         test_instruction!(
-            start_stack: [Long(63), Long(-1)],
+            start_stack: [Long(-1), Long(63)],
             instruction: LUshr,
             final_stack: [Long(8589934591)],
         );
@@ -517,7 +517,7 @@ mod test {
     #[test]
     fn ior() {
         test_instruction!(
-            start_stack: [Int(0xf0), Int(0x0f)],
+            start_stack: [Int(0x0f), Int(0xf0)],
             instruction: IOr,
             final_stack: [Int(0xff)],
         );
@@ -526,7 +526,7 @@ mod test {
     #[test]
     fn lor() {
         test_instruction!(
-            start_stack: [Long(0xf000), Long(0x0fff)],
+            start_stack: [Long(0x0fff), Long(0xf000)],
             instruction: LOr,
             final_stack: [Long(0xffff)],
         );
@@ -535,7 +535,7 @@ mod test {
     #[test]
     fn iand() {
         test_instruction!(
-            start_stack: [Int(0x30), Int(0xff)],
+            start_stack: [Int(0xff), Int(0x30)],
             instruction: IAnd,
             final_stack: [Int(0x30)],
         );
@@ -544,7 +544,7 @@ mod test {
     #[test]
     fn land() {
         test_instruction!(
-            start_stack: [Long(0xfc00), Long(0x0fff)],
+            start_stack: [Long(0x0fff), Long(0xfc00)],
             instruction: LAnd,
             final_stack: [Long(0x0c00)],
         );
@@ -553,7 +553,7 @@ mod test {
     #[test]
     fn ixor() {
         test_instruction!(
-            start_stack: [Int(0x30), Int(0xff)],
+            start_stack: [Int(0xff), Int(0x30)],
             instruction: Ixor,
             final_stack: [Int(0xcf)],
         );
@@ -562,7 +562,7 @@ mod test {
     #[test]
     fn lxor() {
         test_instruction!(
-            start_stack: [Long(0xfc00), Long(0x0fff)],
+            start_stack: [Long(0x0fff), Long(0xfc00)],
             instruction: LXor,
             final_stack: [Long(0xf3ff)],
         );
@@ -580,7 +580,7 @@ mod test {
     #[test]
     fn dcmpg_lesser() {
         test_instruction!(
-            start_stack: [Double(100.0), Double(-10.0)],
+            start_stack: [Double(-10.0), Double(100.0)],
             instruction: DCmpg,
             final_stack: [Int(-1)],
         );
@@ -589,7 +589,7 @@ mod test {
     #[test]
     fn dcmpl_lesser() {
         test_instruction!(
-            start_stack: [Double(100.0), Double(-10.0)],
+            start_stack: [Double(-10.0), Double(100.0)],
             instruction: DCmpl,
             final_stack: [Int(-1)],
         );
@@ -616,7 +616,7 @@ mod test {
     #[test]
     fn dcmpg_greater() {
         test_instruction!(
-            start_stack: [Double(10.0), Double(100.0)],
+            start_stack: [Double(100.0), Double(10.0)],
             instruction: DCmpg,
             final_stack: [Int(1)],
         );
@@ -625,7 +625,7 @@ mod test {
     #[test]
     fn dcmpl_greater() {
         test_instruction!(
-            start_stack: [Double(10.0), Double(100.0)],
+            start_stack: [Double(100.0), Double(10.0)],
             instruction: DCmpl,
             final_stack: [Int(1)],
         );
@@ -634,7 +634,7 @@ mod test {
     #[test]
     fn fcmpg_lesser() {
         test_instruction!(
-            start_stack: [Float(100.0), Float(-10.0)],
+            start_stack: [Float(-10.0), Float(100.0)],
             instruction: FCmpg,
             final_stack: [Int(-1)],
         );
@@ -643,7 +643,7 @@ mod test {
     #[test]
     fn fcmpl_lesser() {
         test_instruction!(
-            start_stack: [Float(100.0), Float(-10.0)],
+            start_stack: [Float(-10.0), Float(100.0)],
             instruction: FCmpl,
             final_stack: [Int(-1)],
         );
@@ -670,7 +670,7 @@ mod test {
     #[test]
     fn fcmpg_greater() {
         test_instruction!(
-            start_stack: [Float(10.0), Float(100.0)],
+            start_stack: [Float(100.0), Float(10.0)],
             instruction: FCmpg,
             final_stack: [Int(1)],
         );
@@ -679,7 +679,7 @@ mod test {
     #[test]
     fn fcmpl_greater() {
         test_instruction!(
-            start_stack: [Float(10.0), Float(100.0)],
+            start_stack: [Float(100.0), Float(10.0)],
             instruction: FCmpl,
             final_stack: [Int(1)],
         );
@@ -688,7 +688,7 @@ mod test {
     #[test]
     fn lcmp_lesser() {
         test_instruction!(
-            start_stack: [Long(10), Long(100)],
+            start_stack: [Long(100), Long(10)],
             instruction: LCmp,
             final_stack: [Int(1)],
         );
@@ -706,7 +706,7 @@ mod test {
     #[test]
     fn lcmp_greater() {
         test_instruction!(
-            start_stack: [Long(100), Long(10)],
+            start_stack: [Long(10), Long(100)],
             instruction: LCmp,
             final_stack: [Int(-1)],
         );
