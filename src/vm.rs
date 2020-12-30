@@ -354,6 +354,16 @@ impl VirtualMachine {
             .get_method_ref(index)?;
         let (class, init_frame) = class_loader.resolve(class_name)?;
         let method = class.resolve_method(method_name, descriptor)?;
+
+        if matches!(method.get_code(), None) {
+            // TODO
+            println!(
+                "Skipping {}:{}, method has no code attribute (native or abstract)",
+                class_name, method_name
+            );
+            return Ok(());
+        }
+
         let args = stack
             .current_frame()
             .pop_field_types(&method.descriptor.argument_types);

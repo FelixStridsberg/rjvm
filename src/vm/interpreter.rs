@@ -43,6 +43,7 @@ pub(super) fn interpret_frame(frame: &mut Frame, heap: &mut Heap) -> Result<Comm
     loop {
         let instruction = &frame.code.clone().instructions[frame.pc as usize];
 
+        debug!("-------------");
         debug!("{}", frame);
         debug!("[I] {}", instruction);
 
@@ -50,7 +51,32 @@ pub(super) fn interpret_frame(frame: &mut Frame, heap: &mut Heap) -> Result<Comm
             return Ok(vm_command);
         }
 
-        frame.pc_next();
+        // Do not increase pc for jump commands
+        // TODO This can probably be cleaner
+        if !matches!(
+            instruction.opcode,
+            IfEq | IfNe
+                | IfLt
+                | IfLe
+                | IfGt
+                | IfGe
+                | IfNull
+                | IfNonNull
+                | IfIcmpEq
+                | IfIcmpNe
+                | IfIcmpLt
+                | IfIcmpLe
+                | IfIcmpGt
+                | IfIcmpGe
+                | IfAcmpEq
+                | IfAcmpNe
+                | Goto
+                | GotoW
+                | Jsr
+                | JsrW
+        ) {
+            frame.pc_next();
+        }
     }
 }
 

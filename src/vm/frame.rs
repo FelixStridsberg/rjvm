@@ -42,7 +42,9 @@ impl Frame {
     }
 
     pub fn pc_offset(&mut self, offset: i16) {
-        self.pc = (self.pc as i16 + offset) as u16;
+        let new_pc = (self.pc as i16 + offset) as u16;
+        debug!("[F] PC: {} -> {}", self.pc, new_pc);
+        self.pc = new_pc;
     }
 
     pub fn pc_offset_wide(&mut self, offset: i32) {
