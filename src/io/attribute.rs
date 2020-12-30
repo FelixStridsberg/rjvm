@@ -101,10 +101,17 @@ impl<'r, 'c, R: BufRead> AttributeReader<'r, 'c, R> {
             let start_pc = self.reader.read_u2()?;
             let end_pc = self.reader.read_u2()?;
             let handler_pc = self.reader.read_u2()?;
-            let catch_type = self
-                .constants
-                .get_class_info_name(self.reader.read_u2()?)?
-                .to_owned();
+
+            let catch_type_index = self.reader.read_u2()?;
+            let catch_type = if catch_type_index == 0 {
+                None
+            } else {
+                Some(
+                    self.constants
+                        .get_class_info_name(catch_type_index)?
+                        .to_owned(),
+                )
+            };
 
             result.push(ExceptionHandler {
                 start_pc,
@@ -282,11 +289,15 @@ mod test {
             0x00, 0x01, // Max locals
             0x00, 0x00, 0x00, 0x01, // Code length
             0x00, // Code: nop
-            0x00, 0x01, // Exception table length
+            0x00, 0x02, // Exception table length
             0x00, 0x00, // Start pc = 0
             0x00, 0x03, // End pc = 3
             0x00, 0x06, // Handler pc = 6
             0x00, 0x03, // Catch type
+            0x00, 0x00, // Start pc = 0
+            0x00, 0x03, // End pc = 3
+            0x00, 0x0a, // Handler pc = 10
+            0x00, 0x00, // Catch type = 0, finally block
             0x00, 0x01, // Attributes count
             0x00, 0x02, // Attribute name index
             0x00, 0x00, 0x00, 0x0a, // Attribute length
@@ -304,12 +315,20 @@ mod test {
                 data: CodeInfo(Code {
                     max_stack: 3,
                     max_locals: 1,
-                    exception_handlers: vec![ExceptionHandler {
-                        start_pc: 0,
-                        end_pc: 3,
-                        handler_pc: 6,
-                        catch_type: "java/lang/Exception".to_string()
-                    }],
+                    exception_handlers: vec![
+                        ExceptionHandler {
+                            start_pc: 0,
+                            end_pc: 3,
+                            handler_pc: 6,
+                            catch_type: Some("java/lang/Exception".to_string())
+                        },
+                        ExceptionHandler {
+                            start_pc: 0,
+                            end_pc: 3,
+                            handler_pc: 10,
+                            catch_type: None,
+                        }
+                    ],
                     attributes: vec![Attribute {
                         name: "LineNumberTable".to_owned(),
                         data: LineNumberTable(vec![(0, 5), (4, 7)]),

@@ -14,7 +14,6 @@ mod conversion;
 mod control_transfer;
 
 mod load_and_store;
-mod method_invocation_and_return;
 mod stack_management;
 
 use crate::class::code::Instruction;

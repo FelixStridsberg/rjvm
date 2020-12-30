@@ -132,11 +132,14 @@ impl Frame {
     }
 
     fn find_exception_handler(&self, exception: &Object) -> Option<&ExceptionHandler> {
-        // TODO finally block catch_type is empty
         self.code.exception_handlers.iter().find(|e| {
-            e.catch_type == exception.class
-                && (self.pc as u16) >= e.start_pc
-                && (self.pc as u16) < e.end_pc
+            if let Some(catch_type) = &e.catch_type {
+                catch_type == &exception.class
+                    && (self.pc as u16) >= e.start_pc
+                    && (self.pc as u16) < e.end_pc
+            } else {
+                false
+            }
         })
     }
 }

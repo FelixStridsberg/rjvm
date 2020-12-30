@@ -6,10 +6,21 @@ public class Exceptions {
 
     static int value = 0;
 
-    public static int main() {
+    public static int simple() {
         try {
             test();
         } catch (Exception e) {
+            value++;
+        }
+        return value;
+    }
+
+    public static int with_finally() {
+        try {
+            test();
+        } catch (Exception e) {
+            value++;
+        } finally {
             value++;
         }
         return value;
