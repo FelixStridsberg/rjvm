@@ -6,12 +6,20 @@ mod control_transfer;
 mod conversion;
 mod load_and_store;
 mod method_invocation_and_return;
-mod object_creation_and_manipulation;
 mod stack_management;
+
+#[macro_use]
+mod object_creation_and_manipulation;
 
 use crate::class::code::Instruction;
 use crate::class::code::Opcode::*;
 use crate::error::Result;
+use crate::vm::data_type::{
+    ByteType, CharType, DoubleType, FloatType, IntType, LongType, ShortType,
+};
+use crate::vm::heap::HeapObject::{
+    ByteArray, CharArray, DoubleArray, FloatArray, IntArray, LongArray, ShortArray,
+};
 use crate::vm::data_type::Value::{Double, Float, Int, Long, Null, Reference};
 use crate::vm::frame::Frame;
 use crate::vm::heap::Heap;
@@ -225,21 +233,21 @@ fn interpret_instruction(
         GetStatic => return Ok(Some(VMGetStatic(reference(&instruction.operands)))),
         PutStatic => return Ok(Some(VMPutStatic(reference(&instruction.operands)))),
 
-        BaLoad => byte_array_load(frame, heap),
-        CaLoad => char_array_load(frame, heap),
-        SaLoad => short_array_load(frame, heap),
-        IaLoad => int_array_load(frame, heap),
-        LaLoad => long_array_load(frame, heap),
-        FaLoad => float_array_load(frame, heap),
-        DaLoad => double_array_load(frame, heap),
+        BaLoad => array_load!(frame, heap, ByteArray, Int, IntType),
+        CaLoad => array_load!(frame, heap, CharArray, Int, IntType),
+        SaLoad => array_load!(frame, heap, ShortArray, Int, IntType),
+        IaLoad => array_load!(frame, heap, IntArray, Int, IntType),
+        LaLoad => array_load!(frame, heap, LongArray, Long, LongType),
+        FaLoad => array_load!(frame, heap, FloatArray, Float, FloatType),
+        DaLoad => array_load!(frame, heap, DoubleArray, Double, DoubleType),
         AaLoad => reference_array_load(frame, heap),
-        BaStore => byte_array_store(frame, heap),
-        CaStore => char_array_store(frame, heap),
-        SaStore => short_array_store(frame, heap),
-        IaStore => int_array_store(frame, heap),
-        LaStore => long_array_store(frame, heap),
-        FaStore => float_array_store(frame, heap),
-        DaStore => double_array_store(frame, heap),
+        BaStore => array_store!(frame, heap, ByteArray, Int, [ByteType]),
+        CaStore => array_store!(frame, heap, CharArray, Int, [u8, CharType]),
+        SaStore => array_store!(frame, heap, ShortArray, Int, [ShortType]),
+        IaStore => array_store!(frame, heap, IntArray, Int, [IntType]),
+        LaStore => array_store!(frame, heap, LongArray, Long, [LongType]),
+        FaStore => array_store!(frame, heap, FloatArray, Float, [FloatType]),
+        DaStore => array_store!(frame, heap, DoubleArray, Double, [DoubleType]),
         AaStore => reference_array_store(frame, heap),
         ArrayLength => array_length(frame, heap)?,
 
