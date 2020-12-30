@@ -2,84 +2,18 @@ use crate::vm::data_type::Value::*;
 use crate::vm::data_type::{DoubleType, FloatType, IntType, LongType, ShortType};
 use crate::vm::frame::Frame;
 
-pub fn int_to_long(frame: &mut Frame) {
-    let int: IntType = frame.pop_operand().expect_int();
-    frame.push_operand(Long(int as LongType));
-}
-
-pub fn int_to_float(frame: &mut Frame) {
-    let int: IntType = frame.pop_operand().expect_int();
-    frame.push_operand(Float(int as FloatType));
-}
-
-pub fn int_to_double(frame: &mut Frame) {
-    let int: IntType = frame.pop_operand().expect_int();
-    frame.push_operand(Double(int as DoubleType));
-}
-
-pub fn long_to_float(frame: &mut Frame) {
-    let long: LongType = frame.pop_operand().expect_long();
-    frame.push_operand(Float(long as FloatType));
-}
-
-pub fn long_to_double(frame: &mut Frame) {
-    let long: LongType = frame.pop_operand().expect_long();
-    frame.push_operand(Double(long as DoubleType));
-}
-
-pub fn float_to_double(frame: &mut Frame) {
-    let float: FloatType = frame.pop_operand().expect_float();
-    frame.push_operand(Double(float as DoubleType));
-}
-
-pub fn int_to_byte(frame: &mut Frame) {
-    let int: IntType = frame.pop_operand().expect_int();
-    frame.push_operand(Int(int & 0xff));
-}
-
-pub fn int_to_char(frame: &mut Frame) {
-    let int: IntType = frame.pop_operand().expect_int();
-    frame.push_operand(Int(int as u8 as char as IntType));
-}
-
-pub fn int_to_short(frame: &mut Frame) {
-    let int: IntType = frame.pop_operand().expect_int();
-    frame.push_operand(Int(int as ShortType as IntType));
-}
-
-pub fn long_to_int(frame: &mut Frame) {
-    let long: LongType = frame.pop_operand().expect_long();
-    frame.push_operand(Int(long as IntType));
-}
-
-pub fn float_to_int(frame: &mut Frame) {
-    let float: FloatType = frame.pop_operand().expect_float();
-    frame.push_operand(Int(float as IntType));
-}
-
-pub fn float_to_long(frame: &mut Frame) {
-    let float: FloatType = frame.pop_operand().expect_float();
-    frame.push_operand(Long(float as LongType));
-}
-
-pub fn double_to_int(frame: &mut Frame) {
-    let double: DoubleType = frame.pop_operand().expect_double();
-    frame.push_operand(Int(double as IntType));
-}
-
-pub fn double_to_long(frame: &mut Frame) {
-    let double: DoubleType = frame.pop_operand().expect_double();
-    frame.push_operand(Long(double as LongType));
-}
-
-pub fn double_to_float(frame: &mut Frame) {
-    let double: DoubleType = frame.pop_operand().expect_double();
-    frame.push_operand(Float(double as FloatType));
+#[macro_export]
+macro_rules! convert {
+    ($frame:ident, $from_type:path, $to_type:path, [$($inner_type:ty),*]) => {{
+        let value = expect_type!($frame.pop_operand(), $from_type);
+        $frame.push_operand($to_type(value $(as $inner_type)*));
+    }};
 }
 
 #[cfg(test)]
 mod test {
     use crate::class::code::Opcode::*;
+    use crate::vm::data_type::ShortType;
     use crate::vm::data_type::Value::*;
 
     #[test]

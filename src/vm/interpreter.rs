@@ -7,8 +7,10 @@ mod arithmetic;
 #[macro_use]
 mod object_creation_and_manipulation;
 
-mod control_transfer;
+#[macro_use]
 mod conversion;
+
+mod control_transfer;
 mod load_and_store;
 mod method_invocation_and_return;
 mod stack_management;
@@ -209,22 +211,22 @@ fn interpret_instruction(
         LCmp => long_compare(frame),
 
         // Conversion:
-        I2l => int_to_long(frame),
-        I2f => int_to_float(frame),
-        I2d => int_to_double(frame),
-        L2f => long_to_float(frame),
-        L2d => long_to_double(frame),
-        F2d => float_to_double(frame),
+        I2l => convert!(frame, Int, Long, [LongType]),
+        I2f => convert!(frame, Int, Float, [FloatType]),
+        I2d => convert!(frame, Int, Double, [DoubleType]),
+        L2f => convert!(frame, Long, Float, [FloatType]),
+        L2d => convert!(frame, Long, Double, [DoubleType]),
+        F2d => convert!(frame, Float, Double, [DoubleType]),
 
-        I2b => int_to_byte(frame),
-        I2c => int_to_char(frame),
-        I2s => int_to_short(frame),
-        L2i => long_to_int(frame),
-        F2i => float_to_int(frame),
-        F2l => float_to_long(frame),
-        D2i => double_to_int(frame),
-        D2l => double_to_long(frame),
-        D2f => double_to_float(frame),
+        I2b => convert!(frame, Int, Int, [ByteType, IntType]),
+        I2c => convert!(frame, Int, Int, [u8, CharType, IntType]),
+        I2s => convert!(frame, Int, Int, [ShortType, IntType]),
+        L2i => convert!(frame, Long, Int, [IntType]),
+        F2i => convert!(frame, Float, Int, [IntType]),
+        F2l => convert!(frame, Float, Long, [LongType]),
+        D2i => convert!(frame, Double, Int, [IntType]),
+        D2l => convert!(frame, Double, Long, [LongType]),
+        D2f => convert!(frame, Double, Float, [FloatType]),
 
         // Object creation and manipulation:
         New => new_object(frame, heap, &instruction.operands),
