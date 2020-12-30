@@ -1,8 +1,8 @@
 use crate::error::Result;
-use crate::vm::data_type::Value::{Null, Reference, Int};
+use crate::vm::data_type::ReferenceType;
+use crate::vm::data_type::Value::{Int, Null, Reference};
 use crate::vm::frame::Frame;
 use crate::vm::heap::Heap;
-use crate::vm::data_type::ReferenceType;
 
 #[macro_export]
 macro_rules! array_load (

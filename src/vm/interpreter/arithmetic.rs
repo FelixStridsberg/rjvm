@@ -2,7 +2,6 @@
 //! https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.11.3
 
 use crate::vm::data_type::Value::{Double, Float, Int, Long};
-use crate::vm::data_type::*;
 use crate::vm::frame::Frame;
 
 macro_rules! pop2(
@@ -13,104 +12,16 @@ macro_rules! pop2(
     }}
 );
 
-pub fn add_int(frame: &mut Frame) {
-    let (left, right) = pop2!(Int, frame);
-    frame.push_operand(Int(left + right));
-}
-
-pub fn add_long(frame: &mut Frame) {
-    let (left, right) = pop2!(Long, frame);
-    frame.push_operand(Long(left + right));
-}
-
-pub fn add_float(frame: &mut Frame) {
-    let (left, right) = pop2!(Float, frame);
-    frame.push_operand(Float(left + right));
-}
-
-pub fn add_double(frame: &mut Frame) {
-    let (left, right) = pop2!(Double, frame);
-    frame.push_operand(Double(left + right));
-}
-
-pub fn sub_int(frame: &mut Frame) {
-    let (left, right) = pop2!(Int, frame);
-    frame.push_operand(Int(left - right));
-}
-
-pub fn sub_long(frame: &mut Frame) {
-    let (left, right) = pop2!(Long, frame);
-    frame.push_operand(Long(left - right));
-}
-
-pub fn sub_float(frame: &mut Frame) {
-    let (left, right) = pop2!(Float, frame);
-    frame.push_operand(Float(left - right));
-}
-
-pub fn sub_double(frame: &mut Frame) {
-    let (left, right) = pop2!(Double, frame);
-    frame.push_operand(Double(left - right));
-}
-
-pub fn mul_int(frame: &mut Frame) {
-    let (left, right) = pop2!(Int, frame);
-    frame.push_operand(Int(left * right));
-}
-
-pub fn mul_long(frame: &mut Frame) {
-    let (left, right) = pop2!(Long, frame);
-    frame.push_operand(Long(left * right));
-}
-
-pub fn mul_float(frame: &mut Frame) {
-    let (left, right) = pop2!(Float, frame);
-    frame.push_operand(Float(left * right));
-}
-
-pub fn mul_double(frame: &mut Frame) {
-    let (left, right) = pop2!(Double, frame);
-    frame.push_operand(Double(left * right));
-}
-
-pub fn div_int(frame: &mut Frame) {
-    let (left, right) = pop2!(Int, frame);
-    frame.push_operand(Int(left / right));
-}
-
-pub fn div_long(frame: &mut Frame) {
-    let (left, right) = pop2!(Long, frame);
-    frame.push_operand(Long(left / right));
-}
-
-pub fn div_float(frame: &mut Frame) {
-    let (left, right) = pop2!(Float, frame);
-    frame.push_operand(Float(left / right));
-}
-
-pub fn div_double(frame: &mut Frame) {
-    let (left, right) = pop2!(Double, frame);
-    frame.push_operand(Double(left / right));
-}
-
-pub fn rem_int(frame: &mut Frame) {
-    let (left, right) = pop2!(Int, frame);
-    frame.push_operand(Int(left % right));
-}
-
-pub fn rem_long(frame: &mut Frame) {
-    let (left, right) = pop2!(Long, frame);
-    frame.push_operand(Long(left % right));
-}
-
-pub fn rem_float(frame: &mut Frame) {
-    let (left, right) = pop2!(Float, frame);
-    frame.push_operand(Float(left % right));
-}
-
-pub fn rem_double(frame: &mut Frame) {
-    let (left, right) = pop2!(Double, frame);
-    frame.push_operand(Double(left % right));
+#[macro_export]
+macro_rules! arithmetic{
+    ($frame:ident, $type:path, $expr:tt) => {{
+        let (left, right) = pop2!($type, $frame);
+        $frame.push_operand($type(left $expr right));
+    }};
+    ($frame:ident, $type:path, $expr:expr) => {{
+        let (left, right) = pop2!($type, $frame);
+        $frame.push_operand($type($expr(left, right)));
+    }};
 }
 
 pub fn neg_int(frame: &mut Frame) {
@@ -131,66 +42,6 @@ pub fn neg_float(frame: &mut Frame) {
 pub fn neg_double(frame: &mut Frame) {
     let value = frame.pop_operand().expect_double();
     frame.push_operand(Double(-value));
-}
-
-pub fn int_shift_left(frame: &mut Frame) {
-    let (left, right) = pop2!(Int, frame);
-    frame.push_operand(Int((left as i32) << (right as i32 & 0x1f) as IntType));
-}
-
-pub fn int_shift_right(frame: &mut Frame) {
-    let (left, right) = pop2!(Int, frame);
-    frame.push_operand(Int(left as i32 >> (right as i32 & 0x1f) as IntType));
-}
-
-pub fn int_logical_shift_right(frame: &mut Frame) {
-    let (left, right) = pop2!(Int, frame);
-    frame.push_operand(Int((left as u32 >> (right as u32 & 0x1f)) as IntType));
-}
-
-pub fn long_shift_left(frame: &mut Frame) {
-    let (left, right) = pop2!(Long, frame);
-    frame.push_operand(Long((left as i64) << (right as i64 & 0x1f) as LongType));
-}
-
-pub fn long_shift_right(frame: &mut Frame) {
-    let (left, right) = pop2!(Long, frame);
-    frame.push_operand(Long(left as i64 >> (right as i64 & 0x1f) as LongType));
-}
-
-pub fn long_logical_shift_right(frame: &mut Frame) {
-    let (left, right) = pop2!(Long, frame);
-    frame.push_operand(Long((left as u64 >> (right as u64 & 0x1f)) as LongType));
-}
-
-pub fn int_bitwise_or(frame: &mut Frame) {
-    let (left, right) = pop2!(Int, frame);
-    frame.push_operand(Int(left | right));
-}
-
-pub fn long_bitwise_or(frame: &mut Frame) {
-    let (left, right) = pop2!(Long, frame);
-    frame.push_operand(Long(left | right));
-}
-
-pub fn int_bitwise_and(frame: &mut Frame) {
-    let (left, right) = pop2!(Int, frame);
-    frame.push_operand(Int(left & right));
-}
-
-pub fn long_bitwise_and(frame: &mut Frame) {
-    let (left, right) = pop2!(Long, frame);
-    frame.push_operand(Long(left & right));
-}
-
-pub fn int_bitwise_exclusive_or(frame: &mut Frame) {
-    let (left, right) = pop2!(Int, frame);
-    frame.push_operand(Int(left ^ right));
-}
-
-pub fn long_bitwise_exclusive_or(frame: &mut Frame) {
-    let (left, right) = pop2!(Long, frame);
-    frame.push_operand(Long(left ^ right));
 }
 
 pub fn int_increase(frame: &mut Frame, operands: &[u8]) {
@@ -284,7 +135,7 @@ mod test {
     fn isub() {
         test_instruction!(
             start_stack: [Int(2), Int(3)],
-            instruction: Isub,
+            instruction: ISub,
             final_stack: [Int(-1)],
         );
     }
@@ -554,7 +405,7 @@ mod test {
     fn ixor() {
         test_instruction!(
             start_stack: [Int(0xff), Int(0x30)],
-            instruction: Ixor,
+            instruction: IXor,
             final_stack: [Int(0xcf)],
         );
     }

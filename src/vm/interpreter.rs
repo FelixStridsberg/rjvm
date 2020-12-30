@@ -1,28 +1,30 @@
 #[macro_use]
 mod test;
 
+#[macro_use]
 mod arithmetic;
+
+#[macro_use]
+mod object_creation_and_manipulation;
+
 mod control_transfer;
 mod conversion;
 mod load_and_store;
 mod method_invocation_and_return;
 mod stack_management;
 
-#[macro_use]
-mod object_creation_and_manipulation;
-
 use crate::class::code::Instruction;
 use crate::class::code::Opcode::*;
 use crate::error::Result;
+use crate::vm::data_type::Value::{Double, Float, Int, Long, Null, Reference};
 use crate::vm::data_type::{
     ByteType, CharType, DoubleType, FloatType, IntType, LongType, ShortType,
 };
+use crate::vm::frame::Frame;
+use crate::vm::heap::Heap;
 use crate::vm::heap::HeapObject::{
     ByteArray, CharArray, DoubleArray, FloatArray, IntArray, LongArray, ShortArray,
 };
-use crate::vm::data_type::Value::{Double, Float, Int, Long, Null, Reference};
-use crate::vm::frame::Frame;
-use crate::vm::heap::Heap;
 use crate::vm::interpreter::arithmetic::*;
 use crate::vm::interpreter::control_transfer::*;
 use crate::vm::interpreter::conversion::*;
@@ -143,52 +145,58 @@ fn interpret_instruction(
         // Wide => TODO
 
         // Arithmetic:
-        IAdd => add_int(frame),
-        LAdd => add_long(frame),
-        FAdd => add_float(frame),
-        DAdd => add_double(frame),
+        IAdd => arithmetic!(frame, Int, +),
+        LAdd => arithmetic!(frame, Long, +),
+        FAdd => arithmetic!(frame, Float, +),
+        DAdd => arithmetic!(frame, Double, +),
 
-        Isub => sub_int(frame),
-        LSub => sub_long(frame),
-        FSub => sub_float(frame),
-        DSub => sub_double(frame),
+        ISub => arithmetic!(frame, Int, -),
+        LSub => arithmetic!(frame, Long, -),
+        FSub => arithmetic!(frame, Float, -),
+        DSub => arithmetic!(frame, Double, -),
 
-        IMul => mul_int(frame),
-        LMul => mul_long(frame),
-        FMul => mul_float(frame),
-        DMul => mul_double(frame),
+        IMul => arithmetic!(frame, Int, *),
+        LMul => arithmetic!(frame, Long, *),
+        FMul => arithmetic!(frame, Float, *),
+        DMul => arithmetic!(frame, Double, *),
 
-        IDiv => div_int(frame),
-        LDiv => div_long(frame),
-        FDiv => div_float(frame),
-        DDiv => div_double(frame),
+        IDiv => arithmetic!(frame, Int, /),
+        LDiv => arithmetic!(frame, Long, /),
+        FDiv => arithmetic!(frame, Float, /),
+        DDiv => arithmetic!(frame, Double, /),
 
-        IRem => rem_int(frame),
-        LRem => rem_long(frame),
-        FRem => rem_float(frame),
-        DRem => rem_double(frame),
+        IRem => arithmetic!(frame, Int, %),
+        LRem => arithmetic!(frame, Long, %),
+        FRem => arithmetic!(frame, Float, %),
+        DRem => arithmetic!(frame, Double, %),
 
         INeg => neg_int(frame),
         LNeg => neg_long(frame),
         FNeg => neg_float(frame),
         DNeg => neg_double(frame),
 
-        IShl => int_shift_left(frame),
-        IShr => int_shift_right(frame),
-        IUshr => int_logical_shift_right(frame),
+        IShl => arithmetic!(frame, Int, |l, r| ((l as i32) << (r as i32 & 0x1f))
+            as IntType),
+        IShr => arithmetic!(frame, Int, |l, r| ((l as i32) >> (r as i32 & 0x1f))
+            as IntType),
+        IUshr => arithmetic!(frame, Int, |l, r| ((l as u32) >> (r as u32 & 0x1f))
+            as IntType),
 
-        LShl => long_shift_left(frame),
-        LShr => long_shift_right(frame),
-        LUshr => long_logical_shift_right(frame),
+        LShl => arithmetic!(frame, Long, |l, r| ((l as i64) << (r as i32 & 0x1f))
+            as LongType),
+        LShr => arithmetic!(frame, Long, |l, r| ((l as i64) >> (r as i32 & 0x1f))
+            as LongType),
+        LUshr => arithmetic!(frame, Long, |l, r| ((l as u64) >> (r as u32 & 0x1f))
+            as LongType),
 
-        IOr => int_bitwise_or(frame),
-        LOr => long_bitwise_or(frame),
+        IOr => arithmetic!(frame, Int, |),
+        LOr => arithmetic!(frame, Long, |),
 
-        IAnd => int_bitwise_and(frame),
-        LAnd => long_bitwise_and(frame),
+        IAnd => arithmetic!(frame, Int, &),
+        LAnd => arithmetic!(frame, Long, &),
 
-        Ixor => int_bitwise_exclusive_or(frame),
-        LXor => long_bitwise_exclusive_or(frame),
+        IXor => arithmetic!(frame, Int, ^),
+        LXor => arithmetic!(frame, Long, ^),
 
         IInc => int_increase(frame, &instruction.operands),
 
