@@ -1,14 +1,14 @@
 use crate::error::Result;
 use crate::vm::class_loader::ClassLoader;
-use crate::vm::data_type::Value;
 use crate::vm::data_type::Value::Reference;
+use crate::vm::data_type::{ReferenceType, Value};
 use crate::vm::frame::Frame;
 use crate::vm::heap::{Heap, HeapObject};
 use crate::vm::interpreter::interpret_frame;
 use crate::vm::stack::Stack;
 use crate::vm::Command::{
-    VMException, VMGetField, VMGetStatic, VMInvokeSpecial, VMInvokeStatic, VMInvokeVirtual,
-    VMPutField, VMPutStatic, VMReturn,
+    VMAllocateReferenceArray, VMException, VMGetField, VMGetStatic, VMInvokeSpecial,
+    VMInvokeStatic, VMInvokeVirtual, VMPutField, VMPutStatic, VMReturn,
 };
 use std::collections::HashMap;
 
@@ -39,6 +39,7 @@ enum Command {
     VMGetField(u16),
     VMPutStatic(u16),
     VMGetStatic(u16),
+    VMAllocateReferenceArray(u16),
     VMException(),
 }
 
@@ -147,6 +148,9 @@ impl VirtualMachine {
                 VMGetStatic(index) => {
                     self.get_static(class_loader, static_context, index, stack);
                 }
+                VMAllocateReferenceArray(index) => {
+                    self.allocate_reference_array(heap, class_loader, index, stack)?;
+                }
                 VMException() => {
                     // We must not update PC after exception resolution, the pc is placed at the
                     // handler.
@@ -225,6 +229,29 @@ impl VirtualMachine {
             .clone();
 
         stack.current_frame().push_operand(v);
+    }
+
+    fn allocate_reference_array(
+        &self,
+        heap: &mut Heap,
+        class_loader: &mut ClassLoader,
+        index: u16,
+        stack: &mut Stack,
+    ) -> Result<()> {
+        let frame = stack.current_frame();
+        let length = frame.pop_operand().expect_int();
+        let class_name = frame.class.constants.get_class_info_name(index).unwrap();
+
+        let (class, init_frame) = class_loader.resolve(class_name)?;
+        let reference = heap.allocate_reference_array(length, class);
+
+        frame.push_operand(Reference(reference as ReferenceType));
+
+        if let Some(init_frame) = init_frame {
+            stack.push(init_frame);
+        }
+
+        Ok(())
     }
 
     fn put_field(&self, heap: &mut Heap, index: u16, stack: &mut Stack) {

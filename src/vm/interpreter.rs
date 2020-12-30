@@ -23,8 +23,8 @@ use crate::vm::interpreter::object_creation_and_manipulation::*;
 use crate::vm::interpreter::stack_management::*;
 use crate::vm::Command;
 use crate::vm::Command::{
-    VMException, VMGetField, VMGetStatic, VMInvokeSpecial, VMInvokeStatic, VMInvokeVirtual,
-    VMPutField, VMPutStatic, VMReturn,
+    VMAllocateReferenceArray, VMException, VMGetField, VMGetStatic, VMInvokeSpecial,
+    VMInvokeStatic, VMInvokeVirtual, VMPutField, VMPutStatic, VMReturn,
 };
 
 pub(super) fn interpret_frame(frame: &mut Frame, heap: &mut Heap) -> Result<Command> {
@@ -132,7 +132,7 @@ fn interpret_instruction(
         DConst0 => frame.push_operand(Double(0.0)),
         DConst1 => frame.push_operand(Double(1.0)),
 
-        Wide => unimplemented!("wide not implemented."),
+        // Wide => TODO
 
         // Arithmetic:
         IAdd => add_int(frame),
@@ -214,7 +214,11 @@ fn interpret_instruction(
         New => new_object(frame, heap, &instruction.operands),
 
         NewArray => new_array(frame, heap, &instruction.operands)?,
-        // Anewarray => TODO
+        ANewArray => {
+            return Ok(Some(VMAllocateReferenceArray(reference(
+                &instruction.operands,
+            ))))
+        }
         // Multianewarray => TODO
         GetField => return Ok(Some(VMGetField(reference(&instruction.operands)))),
         PutField => return Ok(Some(VMPutField(reference(&instruction.operands)))),
@@ -228,7 +232,7 @@ fn interpret_instruction(
         LaLoad => long_array_load(frame, heap),
         FaLoad => float_array_load(frame, heap),
         DaLoad => double_array_load(frame, heap),
-        // AaLoad => TODO
+        AaLoad => reference_array_load(frame, heap),
         BaStore => byte_array_store(frame, heap),
         CaStore => char_array_store(frame, heap),
         SaStore => short_array_store(frame, heap),
@@ -236,7 +240,7 @@ fn interpret_instruction(
         LaStore => long_array_store(frame, heap),
         FaStore => float_array_store(frame, heap),
         DaStore => double_array_store(frame, heap),
-        // AaStore => TODO
+        AaStore => reference_array_store(frame, heap),
         ArrayLength => array_length(frame, heap)?,
 
         // Checkcast => TODO

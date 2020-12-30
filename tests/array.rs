@@ -1,4 +1,4 @@
-use rjvm::vm::data_type::Value::{Double, Float, Int, Long};
+use rjvm::vm::data_type::Value::{Double, Float, Int, Long, Reference};
 
 #[path = "./java_utils.rs"]
 mod java;
@@ -44,6 +44,14 @@ fn double_array() {
     assert_eq!(
         java::run_method("test_data/Array", "double_array"),
         Double(8.0)
+    );
+}
+
+#[test]
+fn reference_array() {
+    assert_eq!(
+        java::run_method("test_data/Array", "reference_array"),
+        Reference(1)
     );
 }
 

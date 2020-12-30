@@ -1,5 +1,5 @@
 use crate::error::Result;
-use crate::vm::data_type::Value::{Double, Float, Int, Long, Reference};
+use crate::vm::data_type::Value::{Double, Float, Int, Long, Null, Reference};
 use crate::vm::data_type::{IntType, LongType, ReferenceType};
 use crate::vm::frame::Frame;
 use crate::vm::heap::Heap;
@@ -104,6 +104,22 @@ pub fn long_array_store(frame: &mut Frame, heap: &mut Heap) {
     array[index as usize] = value;
 }
 
+pub fn reference_array_store(frame: &mut Frame, heap: &mut Heap) {
+    let value = frame.pop_operand().expect_reference();
+    let index: IntType = frame.pop_operand().expect_int();
+    let reference = frame.pop_operand().expect_reference();
+
+    let object_type = heap.get(value).expect_instance().class.to_owned();
+    let (array_type, array) = heap.get_mut(reference).expect_mut_reference_array();
+
+    // TODO better type check, probably need to move to VM? Or can we get immutable access to all we need from here?
+    if &object_type != array_type {
+        unimplemented!("Better type checking for reference arrays.");
+    }
+
+    array[index as usize] = Some(value);
+}
+
 pub fn byte_array_load(frame: &mut Frame, heap: &mut Heap) {
     let index: IntType = frame.pop_operand().expect_int();
     let reference = frame.pop_operand().expect_reference();
@@ -158,6 +174,18 @@ pub fn long_array_load(frame: &mut Frame, heap: &mut Heap) {
 
     let array = heap.get_mut(reference).expect_mut_long_array();
     frame.push_operand(Long(array[index as usize]));
+}
+
+pub fn reference_array_load(frame: &mut Frame, heap: &mut Heap) {
+    let index: IntType = frame.pop_operand().expect_int();
+    let reference = frame.pop_operand().expect_reference();
+
+    let (_, array) = heap.get_mut(reference).expect_mut_reference_array();
+    if let Some(object_reference) = array[index as usize] {
+        frame.push_operand(Reference(object_reference));
+    } else {
+        frame.push_operand(Null);
+    }
 }
 
 #[cfg(test)]

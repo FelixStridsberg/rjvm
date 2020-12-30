@@ -1,5 +1,7 @@
 package test_data;
 
+import java.lang.Object;
+
 
 class Array {
 
@@ -58,6 +60,14 @@ class Array {
         b[2] = 10.222;
 
         return b[2] - b[1];
+    }
+
+    public static Object reference_array() {
+        Object[] o = new Object[10];
+        o[0] = new Object();
+        o[1] = o[0];
+
+        return o[0];
     }
 
     public static int array_length() {

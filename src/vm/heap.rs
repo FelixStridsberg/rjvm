@@ -1,9 +1,12 @@
+use crate::class::Class;
 use crate::vm::data_type::ReferenceType;
 use crate::vm::heap::HeapObject::{
-    ByteArray, CharArray, DoubleArray, FloatArray, Instance, IntArray, LongArray, ShortArray,
+    ByteArray, CharArray, DoubleArray, FloatArray, Instance, IntArray, LongArray, ReferenceArray,
+    ShortArray,
 };
 use crate::vm::Object;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 #[derive(Debug)]
 pub enum HeapObject {
@@ -14,10 +17,19 @@ pub enum HeapObject {
     LongArray(Vec<i64>),
     FloatArray(Vec<f32>),
     DoubleArray(Vec<f64>),
+    ReferenceArray((String, Vec<Option<ReferenceType>>)),
     Instance(Object),
 }
 
 impl HeapObject {
+    pub fn expect_reference_array(&self) -> &(String, Vec<Option<ReferenceType>>) {
+        expect_type!(self, ReferenceArray)
+    }
+
+    pub fn expect_mut_reference_array(&mut self) -> &mut (String, Vec<Option<ReferenceType>>) {
+        expect_type!(self, ReferenceArray)
+    }
+
     pub fn expect_byte_array(&self) -> &Vec<u8> {
         expect_type!(self, ByteArray)
     }
@@ -85,8 +97,17 @@ pub struct Heap {
     objects: Vec<HeapObject>,
 }
 
-// TODO DRY up
+// TODO DRY up and heapify
 impl Heap {
+    pub fn allocate_reference_array(&mut self, size: i32, class: Rc<Class>) -> u32 {
+        let index = self.objects.len() as u32;
+        self.objects.push(ReferenceArray((
+            class.this_class.to_string(),
+            vec![None; size as usize],
+        )));
+        index
+    }
+
     pub fn allocate_byte_array(&mut self, size: i32) -> u32 {
         let index = self.objects.len() as u32;
         self.objects.push(ByteArray(vec![0; size as usize]));
