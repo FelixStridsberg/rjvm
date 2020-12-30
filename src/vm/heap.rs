@@ -1,6 +1,6 @@
 use crate::vm::data_type::ReferenceType;
 use crate::vm::heap::HeapObject::{
-    ByteArray, CharArray, DoubleArray, FloatArray, Instance, IntArray, ShortArray,
+    ByteArray, CharArray, DoubleArray, FloatArray, Instance, IntArray, LongArray, ShortArray,
 };
 use crate::vm::Object;
 use std::collections::HashMap;
@@ -9,8 +9,9 @@ use std::collections::HashMap;
 pub enum HeapObject {
     ByteArray(Vec<u8>),
     CharArray(Vec<char>),
-    IntArray(Vec<i32>),
     ShortArray(Vec<i16>),
+    IntArray(Vec<i32>),
+    LongArray(Vec<i64>),
     FloatArray(Vec<f32>),
     DoubleArray(Vec<f64>),
     Instance(Object),
@@ -55,6 +56,14 @@ impl HeapObject {
 
     pub fn expect_mut_int_array(&mut self) -> &mut Vec<i32> {
         expect_type!(self, IntArray)
+    }
+
+    pub fn expect_long_array(&self) -> &Vec<i64> {
+        expect_type!(self, LongArray)
+    }
+
+    pub fn expect_mut_long_array(&mut self) -> &mut Vec<i64> {
+        expect_type!(self, LongArray)
     }
 
     pub fn expect_short_array(&self) -> &Vec<i16> {
@@ -105,6 +114,12 @@ impl Heap {
     pub fn allocate_int_array(&mut self, size: i32) -> u32 {
         let index = self.objects.len() as u32;
         self.objects.push(IntArray(vec![0; size as usize]));
+        index
+    }
+
+    pub fn allocate_long_array(&mut self, size: i32) -> u32 {
+        let index = self.objects.len() as u32;
+        self.objects.push(LongArray(vec![0; size as usize]));
         index
     }
 

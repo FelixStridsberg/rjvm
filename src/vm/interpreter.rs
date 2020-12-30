@@ -225,7 +225,7 @@ fn interpret_instruction(
         CaLoad => char_array_load(frame, heap),
         SaLoad => short_array_load(frame, heap),
         IaLoad => int_array_load(frame, heap),
-        // LaLoad => TODO
+        LaLoad => long_array_load(frame, heap),
         FaLoad => float_array_load(frame, heap),
         DaLoad => double_array_load(frame, heap),
         // AaLoad => TODO
@@ -233,7 +233,7 @@ fn interpret_instruction(
         CaStore => char_array_store(frame, heap),
         SaStore => short_array_store(frame, heap),
         IaStore => int_array_store(frame, heap),
-        // LaStore => TODO
+        LaStore => long_array_store(frame, heap),
         FaStore => float_array_store(frame, heap),
         DaStore => double_array_store(frame, heap),
         // AaStore => TODO

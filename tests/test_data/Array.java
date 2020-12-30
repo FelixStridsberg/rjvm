@@ -3,8 +3,24 @@ package test_data;
 
 class Array {
 
+    public static short short_array() {
+        short[] b = new short[10];
+        b[1] = 2;
+        b[2] = 5;
+
+        return (short)(b[2] - b[1]);
+    }
+
     public static int int_array() {
         int[] i = new int[10];
+        i[0] = 1;
+        i[1] = i[0] + 1;
+
+        return i[0] + i[1];
+    }
+
+    public static long long_array() {
+        long[] i = new long[10];
         i[0] = 1;
         i[1] = i[0] + 1;
 
@@ -42,14 +58,6 @@ class Array {
         b[2] = 10.222;
 
         return b[2] - b[1];
-    }
-
-    public static short short_array() {
-        short[] b = new short[10];
-        b[1] = 2;
-        b[2] = 5;
-
-        return (short)(b[2] - b[1]);
     }
 
     public static int array_length() {
