@@ -10,7 +10,9 @@ mod object_creation_and_manipulation;
 #[macro_use]
 mod conversion;
 
+#[macro_use]
 mod control_transfer;
+
 mod load_and_store;
 mod method_invocation_and_return;
 mod stack_management;
@@ -29,7 +31,6 @@ use crate::vm::heap::HeapObject::{
 };
 use crate::vm::interpreter::arithmetic::*;
 use crate::vm::interpreter::control_transfer::*;
-use crate::vm::interpreter::conversion::*;
 use crate::vm::interpreter::load_and_store::*;
 use crate::vm::interpreter::object_creation_and_manipulation::*;
 use crate::vm::interpreter::stack_management::*;
@@ -276,23 +277,24 @@ fn interpret_instruction(
         Swap => swap_operand(frame),
 
         // Control transfer:
-        IfEq => if_equals(frame, &instruction.operands),
-        IfNe => if_not_equals(frame, &instruction.operands),
-        IfLt => if_less_than(frame, &instruction.operands),
-        IfLe => if_less_than_inclusive(frame, &instruction.operands),
-        IfGt => if_greater_than(frame, &instruction.operands),
-        IfGe => if_greater_than_inclusive(frame, &instruction.operands),
+        IfEq => if_cmp_zero!(frame, instruction, ==),
+        IfNe => if_cmp_zero!(frame, instruction, !=),
+        IfLt => if_cmp_zero!(frame, instruction, <),
+        IfLe => if_cmp_zero!(frame, instruction, <=),
+        IfGt => if_cmp_zero!(frame, instruction, >),
+        IfGe => if_cmp_zero!(frame, instruction, >=),
+
         IfNull => if_null(frame, &instruction.operands),
         IfNonNull => if_non_null(frame, &instruction.operands),
 
-        IfIcmpEq => if_int_equals(frame, &instruction.operands),
-        IfIcmpNe => if_int_not_equals(frame, &instruction.operands),
-        IfIcmpLt => if_int_less_than(frame, &instruction.operands),
-        IfIcmpLe => if_int_less_than_inclusive(frame, &instruction.operands),
-        IfIcmpGt => if_int_greater_than(frame, &instruction.operands),
-        IfIcmpGe => if_int_greater_than_inclusive(frame, &instruction.operands),
-        IfAcmpEq => if_reference_equals(frame, &instruction.operands),
-        IfAcmpNe => if_reference_not_equals(frame, &instruction.operands),
+        IfIcmpEq => if_cmp_operands!(frame, instruction, Int, ==),
+        IfIcmpNe => if_cmp_operands!(frame, instruction, Int, !=),
+        IfIcmpLt => if_cmp_operands!(frame, instruction, Int, <),
+        IfIcmpLe => if_cmp_operands!(frame, instruction, Int, <=),
+        IfIcmpGt => if_cmp_operands!(frame, instruction, Int, >),
+        IfIcmpGe => if_cmp_operands!(frame, instruction, Int, >=),
+        IfAcmpEq => if_cmp_operands!(frame, instruction, Reference, ==),
+        IfAcmpNe => if_cmp_operands!(frame, instruction, Reference, !=),
 
         TableSwitch => table_switch(frame, &instruction.operands),
         LookupSwitch => lookup_switch(frame, &instruction.operands),

@@ -1,7 +1,3 @@
-use crate::vm::data_type::Value::*;
-use crate::vm::data_type::{DoubleType, FloatType, IntType, LongType, ShortType};
-use crate::vm::frame::Frame;
-
 #[macro_export]
 macro_rules! convert {
     ($frame:ident, $from_type:path, $to_type:path, [$($inner_type:ty),*]) => {{
@@ -13,7 +9,6 @@ macro_rules! convert {
 #[cfg(test)]
 mod test {
     use crate::class::code::Opcode::*;
-    use crate::vm::data_type::ShortType;
     use crate::vm::data_type::Value::*;
 
     #[test]

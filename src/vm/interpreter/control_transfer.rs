@@ -4,41 +4,30 @@ use crate::vm::data_type::Value;
 use crate::vm::data_type::Value::ReturnAddress;
 use crate::vm::frame::Frame;
 
-pub fn if_equals(frame: &mut Frame, operands: &[u8]) {
-    if frame.pop_operand().expect_int() == 0 {
-        frame.pc_offset(bytes_to_i16(operands));
-    }
-}
+#[macro_export]
+macro_rules! if_cmp_zero (
+    ($frame:ident, $instruction:ident, $op:tt) => {{
+        if $frame.pop_operand().expect_int() $op 0 {
+            $frame.pc_offset(crate::binary::bytes_to_i16(&$instruction.operands));
+        }
+    }};
+    ($frame:ident, $instruction:ident, $comp:path) => {{
+        if matches!($frame.pop_operand(), $comp) {
+            $frame.pc_offset(crate::binary::bytes_to_i16(&$instruction.operands));
+        }
+    }}
+);
 
-pub fn if_not_equals(frame: &mut Frame, operands: &[u8]) {
-    if frame.pop_operand().expect_int() != 0 {
-        frame.pc_offset(bytes_to_i16(operands));
-    }
-}
-
-pub fn if_less_than(frame: &mut Frame, operands: &[u8]) {
-    if frame.pop_operand().expect_int() < 0 {
-        frame.pc_offset(bytes_to_i16(operands));
-    }
-}
-
-pub fn if_less_than_inclusive(frame: &mut Frame, operands: &[u8]) {
-    if frame.pop_operand().expect_int() <= 0 {
-        frame.pc_offset(bytes_to_i16(operands));
-    }
-}
-
-pub fn if_greater_than(frame: &mut Frame, operands: &[u8]) {
-    if frame.pop_operand().expect_int() > 0 {
-        frame.pc_offset(bytes_to_i16(operands));
-    }
-}
-
-pub fn if_greater_than_inclusive(frame: &mut Frame, operands: &[u8]) {
-    if frame.pop_operand().expect_int() >= 0 {
-        frame.pc_offset(bytes_to_i16(operands));
-    }
-}
+#[macro_export]
+macro_rules! if_cmp_operands (
+    ($frame:ident, $instruction:ident, $type:path, $op:tt) => {{
+        let value1 = expect_type!($frame.pop_operand(), $type);
+        let value2 = expect_type!($frame.pop_operand(), $type);
+        if value1 $op value2 {
+            $frame.pc_offset(crate::binary::bytes_to_i16(&$instruction.operands));
+        }
+    }}
+);
 
 pub fn if_null(frame: &mut Frame, operands: &[u8]) {
     if matches!(frame.pop_operand(), Value::Null) {
@@ -48,70 +37,6 @@ pub fn if_null(frame: &mut Frame, operands: &[u8]) {
 
 pub fn if_non_null(frame: &mut Frame, operands: &[u8]) {
     if !matches!(frame.pop_operand(), Value::Null) {
-        frame.pc_offset(bytes_to_i16(operands));
-    }
-}
-
-pub fn if_int_equals(frame: &mut Frame, operands: &[u8]) {
-    let value1 = frame.pop_operand().expect_int();
-    let value2 = frame.pop_operand().expect_int();
-    if value1 == value2 {
-        frame.pc_offset(bytes_to_i16(operands));
-    }
-}
-
-pub fn if_int_not_equals(frame: &mut Frame, operands: &[u8]) {
-    let value1 = frame.pop_operand().expect_int();
-    let value2 = frame.pop_operand().expect_int();
-    if value1 != value2 {
-        frame.pc_offset(bytes_to_i16(operands));
-    }
-}
-
-pub fn if_int_less_than(frame: &mut Frame, operands: &[u8]) {
-    let value1 = frame.pop_operand().expect_int();
-    let value2 = frame.pop_operand().expect_int();
-    if value1 < value2 {
-        frame.pc_offset(bytes_to_i16(operands));
-    }
-}
-
-pub fn if_int_less_than_inclusive(frame: &mut Frame, operands: &[u8]) {
-    let value1 = frame.pop_operand().expect_int();
-    let value2 = frame.pop_operand().expect_int();
-    if value1 <= value2 {
-        frame.pc_offset(bytes_to_i16(operands));
-    }
-}
-
-pub fn if_int_greater_than(frame: &mut Frame, operands: &[u8]) {
-    let value1 = frame.pop_operand().expect_int();
-    let value2 = frame.pop_operand().expect_int();
-    if value1 > value2 {
-        frame.pc_offset(bytes_to_i16(operands));
-    }
-}
-
-pub fn if_int_greater_than_inclusive(frame: &mut Frame, operands: &[u8]) {
-    let value1 = frame.pop_operand().expect_int();
-    let value2 = frame.pop_operand().expect_int();
-    if value1 >= value2 {
-        frame.pc_offset(bytes_to_i16(operands));
-    }
-}
-
-pub fn if_reference_equals(frame: &mut Frame, operands: &[u8]) {
-    let value1 = frame.pop_operand().expect_reference();
-    let value2 = frame.pop_operand().expect_reference();
-    if value1 == value2 {
-        frame.pc_offset(bytes_to_i16(operands));
-    }
-}
-
-pub fn if_reference_not_equals(frame: &mut Frame, operands: &[u8]) {
-    let value1 = frame.pop_operand().expect_reference();
-    let value2 = frame.pop_operand().expect_reference();
-    if value1 != value2 {
         frame.pc_offset(bytes_to_i16(operands));
     }
 }
