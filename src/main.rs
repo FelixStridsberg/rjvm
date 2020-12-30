@@ -5,14 +5,16 @@ use std::env;
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    let class_name = &args[1];
-    let method_name = &args[2];
+    if args.len() != 3 && args.len() != 4 {
+        println!("Usage: ./rjvm class_path class_name [method_name]")
+    }
 
-    let mut file = class_name.clone();
-    file.push_str(".class");
+    let class_path: &Vec<&str> = &args[1].split(':').collect();
+    let class_name = &args[2];
+    let method_name = if args.len() == 4 { &args[3] } else { "main" };
 
     let mut class_loader = ClassLoader::new();
-    class_loader.load_class_file(&file).unwrap();
+    class_loader.set_paths(class_path.to_owned());
 
     let mut vm = VirtualMachine::default();
     let return_value = vm.run(class_loader, class_name, method_name, vec![]);
