@@ -244,7 +244,7 @@ impl TryFrom<&str> for MethodDescriptor {
 
     fn try_from(s: &str) -> std::result::Result<MethodDescriptor, Self::Error> {
         let parts: Vec<&str> = s.split(|c| c == '(' || c == ')').collect();
-        if parts.len() != 3 || !parts[0].is_empty() || parts[2].len() != 1 {
+        if parts.len() != 3 || !parts[0].is_empty() || parts[2].len() < 1 {
             panic!("Invalid method descriptor '{}'.", s);
         }
 
@@ -287,9 +287,10 @@ mod test {
 
     #[test]
     fn parse_complex_method_descriptors() {
-        let descriptor: MethodDescriptor = "(Ljava/lang/Object;[I[Ljava/lang/Object;)V"
-            .try_into()
-            .unwrap();
+        let descriptor: MethodDescriptor =
+            "(Ljava/lang/Object;[I[Ljava/lang/Object;)Ljava/lang/Object;"
+                .try_into()
+                .unwrap();
 
         assert_eq!(
             descriptor,
@@ -299,7 +300,7 @@ mod test {
                     Array(Box::new(Int)),
                     Array(Box::new(Object("java/lang/Object".to_owned())))
                 ],
-                return_type: None
+                return_type: Some(Object("java/lang/Object".to_owned()))
             }
         );
     }
