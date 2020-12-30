@@ -1,8 +1,19 @@
 use crate::error::Result;
 use crate::vm::data_type::Value::{Double, Float, Int, Long, Null, Reference};
-use crate::vm::data_type::{IntType, LongType, ReferenceType};
+use crate::vm::data_type::{IntType, LongType, ReferenceType, FloatType, DoubleType};
 use crate::vm::frame::Frame;
 use crate::vm::heap::Heap;
+use crate::vm::heap::HeapObject::{CharArray, FloatArray, ByteArray, DoubleArray, ShortArray, IntArray, LongArray};
+
+macro_rules! array_load (
+    ($frame:ident, $heap:ident, $array_type:path, $value_type:path, $inner_type:ty) => {
+        let index: IntType = $frame.pop_operand().expect_int();
+        let reference = $frame.pop_operand().expect_reference();
+        let array = expect_type!($heap.get_mut(reference), $array_type);
+
+        $frame.push_operand($value_type(array[index as usize] as $inner_type));
+    }
+);
 
 // TODO DRY up
 
@@ -121,59 +132,31 @@ pub fn reference_array_store(frame: &mut Frame, heap: &mut Heap) {
 }
 
 pub fn byte_array_load(frame: &mut Frame, heap: &mut Heap) {
-    let index: IntType = frame.pop_operand().expect_int();
-    let reference = frame.pop_operand().expect_reference();
-
-    let array = heap.get_mut(reference).expect_byte_array();
-    frame.push_operand(Int(array[index as usize] as IntType));
+    array_load!(frame, heap, ByteArray, Int, IntType);
 }
 
 pub fn char_array_load(frame: &mut Frame, heap: &mut Heap) {
-    let index: IntType = frame.pop_operand().expect_int();
-    let reference = frame.pop_operand().expect_reference();
-
-    let array = heap.get_mut(reference).expect_char_array();
-    frame.push_operand(Int(array[index as usize] as IntType));
+    array_load!(frame, heap, CharArray, Int, IntType);
 }
 
 pub fn float_array_load(frame: &mut Frame, heap: &mut Heap) {
-    let index: IntType = frame.pop_operand().expect_int();
-    let reference = frame.pop_operand().expect_reference();
-
-    let array = heap.get_mut(reference).expect_mut_float_array();
-    frame.push_operand(Float(array[index as usize]));
+    array_load!(frame, heap, FloatArray, Float, FloatType);
 }
 
 pub fn double_array_load(frame: &mut Frame, heap: &mut Heap) {
-    let index: IntType = frame.pop_operand().expect_int();
-    let reference = frame.pop_operand().expect_reference();
-
-    let array = heap.get_mut(reference).expect_mut_double_array();
-    frame.push_operand(Double(array[index as usize]));
-}
-
-pub fn short_array_load(frame: &mut Frame, heap: &mut Heap) {
-    let index: IntType = frame.pop_operand().expect_int();
-    let reference = frame.pop_operand().expect_reference();
-
-    let array = heap.get_mut(reference).expect_mut_short_array();
-    frame.push_operand(Int(array[index as usize] as IntType));
+    array_load!(frame, heap, DoubleArray, Double, DoubleType);
 }
 
 pub fn int_array_load(frame: &mut Frame, heap: &mut Heap) {
-    let index: IntType = frame.pop_operand().expect_int();
-    let reference = frame.pop_operand().expect_reference();
+    array_load!(frame, heap, IntArray, Int, IntType);
+}
 
-    let array = heap.get_mut(reference).expect_mut_int_array();
-    frame.push_operand(Int(array[index as usize]));
+pub fn short_array_load(frame: &mut Frame, heap: &mut Heap) {
+    array_load!(frame, heap, ShortArray, Int, IntType);
 }
 
 pub fn long_array_load(frame: &mut Frame, heap: &mut Heap) {
-    let index: IntType = frame.pop_operand().expect_int();
-    let reference = frame.pop_operand().expect_reference();
-
-    let array = heap.get_mut(reference).expect_mut_long_array();
-    frame.push_operand(Long(array[index as usize]));
+    array_load!(frame, heap, LongArray, Long, LongType);
 }
 
 pub fn reference_array_load(frame: &mut Frame, heap: &mut Heap) {
