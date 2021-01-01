@@ -4,8 +4,11 @@ use crate::io::class::ClassReader;
 use crate::vm::class_loader::ClassSource::{Folder, Jar};
 use crate::vm::frame::Frame;
 use std::collections::HashMap;
+use std::fs::File;
+use std::io::BufReader;
 use std::path::Path;
 use std::rc::Rc;
+use zip::ZipArchive;
 
 trait FileSource {
     fn load_class(&self, filename: &str) -> Result<Option<Class>>;
@@ -31,16 +34,38 @@ impl FileSource for FolderSource {
 }
 
 #[derive(Debug)]
+struct JarSource {
+    path: String,
+}
+
+impl FileSource for JarSource {
+    fn load_class(&self, filename: &str) -> Result<Option<Class>> {
+        let mut filename = filename.to_owned();
+        filename.push_str(".class");
+
+        let file = File::open(&self.path).unwrap();
+        let mut zip = ZipArchive::new(file).unwrap(); // TODO don't unwrap
+
+        let file = match zip.by_name(&filename) {
+            Ok(file) => file,
+            Err(_) => return Ok(None),
+        };
+
+        Ok(Some(ClassReader::new(BufReader::new(file)).read_class()?))
+    }
+}
+
+#[derive(Debug)]
 enum ClassSource {
     Folder(FolderSource),
-    Jar(String),
+    Jar(JarSource),
 }
 
 impl FileSource for ClassSource {
     fn load_class(&self, filename: &str) -> Result<Option<Class>> {
         match self {
             Folder(f) => f.load_class(filename),
-            _ => unimplemented!(),
+            Jar(j) => j.load_class(filename),
         }
     }
 }
@@ -48,7 +73,9 @@ impl FileSource for ClassSource {
 impl From<&str> for ClassSource {
     fn from(str: &str) -> Self {
         if str.ends_with(".jar") {
-            Jar(str.to_owned())
+            Jar(JarSource {
+                path: str.to_owned(),
+            })
         } else {
             Folder(FolderSource {
                 path: str.to_owned(),
@@ -105,6 +132,6 @@ impl ClassLoader {
             }
         }
 
-        return runtime_error!("Could not resolve class {}", class_name);
+        runtime_error!("Could not resolve class {}", class_name)
     }
 }
