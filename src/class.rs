@@ -89,7 +89,8 @@ impl Class {
         Ok(self
             .methods
             .iter()
-            .find(|m| m.name == name)
+            .filter(|m| m.name == name)
+            .find(|m| m.descriptor == descriptor.try_into().unwrap())
             .ok_or_else(|| {
                 Error::runtime(format!("Could not find method {}/{}", name, descriptor))
             })?
@@ -172,4 +173,50 @@ pub struct FieldInfo {
     pub name: String,
     pub descriptor: String,
     pub attributes: Vec<Attribute>,
+}
+
+#[cfg(test)]
+mod test {
+    use crate::class::constant::ConstantPool;
+    use crate::class::{Class, MethodAccessFlags, MethodInfo};
+    use crate::error::ErrorKind;
+    use std::convert::TryInto;
+    use std::rc::Rc;
+
+    #[test]
+    fn resolve_non_existing_method() {
+        let class = class_with_methods(vec![("not_me", "()V")]);
+        let error = class.resolve_method("method", "()V").unwrap_err();
+        assert!(matches!(error.kind(), ErrorKind::RuntimeError));
+    }
+
+    #[test]
+    fn resolve_method_single_match() {
+        let class = class_with_methods(vec![("the_method", "()V")]);
+        let method = class.resolve_method("the_method", "()V").unwrap();
+        assert_eq!(method.descriptor, "()V".try_into().unwrap());
+    }
+
+    #[test]
+    fn resolve_method_multiple_matches() {
+        let class = class_with_methods(vec![("the_method", "()V"), ("the_method", "(I)V")]);
+        let method = class.resolve_method("the_method", "(I)V").unwrap();
+        assert_eq!(method.descriptor, "(I)V".try_into().unwrap());
+    }
+
+    fn class_with_methods(methods: Vec<(&str, &str)>) -> Class {
+        let constants = ConstantPool::new(10);
+        let mut class = Class::from_constant_pool(constants);
+
+        for (method_name, method_descriptor) in methods {
+            class.methods.push(Rc::new(MethodInfo {
+                access_flags: MethodAccessFlags::ACC_PUBLIC,
+                name: method_name.to_string(),
+                descriptor: method_descriptor.try_into().unwrap(),
+                attributes: vec![],
+            }));
+        }
+
+        class
+    }
 }
