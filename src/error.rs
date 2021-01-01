@@ -10,7 +10,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[macro_export]
 macro_rules! runtime_error(
     ($($fmt:tt)*) => {
-        return Err(crate::error::Error::runtime(format!($($fmt)*)));
+        Err(crate::error::Error::runtime(format!($($fmt)*)))
     }
 );
 

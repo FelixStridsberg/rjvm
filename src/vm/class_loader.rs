@@ -105,6 +105,6 @@ impl ClassLoader {
             }
         }
 
-        runtime_error!("Could not resolve class {}", class_name);
+        return runtime_error!("Could not resolve class {}", class_name);
     }
 }

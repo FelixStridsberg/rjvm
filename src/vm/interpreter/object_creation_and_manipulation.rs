@@ -37,7 +37,7 @@ pub fn new_array(frame: &mut Frame, heap: &mut Heap, operands: &[u8]) -> Result<
         9 => heap.allocate_short_array(len),
         10 => heap.allocate_int_array(len),
         11 => heap.allocate_long_array(len),
-        a => runtime_error!("Unknown array type {}.", a),
+        a => return runtime_error!("Unknown array type {}.", a),
     };
 
     frame.push_operand(Reference(reference as ReferenceType));

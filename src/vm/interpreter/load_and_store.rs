@@ -74,7 +74,7 @@ pub fn store_int_n(frame: &mut Frame, index: u16) -> Result<()> {
         runtime_error!(
             "istore_<n> expected an int value on top of the stack. Got {:?}",
             operand
-        );
+        )
     }
 }
 
@@ -92,7 +92,7 @@ pub fn store_long_n(frame: &mut Frame, index: u16) -> Result<()> {
         runtime_error!(
             "lstore_<n> expected a long value on top of the stack. Got {:?}",
             operand
-        );
+        )
     }
 }
 
@@ -110,7 +110,7 @@ pub fn store_float_n(frame: &mut Frame, index: u16) -> Result<()> {
         runtime_error!(
             "fstore_<n> expected an int value on top of the stack. Got {:?}",
             operand
-        );
+        )
     }
 }
 
@@ -128,7 +128,7 @@ pub fn store_double_n(frame: &mut Frame, index: u16) -> Result<()> {
         runtime_error!(
             "fstore_<n> expected an int value on top of the stack. Got {:?}",
             operand
-        );
+        )
     }
 }
 
@@ -141,10 +141,12 @@ pub fn store_reference_n(frame: &mut Frame, index: u16) -> Result<()> {
     let value = match frame.pop_operand() {
         Reference(r) => r,
         ReturnAddress(r) => r,
-        operand => runtime_error!(
-            "astore_<n> expected an int value on top of the stack. Got {:?}",
-            operand
-        ),
+        operand => {
+            return runtime_error!(
+                "astore_<n> expected an int value on top of the stack. Got {:?}",
+                operand
+            )
+        }
     };
     frame.set_local(index, value as u32);
     Ok(())
@@ -176,7 +178,7 @@ fn push_constant_index(frame: &mut Frame, index: u16) -> Result<()> {
         Constant::Integer(i) => Int(*i),
         Constant::Float(f) => Float(*f),
         // TODO reference and reference resolution
-        constant => runtime_error!("ldc not implemented for constant {:?}", constant),
+        constant => return runtime_error!("ldc not implemented for constant {:?}", constant),
     };
 
     frame.push_operand(value);
@@ -193,7 +195,7 @@ pub fn push_constant_long(frame: &mut Frame, operands: &[u8]) -> Result<()> {
         Constant::Long(l) => Long(*l),
         Constant::Double(d) => Double(*d),
         // TODO reference and reference resolution
-        constant => runtime_error!("ldc2w not implemented for constant {:?}", constant),
+        constant => return runtime_error!("ldc2w not implemented for constant {:?}", constant),
     };
 
     frame.push_operand(value);
