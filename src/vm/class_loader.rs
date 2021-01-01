@@ -1,58 +1,84 @@
 use crate::class::Class;
 use crate::error::Result;
-use crate::error::{Error, ErrorKind};
 use crate::io::class::ClassReader;
+use crate::vm::class_loader::ClassSource::{Folder, Jar};
 use crate::vm::frame::Frame;
 use std::collections::HashMap;
 use std::path::Path;
 use std::rc::Rc;
 
+trait FileSource {
+    fn load_class(&self, filename: &str) -> Result<Option<Class>>;
+}
+
+#[derive(Debug)]
+struct FolderSource {
+    path: String,
+}
+
+impl FileSource for FolderSource {
+    fn load_class(&self, filename: &str) -> Result<Option<Class>> {
+        let mut path = self.path.clone();
+        path.push_str(&filename);
+        path.push_str(".class");
+
+        if Path::new(&path).exists() {
+            Ok(Some(ClassReader::from_file(path)?))
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+#[derive(Debug)]
+enum ClassSource {
+    Folder(FolderSource),
+    Jar(String),
+}
+
+impl FileSource for ClassSource {
+    fn load_class(&self, filename: &str) -> Result<Option<Class>> {
+        match self {
+            Folder(f) => f.load_class(filename),
+            _ => unimplemented!(),
+        }
+    }
+}
+
+impl From<&str> for ClassSource {
+    fn from(str: &str) -> Self {
+        if str.ends_with(".jar") {
+            Jar(str.to_owned())
+        } else {
+            Folder(FolderSource {
+                path: str.to_owned(),
+            })
+        }
+    }
+}
+
 pub struct ClassLoader {
     classes: HashMap<String, Rc<Class>>,
-    paths: Vec<String>,
+    sources: Vec<ClassSource>,
 }
 
 impl ClassLoader {
     pub fn new() -> Self {
         ClassLoader {
             classes: HashMap::new(),
-            paths: Vec::new(),
+            sources: Vec::new(),
         }
     }
 
     pub fn set_paths(&mut self, paths: Vec<&str>) {
-        self.paths = paths.iter().map(|s| String::from(*s)).collect();
-    }
-
-    pub fn load_class_file(&mut self, filename: &str) -> Result<Rc<Class>> {
-        let class = ClassReader::from_file(filename)?;
-
-        let c = Rc::new(class);
-        let r = c.clone();
-        self.classes = self.classes.clone();
-        self.classes.insert(c.this_class.clone(), c);
-
-        Ok(r)
+        self.sources = paths.iter().map(|s| (*s).into()).collect();
     }
 
     pub fn resolve(&mut self, class_name: &str) -> Result<(Rc<Class>, Option<Frame>)> {
         if let Some(class) = self.classes.get(class_name) {
             Ok((class.clone(), None))
         } else {
-            let class = self
-                .find_class_file(class_name)
-                .map(|filename| self.load_class_file(&filename))
-                .unwrap_or_else(|| {
-                    Err(Error::new(
-                        ErrorKind::RuntimeError,
-                        Some(format!(
-                            "Could not resolve class {} in [{}]",
-                            class_name,
-                            self.paths.join(", ")
-                        )),
-                    ))
-                })?;
-
+            let class = self.load_class(class_name)?;
             let init_frame = class.find_static_method("<clinit>").map(|m| {
                 let mut frame = Frame::new(class.clone(), m);
                 frame.implicit = true;
@@ -63,19 +89,22 @@ impl ClassLoader {
         }
     }
 
-    fn find_class_file(&self, class_name: &str) -> Option<String> {
+    fn load_class(&mut self, class_name: &str) -> Result<Rc<Class>> {
         let mut filename = class_name.to_string();
         filename.push_str(".class");
 
-        for path in &self.paths {
-            let mut path = path.to_owned();
-            path.push_str(&filename);
+        for source in &self.sources {
+            if let Some(class) = source.load_class(class_name)? {
+                let c = Rc::new(class);
+                let r = c.clone();
 
-            if Path::new(&path).exists() {
-                return Some(path);
+                self.classes = self.classes.clone();
+                self.classes.insert(c.this_class.clone(), c);
+
+                return Ok(r);
             }
         }
 
-        None
+        runtime_error!("Could not resolve class {}", class_name);
     }
 }
