@@ -17,18 +17,20 @@ pub struct Frame {
     pub operand_stack_depth: u32,
     pub class: Rc<Class>,
     pub method: Rc<MethodInfo>,
-    pub code: Rc<Code>,
+    pub code: Option<Rc<Code>>,
     pub implicit: bool, // Implicit frames are created by the VM and not by java code.
 }
 
 impl Frame {
     pub fn new(class: Rc<Class>, method: Rc<MethodInfo>) -> Frame {
-        let code = method.get_code().expect("No Code attribute on method.");
+        let code = method.get_code();
+        let max_locals = code.as_ref().map_or(0, |c| c.max_locals);
+        let max_stack = code.as_ref().map_or(0, |c| c.max_stack);
 
         Frame {
             pc: 0,
-            local_variables: vec![Null; code.max_locals as usize],
-            operand_stack: Vec::with_capacity(code.max_stack as usize),
+            local_variables: vec![Null; max_locals as usize],
+            operand_stack: Vec::with_capacity(max_stack as usize),
             operand_stack_depth: 0,
             class,
             method,
@@ -38,7 +40,7 @@ impl Frame {
     }
 
     pub fn pc_next(&mut self) {
-        self.pc += self.code.instructions[self.pc as usize].size();
+        self.pc += self.code.as_ref().unwrap().instructions[self.pc as usize].size();
     }
 
     pub fn pc_offset(&mut self, offset: i16) {
@@ -124,15 +126,24 @@ impl Frame {
     }
 
     fn find_exception_handler(&self, exception: &Object) -> Option<&ExceptionHandler> {
-        self.code.exception_handlers.iter().find(|e| {
-            if let Some(catch_type) = &e.catch_type {
-                catch_type == &exception.class
-                    && (self.pc as u16) >= e.start_pc
-                    && (self.pc as u16) < e.end_pc
-            } else {
-                false
-            }
-        })
+        if self.code.is_none() {
+            return None;
+        }
+
+        self.code
+            .as_ref()
+            .unwrap()
+            .exception_handlers
+            .iter()
+            .find(|e| {
+                if let Some(catch_type) = &e.catch_type {
+                    catch_type == &exception.class
+                        && (self.pc as u16) >= e.start_pc
+                        && (self.pc as u16) < e.end_pc
+                } else {
+                    false
+                }
+            })
     }
 }
 
@@ -140,11 +151,17 @@ impl fmt::Display for Frame {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         writeln!(f, "{}::{}", self.class.this_class, self.method.name)?;
 
+        if self.code.is_none() {
+            writeln!(f, "<Native>")?;
+            return Ok(());
+        }
+
+        let code = self.code.as_ref().unwrap();
         let code_start = max(self.pc as usize, 5) - 5;
-        let code_end = min(self.pc as usize + 5, self.code.instructions.len());
+        let code_end = min(self.pc as usize + 5, code.instructions.len());
 
         for i in code_start..code_end {
-            let instruction = &self.code.instructions[i];
+            let instruction = &code.instructions[i];
             if instruction.opcode == OperationSpacer {
                 continue;
             }

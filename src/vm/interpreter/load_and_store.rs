@@ -17,7 +17,7 @@ macro_rules! load {
         let value = $frame.get_local($index);
 
         if !matches!(value, $($type)|*) {
-            return runtime_error!(
+            panic!(
                 "*store_<n> expected a {} value on top of the stack. Got {:?}",
                 stringify!($($type)|*), value);
         }
@@ -36,7 +36,7 @@ macro_rules! store {
         let operand = $frame.pop_operand();
 
         if !matches!(operand, $($type)|*) {
-            return runtime_error!(
+            panic!(
                     "*store_<n> expected a {} value on top of the stack. Got {:?}",
                     stringify!($($type)|*), operand);
         }

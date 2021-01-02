@@ -39,7 +39,7 @@ use crate::vm::interpreter::InterpretResult::{Command, Jump, Normal};
 use crate::vm::VMCommand;
 use crate::vm::VMCommand::{
     VMAllocateReferenceArray, VMException, VMGetField, VMGetStatic, VMInvokeSpecial,
-    VMInvokeStatic, VMInvokeVirtual, VMPutField, VMPutStatic, VMReturn,
+    VMInvokeStatic, VMInvokeVirtual, VMNative, VMPutField, VMPutStatic, VMReturn,
 };
 
 macro_rules! jump (
@@ -63,7 +63,11 @@ enum InterpretResult {
 
 pub(super) fn interpret_frame(frame: &mut Frame, heap: &mut Heap) -> Result<VMCommand> {
     loop {
-        let instruction = &frame.code.clone().instructions[frame.pc as usize];
+        if frame.code.is_none() {
+            return Ok(VMNative());
+        }
+
+        let instruction = &frame.code.as_ref().unwrap().clone().instructions[frame.pc as usize];
 
         debug!("-------------");
         debug!("{}", frame);
@@ -144,11 +148,11 @@ fn interpret_instruction(
         DStore2 => store!(frame, Double(_), 2),
         DStore3 => store!(frame, Double(_), 3),
 
-        AStore => store!(frame, instruction, Reference(_) | ReturnAddress(_)),
-        AStore0 => store!(frame, Reference(_) | ReturnAddress(_), 0),
-        AStore1 => store!(frame, Reference(_) | ReturnAddress(_), 1),
-        AStore2 => store!(frame, Reference(_) | ReturnAddress(_), 2),
-        AStore3 => store!(frame, Reference(_) | ReturnAddress(_), 3),
+        AStore => store!(frame, instruction, Reference(_) | ReturnAddress(_) | Null),
+        AStore0 => store!(frame, Reference(_) | ReturnAddress(_) | Null, 0),
+        AStore1 => store!(frame, Reference(_) | ReturnAddress(_) | Null, 1),
+        AStore2 => store!(frame, Reference(_) | ReturnAddress(_) | Null, 2),
+        AStore3 => store!(frame, Reference(_) | ReturnAddress(_) | Null, 3),
 
         BiPush => push_byte(frame, &instruction.operands),
         SiPush => push_short(frame, &instruction.operands),
@@ -343,9 +347,12 @@ fn interpret_instruction(
         FReturn => vm_command!(VMReturn(Float(frame.pop_operand().expect_float()))),
         DReturn => vm_command!(VMReturn(Double(frame.pop_operand().expect_double()))),
         AReturn => {
-            return Ok(Command(VMReturn(Reference(
-                frame.pop_operand().expect_reference(),
-            ))))
+            return Ok(Command(VMReturn(
+                frame
+                    .pop_operand()
+                    .expect_nullable_reference()
+                    .map_or(Null, |r| Reference(r)),
+            )))
         }
 
         // Throwing exceptions:

@@ -1,4 +1,5 @@
 use rjvm::vm::class_loader::ClassLoader;
+use rjvm::vm::native::Native;
 use rjvm::vm::VirtualMachine;
 use std::env;
 
@@ -16,7 +17,9 @@ fn main() {
     let mut class_loader = ClassLoader::new();
     class_loader.set_paths(class_path.to_owned());
 
+    let native = Native::new();
+
     let mut vm = VirtualMachine::default();
-    let return_value = vm.run(class_loader, class_name, method_name, vec![]);
+    let return_value = vm.run(class_loader, native, class_name, method_name, vec![]);
     println!("Returned {:?}", return_value);
 }

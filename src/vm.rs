@@ -1,14 +1,15 @@
 use crate::error::Result;
 use crate::vm::class_loader::ClassLoader;
-use crate::vm::data_type::Value::Reference;
+use crate::vm::data_type::Value::{Null, Reference};
 use crate::vm::data_type::{ReferenceType, Value};
 use crate::vm::frame::Frame;
 use crate::vm::heap::{Heap, HeapObject};
 use crate::vm::interpreter::interpret_frame;
+use crate::vm::native::Native;
 use crate::vm::stack::Stack;
 use crate::vm::VMCommand::{
     VMAllocateReferenceArray, VMException, VMGetField, VMGetStatic, VMInvokeSpecial,
-    VMInvokeStatic, VMInvokeVirtual, VMPutField, VMPutStatic, VMReturn,
+    VMInvokeStatic, VMInvokeVirtual, VMNative, VMPutField, VMPutStatic, VMReturn,
 };
 use std::collections::HashMap;
 
@@ -27,6 +28,7 @@ pub mod data_type;
 mod frame;
 mod heap;
 mod interpreter;
+pub mod native;
 mod stack;
 
 #[derive(Debug)]
@@ -41,6 +43,7 @@ enum VMCommand {
     VMGetStatic(u16),
     VMAllocateReferenceArray(u16),
     VMException(),
+    VMNative(),
 }
 
 #[derive(Debug)]
@@ -58,6 +61,7 @@ impl VirtualMachine {
     pub fn run(
         &mut self,
         class_loader: ClassLoader,
+        native: Native,
         class_name: &str,
         method_name: &str,
         args: Vec<Value>,
@@ -65,7 +69,20 @@ impl VirtualMachine {
         let mut heap = Heap::default();
         let mut stack = Stack::new();
         let mut class_loader = class_loader;
+        let mut native = native;
         let mut static_context: StaticContext = HashMap::new();
+
+        /* TODO make this pass
+        let init_result = self.execute(
+            &mut static_context,
+            &mut heap,
+            &mut stack,
+            &mut class_loader,
+            "java/lang/System", "initializeSystemClass", vec![]
+        );
+
+        panic!("INIT RET {:?}", init_result.unwrap());
+         */
 
         let result = self.execute(
             &mut static_context,
@@ -75,6 +92,7 @@ impl VirtualMachine {
             class_name,
             method_name,
             args,
+            &mut native,
         );
 
         if let Ok(value) = result {
@@ -99,6 +117,7 @@ impl VirtualMachine {
         init_class_name: &str,
         init_method_name: &str,
         args: Vec<Value>,
+        native: &mut Native,
     ) -> Result<Value> {
         self.prepare_static_method(class_loader, init_class_name, init_method_name, args, stack);
 
@@ -157,6 +176,9 @@ impl VirtualMachine {
                     freeze_pc = true;
                     self.handle_exception(heap, stack);
                 }
+                VMNative() => {
+                    self.call_native(stack, native);
+                }
             };
 
             // Update pc only if we did not get a new frame, or the pc is frozen.
@@ -164,6 +186,15 @@ impl VirtualMachine {
                 let frame = stack.current_frame();
                 frame.pc_next();
             }
+        }
+    }
+
+    fn call_native(&self, stack: &mut Stack, native: &mut Native) {
+        let val = native.invoke(stack.current_frame());
+        stack.pop();
+
+        if let Some(val) = val {
+            stack.current_frame().push_operand(val);
         }
     }
 
@@ -300,9 +331,12 @@ impl VirtualMachine {
                 );
             }
 
-            stack
-                .current_frame()
-                .push_operand(object.fields.get(&field.field_name).unwrap().clone());
+            stack.current_frame().push_operand(
+                object
+                    .fields
+                    .get(&field.field_name)
+                    .map_or(Null, |f| f.clone()),
+            );
         } else {
             panic!(
                 "Expected instance in heap at index {:?}, got {:?}.",
@@ -325,9 +359,11 @@ impl VirtualMachine {
             .get_method_ref(index)?;
         let (class, init_frame) = class_loader.resolve(class_name)?;
         let method = class.resolve_method(method_name, descriptor)?;
+
         let mut args = stack
             .current_frame()
             .pop_field_types(&method.descriptor.argument_types);
+
         let object_ref = stack.current_frame().pop_operand().expect_reference();
         args.insert(0, Reference(object_ref));
 
@@ -354,15 +390,6 @@ impl VirtualMachine {
             .get_method_ref(index)?;
         let (class, init_frame) = class_loader.resolve(class_name)?;
         let method = class.resolve_method(method_name, descriptor)?;
-
-        if matches!(method.get_code(), None) {
-            // TODO
-            println!(
-                "Skipping {}:{}, method has no code attribute (native or abstract)",
-                class_name, method_name
-            );
-            return Ok(());
-        }
 
         let args = stack
             .current_frame()
