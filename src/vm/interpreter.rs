@@ -219,12 +219,9 @@ fn interpret_instruction(
         IUshr => arithmetic!(frame, Int, |l, r| ((l as u32) >> (r as u32 & 0x1f))
             as IntType),
 
-        LShl => arithmetic!(frame, Long, |l, r| ((l as i64) << (r as i32 & 0x1f))
-            as LongType),
-        LShr => arithmetic!(frame, Long, |l, r| ((l as i64) >> (r as i32 & 0x1f))
-            as LongType),
-        LUshr => arithmetic!(frame, Long, |l, r| ((l as u64) >> (r as u32 & 0x1f))
-            as LongType),
+        LShl => arithmetic_long!(frame, |l, r| ((l as i64) << (r as i32 & 0x1f)) as LongType),
+        LShr => arithmetic_long!(frame, |l, r| ((l as i64) >> (r as i32 & 0x1f)) as LongType),
+        LUshr => arithmetic_long!(frame, |l, r| ((l as u64) >> (r as u32 & 0x1f)) as LongType),
 
         IOr => arithmetic!(frame, Int, |),
         LOr => arithmetic!(frame, Long, |),
@@ -342,7 +339,7 @@ fn interpret_instruction(
         InvokeStatic => vm_command!(VMInvokeStatic(reference(&instruction.operands))),
         // Invokedynamic => TODO
         Return => vm_command!(VMReturn(Null)),
-        IReturn => vm_command!(VMReturn(Int(frame.pop_operand().expect_int()))),
+        IReturn => vm_command!(VMReturn(Int(frame.pop_operand().expect_int_like()))),
         LReturn => vm_command!(VMReturn(Long(frame.pop_operand().expect_long()))),
         FReturn => vm_command!(VMReturn(Float(frame.pop_operand().expect_float()))),
         DReturn => vm_command!(VMReturn(Double(frame.pop_operand().expect_double()))),

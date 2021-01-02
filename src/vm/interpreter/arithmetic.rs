@@ -5,9 +5,9 @@ use crate::vm::data_type::Value::{Double, Float, Int, Long};
 use crate::vm::frame::Frame;
 
 macro_rules! pop2(
-    ($type:path, $frame:expr) => {{
-        let left = expect_type!($frame.pop_operand(), $type);
-        let right = expect_type!($frame.pop_operand(), $type);
+    ($($type:path)|+, $frame:expr) => {{
+        let left = expect_type!($frame.pop_operand(), $($type)|+);
+        let right = expect_type!($frame.pop_operand(), $($type)|+);
         (right, left)
     }}
 );
@@ -21,6 +21,15 @@ macro_rules! arithmetic{
     ($frame:ident, $type:path, $expr:expr) => {{
         let (left, right) = pop2!($type, $frame);
         $frame.push_operand($type($expr(left, right)));
+    }};
+}
+
+#[macro_export]
+macro_rules! arithmetic_long {
+    ($frame:ident, $expr:expr) => {{
+        let right = expect_type!($frame.pop_operand(), Int, LongType);
+        let left = expect_type!($frame.pop_operand(), Long | Int, LongType);
+        $frame.push_operand(Long($expr(left, right)));
     }};
 }
 
@@ -341,7 +350,7 @@ mod test {
     #[test]
     fn lshl() {
         test_instruction!(
-            start_stack: [Long(0x08), Long(1)],
+            start_stack: [Long(0x08), Int(1)],
             instruction: LShl,
             final_stack: [Long(0x10)],
         );
@@ -350,7 +359,7 @@ mod test {
     #[test]
     fn lshr() {
         test_instruction!(
-            start_stack: [Long(-0x01), Long(2)],
+            start_stack: [Long(-0x01), Int(2)],
             instruction: LShr,
             final_stack: [Long(-1)],
         );
@@ -359,7 +368,7 @@ mod test {
     #[test]
     fn lushr() {
         test_instruction!(
-            start_stack: [Long(-1), Long(63)],
+            start_stack: [Long(-1), Int(63)],
             instruction: LUshr,
             final_stack: [Long(8589934591)],
         );

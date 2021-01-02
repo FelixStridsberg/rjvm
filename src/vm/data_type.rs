@@ -52,6 +52,10 @@ impl Value {
         expect_type!(self, Int)
     }
 
+    pub fn expect_int_like(self) -> IntType {
+        self.as_int_value()
+    }
+
     pub fn expect_long(self) -> LongType {
         expect_type!(self, Long)
     }
@@ -90,7 +94,7 @@ impl Value {
             FieldType::Char => Char(self.expect_char()),
             FieldType::Double => Double(self.expect_double()),
             FieldType::Float => Float(self.expect_float()),
-            FieldType::Int => Int(self.expect_int()),
+            FieldType::Int => Int(self.expect_int_like()),
             FieldType::Long => Long(self.expect_long()),
             FieldType::Short => Short(self.expect_short()),
             FieldType::Boolean => Boolean(self.expect_boolean()),
@@ -101,7 +105,7 @@ impl Value {
         }
     }
 
-    pub fn as_int_value(&self) -> u32 {
+    pub fn as_int_value(&self) -> IntType {
         match self {
             Boolean(b) => {
                 if *b {
@@ -110,13 +114,10 @@ impl Value {
                     0
                 }
             }
-            Byte(b) => *b as u32,
-            Short(s) => *s as u32,
-            Char(c) => *c as u32,
-            Float(f) => (*f).to_bits(),
-            Null => 0,
-            Int(i) => *i as u32,
-            Reference(i) | ReturnAddress(i) => *i as u32,
+            Byte(b) => *b as IntType,
+            Short(s) => *s as IntType,
+            Char(c) => *c as IntType,
+            Int(i) => *i,
             _ => panic!("Tried to use {:?} as int value.", self),
         }
     }

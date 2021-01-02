@@ -61,17 +61,13 @@ impl Native {
 }
 
 mod java_lang_system {
-    use crate::vm::native::Native;
-    use crate::vm::frame::Frame;
     use crate::vm::data_type::Value;
     use crate::vm::data_type::Value::Null;
+    use crate::vm::frame::Frame;
+    use crate::vm::native::Native;
 
     pub fn register_natives(native: &mut Native) {
-        native.register_method(
-            "java/lang/System",
-            "initProperties",
-            init_properties,
-        );
+        native.register_method("java/lang/System", "initProperties", init_properties);
     }
 
     fn init_properties(frame: &mut Frame) -> Option<Value> {
@@ -82,9 +78,9 @@ mod java_lang_system {
 
 mod java_lang_class {
     use crate::vm::data_type::Value;
+    use crate::vm::data_type::Value::Null;
     use crate::vm::frame::Frame;
     use crate::vm::native::Native;
-    use crate::vm::data_type::Value::Null;
 
     pub fn register_natives(native: &mut Native) {
         native.register_method(
@@ -93,11 +89,7 @@ mod java_lang_class {
             desired_assertion_status0,
         );
 
-        native.register_method(
-            "java/lang/Class",
-            "getPrimitiveClass",
-            get_primitive_class,
-        );
+        native.register_method("java/lang/Class", "getPrimitiveClass", get_primitive_class);
     }
 
     fn desired_assertion_status0(_frame: &mut Frame) -> Option<Value> {
@@ -112,16 +104,16 @@ mod java_lang_class {
 }
 
 mod java_lang_float {
-    use crate::vm::native::Native;
     use crate::vm::data_type::Value;
-    use crate::vm::frame::Frame;
     use crate::vm::data_type::Value::Int;
+    use crate::vm::frame::Frame;
+    use crate::vm::native::Native;
 
     pub fn auto_register_natives(native: &mut Native) {
         native.register_method(
             "java/lang/Float",
             "floatToRawIntBits",
-            float_to_raw_int_bits
+            float_to_raw_int_bits,
         );
     }
 
@@ -132,23 +124,19 @@ mod java_lang_float {
 }
 
 mod java_lang_double {
-    use crate::vm::native::Native;
     use crate::vm::data_type::Value;
+    use crate::vm::data_type::Value::{Double, Int};
     use crate::vm::frame::Frame;
-    use crate::vm::data_type::Value::{Int, Double};
+    use crate::vm::native::Native;
 
     pub fn auto_register_natives(native: &mut Native) {
         native.register_method(
             "java/lang/Double",
             "doubleToRawLongBits",
-            double_to_raw_int_bits
+            double_to_raw_int_bits,
         );
 
-        native.register_method(
-            "java/lang/Double",
-            "longBitsToDouble",
-            long_bits_to_double
-        );
+        native.register_method("java/lang/Double", "longBitsToDouble", long_bits_to_double);
     }
 
     fn double_to_raw_int_bits(frame: &mut Frame) -> Option<Value> {

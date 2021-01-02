@@ -14,14 +14,20 @@ use crate::vm::VMCommand::{
 use std::collections::HashMap;
 
 #[macro_export]
-macro_rules! expect_type (
-    ($value:expr, $expected_type:path) => {
+macro_rules! expect_type {
+    ($value:expr, $($expected_type:path)|+) => {
         match $value {
-            $expected_type(i) => i,
-            value => panic!("Tried to use a {:?} as a {}", value, stringify!($expected_type)),
+            $($expected_type(i) => i,)+
+            value => panic!("Tried to use a {:?} as a {}", value, stringify!($($expected_type,)+)),
         }
-    }
-);
+    };
+    ($value:expr, $($expected_type:path)|+, $type:ty) => {
+        match $value {
+            $($expected_type(i) => i as $type,)+
+            value => panic!("Tried to use a {:?} as a {}", value, stringify!($($expected_type,)+)),
+        }
+    };
+}
 
 pub mod class_loader;
 pub mod data_type;
@@ -72,13 +78,13 @@ impl VirtualMachine {
         let mut native = native;
         let mut static_context: StaticContext = HashMap::new();
 
-        /* TODO make this pass
+        /*
         let init_result = self.execute(
             &mut static_context,
             &mut heap,
             &mut stack,
             &mut class_loader,
-            "java/lang/System", "initializeSystemClass", vec![]
+            "java/lang/System", "initializeSystemClass", vec![], &mut native
         );
 
         panic!("INIT RET {:?}", init_result.unwrap());
@@ -298,8 +304,8 @@ impl VirtualMachine {
                 .unwrap();
 
             if object.class != field.class_name {
-                panic!(
-                    "Put field expected class {} found class {}",
+                eprintln!(
+                    "Put field expected class {} found class {}, TODO check if instance of",
                     object.class, field.class_name
                 );
             }
@@ -325,8 +331,8 @@ impl VirtualMachine {
                 .unwrap();
 
             if object.class != field.class_name {
-                panic!(
-                    "Get field expected class {} found class {}",
+                eprintln!(
+                    "Get field expected class {} found class {}, TODO check if instance of",
                     object.class, field.class_name
                 );
             }
