@@ -364,7 +364,9 @@ impl VirtualMachine {
             .constants
             .get_method_ref(index)?;
         let (class, init_frame) = class_loader.resolve(class_name)?;
-        let method = class.resolve_method(method_name, descriptor).expect("Method not found");
+        let method = class
+            .resolve_method(method_name, descriptor)
+            .expect("Method not found");
 
         let mut args = stack
             .current_frame()
@@ -394,24 +396,35 @@ impl VirtualMachine {
             .class
             .constants
             .get_method_ref(index)?;
-        let (class, init_frame) = class_loader.resolve(class_name)?;
-        let method = class.resolve_method(method_name, descriptor).expect("Method not found");
 
-        let mut args = stack
-            .current_frame()
-            .pop_field_types(&method.descriptor.argument_types);
+        let mut class_name = class_name.to_owned();
+        loop {
+            let (class, init_frame) = class_loader.resolve(&class_name)?;
+            let method = class.resolve_method(method_name, descriptor);
 
-        let object_ref = stack.current_frame().pop_operand().expect_reference();
-        args.insert(0, Reference(object_ref));
+            if let None = method {
+                class_name = class.super_class.clone();
+                continue;
+            }
 
-        let mut frame = Frame::new(class, method);
-        frame.load_arguments(args);
+            let method = method.unwrap();
+            let mut args = stack
+                .current_frame()
+                .pop_field_types(&method.descriptor.argument_types);
 
-        stack.push(frame);
-        if let Some(init_frame) = init_frame {
-            stack.push(init_frame);
+            let object_ref = stack.current_frame().pop_operand().expect_reference();
+            args.insert(0, Reference(object_ref));
+
+            let mut frame = Frame::new(class, method);
+            frame.load_arguments(args);
+
+            stack.push(frame);
+            if let Some(init_frame) = init_frame {
+                stack.push(init_frame);
+            }
+
+            return Ok(());
         }
-        Ok(())
     }
 
     fn invoke_static(
@@ -426,7 +439,9 @@ impl VirtualMachine {
             .constants
             .get_method_ref(index)?;
         let (class, init_frame) = class_loader.resolve(class_name)?;
-        let method = class.resolve_method(method_name, descriptor).expect("Method not found");
+        let method = class
+            .resolve_method(method_name, descriptor)
+            .expect("Method not found");
 
         let args = stack
             .current_frame()

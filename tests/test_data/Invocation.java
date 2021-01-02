@@ -2,7 +2,7 @@ package test_data;
 
 import java.io.Serializable;
 
-public class Invocation {
+public class Invocation extends Super implements Interface {
 
     public static int static_no_args() {
         int i = 0;
@@ -48,6 +48,16 @@ public class Invocation {
         return i1.different_args(1, 2, 3.0, 4.0f);
     }
 
+    public static int interface_invocation() {
+        Interface i1 = new Invocation();
+        return i1.interface_method();
+    }
+
+    public static int super_invocation() {
+        Invocation i1 = new Invocation();
+        return i1.super_method();
+    }
+
     private int no_args() {
         return 3;
     }
@@ -66,5 +76,9 @@ public class Invocation {
 
     private int different_args(int i, long l, double d, float f) {
         return i + (int)l + (int)d + (int)f;
+    }
+
+    public int interface_method() {
+        return 100;
     }
 }
