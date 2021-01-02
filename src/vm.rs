@@ -6,7 +6,7 @@ use crate::vm::frame::Frame;
 use crate::vm::heap::{Heap, HeapObject};
 use crate::vm::interpreter::interpret_frame;
 use crate::vm::stack::Stack;
-use crate::vm::Command::{
+use crate::vm::VMCommand::{
     VMAllocateReferenceArray, VMException, VMGetField, VMGetStatic, VMInvokeSpecial,
     VMInvokeStatic, VMInvokeVirtual, VMPutField, VMPutStatic, VMReturn,
 };
@@ -30,7 +30,7 @@ mod interpreter;
 mod stack;
 
 #[derive(Debug)]
-enum Command {
+enum VMCommand {
     VMReturn(Value),
     VMInvokeStatic(u16),
     VMInvokeSpecial(u16),

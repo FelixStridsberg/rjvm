@@ -1,5 +1,5 @@
 #[macro_use]
-mod test;
+mod test_macro;
 
 #[macro_use]
 mod arithmetic;
@@ -33,13 +33,33 @@ use crate::vm::interpreter::control_transfer::*;
 use crate::vm::interpreter::load_and_store::*;
 use crate::vm::interpreter::object_creation_and_manipulation::*;
 use crate::vm::interpreter::stack_management::*;
-use crate::vm::Command;
-use crate::vm::Command::{
+use crate::vm::interpreter::InterpretResult::{Command, Jump, Normal};
+use crate::vm::VMCommand;
+use crate::vm::VMCommand::{
     VMAllocateReferenceArray, VMException, VMGetField, VMGetStatic, VMInvokeSpecial,
     VMInvokeStatic, VMInvokeVirtual, VMPutField, VMPutStatic, VMReturn,
 };
 
-pub(super) fn interpret_frame(frame: &mut Frame, heap: &mut Heap) -> Result<Command> {
+macro_rules! jump (
+    ($ins:expr) => {{
+            $ins;
+            return Ok(Jump);
+    }}
+);
+
+macro_rules! vm_command (
+    ($ins:expr) => {{
+        return Ok(Command($ins));
+    }}
+);
+
+enum InterpretResult {
+    Normal,
+    Jump,
+    Command(VMCommand),
+}
+
+pub(super) fn interpret_frame(frame: &mut Frame, heap: &mut Heap) -> Result<VMCommand> {
     loop {
         let instruction = &frame.code.clone().instructions[frame.pc as usize];
 
@@ -47,34 +67,13 @@ pub(super) fn interpret_frame(frame: &mut Frame, heap: &mut Heap) -> Result<Comm
         debug!("{}", frame);
         debug!("[I] {}", instruction);
 
-        if let Some(vm_command) = interpret_instruction(frame, heap, instruction)? {
+        let result = interpret_instruction(frame, heap, instruction)?;
+
+        if let Command(vm_command) = result {
             return Ok(vm_command);
         }
 
-        // Do not increase pc for jump commands
-        // TODO This can probably be cleaner
-        if !matches!(
-            instruction.opcode,
-            IfEq | IfNe
-                | IfLt
-                | IfLe
-                | IfGt
-                | IfGe
-                | IfNull
-                | IfNonNull
-                | IfIcmpEq
-                | IfIcmpNe
-                | IfIcmpLt
-                | IfIcmpLe
-                | IfIcmpGt
-                | IfIcmpGe
-                | IfAcmpEq
-                | IfAcmpNe
-                | Goto
-                | GotoW
-                | Jsr
-                | JsrW
-        ) {
+        if !matches!(result, Jump) {
             frame.pc_next();
         }
     }
@@ -84,7 +83,7 @@ fn interpret_instruction(
     frame: &mut Frame,
     heap: &mut Heap,
     instruction: &Instruction,
-) -> Result<Option<Command>> {
+) -> Result<InterpretResult> {
     match &instruction.opcode {
         Nop => {}
 
@@ -262,16 +261,12 @@ fn interpret_instruction(
         New => new_object(frame, heap, &instruction.operands),
 
         NewArray => new_array(frame, heap, &instruction.operands)?,
-        ANewArray => {
-            return Ok(Some(VMAllocateReferenceArray(reference(
-                &instruction.operands,
-            ))))
-        }
+        ANewArray => vm_command!(VMAllocateReferenceArray(reference(&instruction.operands,))),
         // Multianewarray => TODO
-        GetField => return Ok(Some(VMGetField(reference(&instruction.operands)))),
-        PutField => return Ok(Some(VMPutField(reference(&instruction.operands)))),
-        GetStatic => return Ok(Some(VMGetStatic(reference(&instruction.operands)))),
-        PutStatic => return Ok(Some(VMPutStatic(reference(&instruction.operands)))),
+        GetField => vm_command!(VMGetField(reference(&instruction.operands))),
+        PutField => vm_command!(VMPutField(reference(&instruction.operands))),
+        GetStatic => vm_command!(VMGetStatic(reference(&instruction.operands))),
+        PutStatic => vm_command!(VMPutStatic(reference(&instruction.operands))),
 
         BaLoad => array_load!(frame, heap, ByteArray, Int, IntType),
         CaLoad => array_load!(frame, heap, CharArray, Int, IntType),
@@ -306,53 +301,53 @@ fn interpret_instruction(
         Swap => swap_operand(frame),
 
         // Control transfer:
-        IfEq => if_cmp_zero!(frame, instruction, ==),
-        IfNe => if_cmp_zero!(frame, instruction, !=),
-        IfLt => if_cmp_zero!(frame, instruction, <),
-        IfLe => if_cmp_zero!(frame, instruction, <=),
-        IfGt => if_cmp_zero!(frame, instruction, >),
-        IfGe => if_cmp_zero!(frame, instruction, >=),
+        IfEq => jump!(if_cmp_zero!(frame, instruction, ==)),
+        IfNe => jump!(if_cmp_zero!(frame, instruction, !=)),
+        IfLt => jump!(if_cmp_zero!(frame, instruction, <)),
+        IfLe => jump!(if_cmp_zero!(frame, instruction, <=)),
+        IfGt => jump!(if_cmp_zero!(frame, instruction, >)),
+        IfGe => jump!(if_cmp_zero!(frame, instruction, >=)),
 
-        IfNull => if_null(frame, &instruction.operands),
-        IfNonNull => if_non_null(frame, &instruction.operands),
+        IfNull => jump!(if_null(frame, &instruction.operands)),
+        IfNonNull => jump!(if_non_null(frame, &instruction.operands)),
 
-        IfIcmpEq => if_cmp_operands!(frame, instruction, Int, ==),
-        IfIcmpNe => if_cmp_operands!(frame, instruction, Int, !=),
-        IfIcmpLt => if_cmp_operands!(frame, instruction, Int, <),
-        IfIcmpLe => if_cmp_operands!(frame, instruction, Int, <=),
-        IfIcmpGt => if_cmp_operands!(frame, instruction, Int, >),
-        IfIcmpGe => if_cmp_operands!(frame, instruction, Int, >=),
-        IfAcmpEq => if_cmp_operands!(frame, instruction, Reference, ==),
-        IfAcmpNe => if_cmp_operands!(frame, instruction, Reference, !=),
+        IfIcmpEq => jump!(if_cmp_operands!(frame, instruction, Int, ==)),
+        IfIcmpNe => jump!(if_cmp_operands!(frame, instruction, Int, !=)),
+        IfIcmpLt => jump!(if_cmp_operands!(frame, instruction, Int, <)),
+        IfIcmpLe => jump!(if_cmp_operands!(frame, instruction, Int, <=)),
+        IfIcmpGt => jump!(if_cmp_operands!(frame, instruction, Int, >)),
+        IfIcmpGe => jump!(if_cmp_operands!(frame, instruction, Int, >=)),
+        IfAcmpEq => jump!(if_cmp_operands!(frame, instruction, Reference, ==)),
+        IfAcmpNe => jump!(if_cmp_operands!(frame, instruction, Reference, !=)),
 
         TableSwitch => table_switch(frame, &instruction.operands),
         LookupSwitch => lookup_switch(frame, &instruction.operands),
 
-        Goto => goto(frame, &instruction.operands),
-        GotoW => goto_wide(frame, &instruction.operands),
-        Jsr => jump_subroutine(frame, &instruction.operands),
-        JsrW => jump_subroutine_wide(frame, &instruction.operands),
-        Ret => return_from_subroutine(frame, &instruction.operands),
+        Goto => jump!(goto(frame, &instruction.operands)),
+        GotoW => jump!(goto_wide(frame, &instruction.operands)),
+        Jsr => jump!(jump_subroutine(frame, &instruction.operands)),
+        JsrW => jump!(jump_subroutine_wide(frame, &instruction.operands)),
+        Ret => jump!(return_from_subroutine(frame, &instruction.operands)),
 
         // Method invocation and return
-        InvokeVirtual => return Ok(Some(VMInvokeVirtual(reference(&instruction.operands)))),
+        InvokeVirtual => vm_command!(VMInvokeVirtual(reference(&instruction.operands))),
         // Invokeinterface => TODO
-        InvokeSpecial => return Ok(Some(VMInvokeSpecial(reference(&instruction.operands)))),
-        InvokeStatic => return Ok(Some(VMInvokeStatic(reference(&instruction.operands)))),
+        InvokeSpecial => vm_command!(VMInvokeSpecial(reference(&instruction.operands))),
+        InvokeStatic => vm_command!(VMInvokeStatic(reference(&instruction.operands))),
         // Invokedynamic => TODO
-        Return => return Ok(Some(VMReturn(Null))),
-        IReturn => return Ok(Some(VMReturn(Int(frame.pop_operand().expect_int())))),
-        LReturn => return Ok(Some(VMReturn(Long(frame.pop_operand().expect_long())))),
-        FReturn => return Ok(Some(VMReturn(Float(frame.pop_operand().expect_float())))),
-        DReturn => return Ok(Some(VMReturn(Double(frame.pop_operand().expect_double())))),
+        Return => vm_command!(VMReturn(Null)),
+        IReturn => vm_command!(VMReturn(Int(frame.pop_operand().expect_int()))),
+        LReturn => vm_command!(VMReturn(Long(frame.pop_operand().expect_long()))),
+        FReturn => vm_command!(VMReturn(Float(frame.pop_operand().expect_float()))),
+        DReturn => vm_command!(VMReturn(Double(frame.pop_operand().expect_double()))),
         AReturn => {
-            return Ok(Some(VMReturn(Reference(
+            return Ok(Command(VMReturn(Reference(
                 frame.pop_operand().expect_reference(),
             ))))
         }
 
         // Throwing exceptions:
-        AThrow => return Ok(Some(VMException())),
+        AThrow => vm_command!(VMException()),
 
         // Implementation specific
         OperationSpacer => panic!("Tried to parse operation as instruction in {}", frame),
@@ -368,7 +363,7 @@ fn interpret_instruction(
         // MonitorExit => TODO
     }
 
-    Ok(None)
+    Ok(Normal)
 }
 
 fn reference(operands: &[u8]) -> u16 {

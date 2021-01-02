@@ -9,11 +9,15 @@ macro_rules! if_cmp_zero (
     ($frame:ident, $instruction:ident, $op:tt) => {{
         if $frame.pop_operand().expect_int() $op 0 {
             $frame.pc_offset(crate::binary::bytes_to_i16(&$instruction.operands));
+        } else {
+            $frame.pc_next();
         }
     }};
     ($frame:ident, $instruction:ident, $comp:path) => {{
         if matches!($frame.pop_operand(), $comp) {
             $frame.pc_offset(crate::binary::bytes_to_i16(&$instruction.operands));
+        } else {
+            $frame.pc_next();
         }
     }}
 );
@@ -25,6 +29,8 @@ macro_rules! if_cmp_operands (
         let value2 = expect_type!($frame.pop_operand(), $type);
         if value1 $op value2 {
             $frame.pc_offset(crate::binary::bytes_to_i16(&$instruction.operands));
+        } else {
+            $frame.pc_next();
         }
     }}
 );
@@ -32,12 +38,16 @@ macro_rules! if_cmp_operands (
 pub fn if_null(frame: &mut Frame, operands: &[u8]) {
     if matches!(frame.pop_operand(), Value::Null) {
         frame.pc_offset(bytes_to_i16(operands));
+    } else {
+        frame.pc_next();
     }
 }
 
 pub fn if_non_null(frame: &mut Frame, operands: &[u8]) {
     if !matches!(frame.pop_operand(), Value::Null) {
         frame.pc_offset(bytes_to_i16(operands));
+    } else {
+        frame.pc_next();
     }
 }
 
@@ -122,7 +132,7 @@ mod test {
             start_pc: 4,
             start_stack: [Int(1)],
             instruction: IfEq; [0x00, 0x05],
-            final_pc: 4,
+            final_pc: 7,
         );
     }
 
@@ -142,7 +152,7 @@ mod test {
             start_pc: 4,
             start_stack: [Int(0)],
             instruction: IfNe; [0x00, 0x05],
-            final_pc: 4,
+            final_pc: 7,
         );
     }
 
@@ -162,7 +172,7 @@ mod test {
             start_pc: 4,
             start_stack: [Int(0)],
             instruction: IfLt; [0x00, 0x05],
-            final_pc: 4,
+            final_pc: 7,
         );
     }
 
@@ -182,7 +192,7 @@ mod test {
             start_pc: 4,
             start_stack: [Int(1)],
             instruction: IfLe; [0x00, 0x05],
-            final_pc: 4,
+            final_pc: 7,
         );
     }
 
@@ -202,7 +212,7 @@ mod test {
             start_pc: 4,
             start_stack: [Int(0)],
             instruction: IfGt; [0x00, 0x05],
-            final_pc: 4,
+            final_pc: 7,
         );
     }
 
@@ -222,7 +232,7 @@ mod test {
             start_pc: 4,
             start_stack: [Int(-1)],
             instruction: IfGt; [0x00, 0x05],
-            final_pc: 4,
+            final_pc: 7,
         );
     }
 
@@ -242,7 +252,7 @@ mod test {
             start_pc: 4,
             start_stack: [Reference(10)],
             instruction: IfNull; [0x00, 0x05],
-            final_pc: 4,
+            final_pc: 7,
         );
     }
 
@@ -262,7 +272,7 @@ mod test {
             start_pc: 4,
             start_stack: [Null],
             instruction: IfNonNull; [0x00, 0x05],
-            final_pc: 4,
+            final_pc: 7,
         );
     }
 
@@ -282,7 +292,7 @@ mod test {
             start_pc: 4,
             start_stack: [Int(-1), Int(0)],
             instruction: IfIcmpEq; [0x00, 0x05],
-            final_pc: 4,
+            final_pc: 7,
         );
     }
 
@@ -302,7 +312,7 @@ mod test {
             start_pc: 4,
             start_stack: [Int(1), Int(1)],
             instruction: IfIcmpNe; [0x00, 0x05],
-            final_pc: 4,
+            final_pc: 7,
         );
     }
 
@@ -322,7 +332,7 @@ mod test {
             start_pc: 4,
             start_stack: [Int(1), Int(1)],
             instruction: IfIcmpLt; [0x00, 0x05],
-            final_pc: 4,
+            final_pc: 7,
         );
     }
 
@@ -342,7 +352,7 @@ mod test {
             start_pc: 4,
             start_stack: [Int(0), Int(1)],
             instruction: IfIcmpLe; [0x00, 0x05],
-            final_pc: 4,
+            final_pc: 7,
         );
     }
 
@@ -362,7 +372,7 @@ mod test {
             start_pc: 4,
             start_stack: [Int(1), Int(1)],
             instruction: IfIcmpGt; [0x00, 0x05],
-            final_pc: 4,
+            final_pc: 7,
         );
     }
 
@@ -382,7 +392,7 @@ mod test {
             start_pc: 4,
             start_stack: [Int(2), Int(1)],
             instruction: IfIcmpGe; [0x00, 0x05],
-            final_pc: 4,
+            final_pc: 7,
         );
     }
 
@@ -402,7 +412,7 @@ mod test {
             start_pc: 4,
             start_stack: [Reference(10), Reference(0)],
             instruction: IfAcmpEq; [0x00, 0x05],
-            final_pc: 4,
+            final_pc: 7,
         );
     }
 
