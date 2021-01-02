@@ -8,8 +8,8 @@ use crate::vm::interpreter::interpret_frame;
 use crate::vm::native::Native;
 use crate::vm::stack::Stack;
 use crate::vm::VMCommand::{
-    VMAllocateReferenceArray, VMException, VMGetField, VMGetStatic, VMInvokeSpecial,
-    VMInvokeStatic, VMInvokeVirtual, VMNative, VMPutField, VMPutStatic, VMReturn,
+    VMAllocateReferenceArray, VMException, VMGetField, VMGetStatic, VMInvokeInterface,
+    VMInvokeSpecial, VMInvokeStatic, VMInvokeVirtual, VMNative, VMPutField, VMPutStatic, VMReturn,
 };
 use std::collections::HashMap;
 
@@ -43,6 +43,7 @@ enum VMCommand {
     VMInvokeStatic(u16),
     VMInvokeSpecial(u16),
     VMInvokeVirtual(u16),
+    VMInvokeInterface(u16),
     VMPutField(u16),
     VMGetField(u16),
     VMPutStatic(u16),
@@ -160,6 +161,9 @@ impl VirtualMachine {
                 }
                 VMInvokeVirtual(index) => {
                     self.invoke_virtual(class_loader, index, stack)?;
+                }
+                VMInvokeInterface(index) => {
+                    self.invoke_interface(heap, class_loader, index, stack)?;
                 }
                 VMPutField(index) => {
                     self.put_field(heap, index, stack);
@@ -413,6 +417,65 @@ impl VirtualMachine {
                 .pop_field_types(&method.descriptor.argument_types);
 
             let object_ref = stack.current_frame().pop_operand().expect_reference();
+            args.insert(0, Reference(object_ref));
+
+            let mut frame = Frame::new(class, method);
+            frame.load_arguments(args);
+
+            stack.push(frame);
+            if let Some(init_frame) = init_frame {
+                stack.push(init_frame);
+            }
+
+            return Ok(());
+        }
+    }
+
+    fn invoke_interface(
+        &self,
+        heap: &mut Heap,
+        class_loader: &mut ClassLoader,
+        index: u16,
+        stack: &mut Stack,
+    ) -> Result<()> {
+        let (interface_name, method_name, descriptor) = stack
+            .current_frame()
+            .class
+            .constants
+            .get_interface_method_ref(index)?;
+
+        let interface_name = interface_name.to_owned();
+        let method_name = method_name.to_owned();
+        let descriptor = descriptor.to_owned();
+
+        let object_ref = stack.current_frame().pop_operand().expect_reference();
+        let instance = heap.get(object_ref).expect_instance();
+
+        let mut class_name = instance.class.to_owned();
+
+        loop {
+            let (class, init_frame) = class_loader.resolve(&class_name)?;
+
+            if matches!(init_frame, Some(_)) {
+                panic!("Todo init_frame on resolving interface method");
+            }
+
+            if !class.interfaces.contains(&interface_name) {
+                class_name = class.super_class.to_owned();
+                continue;
+            }
+
+            let method = class.resolve_method(&method_name, &descriptor);
+            if matches!(method, None) {
+                class_name = class.super_class.to_owned();
+                continue;
+            }
+
+            let method = method.unwrap();
+            let mut args = stack
+                .current_frame()
+                .pop_field_types(&method.descriptor.argument_types);
+
             args.insert(0, Reference(object_ref));
 
             let mut frame = Frame::new(class, method);

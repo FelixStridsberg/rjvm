@@ -38,8 +38,8 @@ use crate::vm::interpreter::stack_management::*;
 use crate::vm::interpreter::InterpretResult::{Command, Jump, Normal};
 use crate::vm::VMCommand;
 use crate::vm::VMCommand::{
-    VMAllocateReferenceArray, VMException, VMGetField, VMGetStatic, VMInvokeSpecial,
-    VMInvokeStatic, VMInvokeVirtual, VMNative, VMPutField, VMPutStatic, VMReturn,
+    VMAllocateReferenceArray, VMException, VMGetField, VMGetStatic, VMInvokeInterface,
+    VMInvokeSpecial, VMInvokeStatic, VMInvokeVirtual, VMNative, VMPutField, VMPutStatic, VMReturn,
 };
 
 macro_rules! jump (
@@ -334,7 +334,7 @@ fn interpret_instruction(
 
         // Method invocation and return
         InvokeVirtual => vm_command!(VMInvokeVirtual(reference(&instruction.operands))),
-        // Invokeinterface => TODO
+        InvokeInterface => vm_command!(VMInvokeInterface(reference(&instruction.operands))),
         InvokeSpecial => vm_command!(VMInvokeSpecial(reference(&instruction.operands))),
         InvokeStatic => vm_command!(VMInvokeStatic(reference(&instruction.operands))),
         // Invokedynamic => TODO

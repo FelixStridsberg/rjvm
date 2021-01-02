@@ -1,5 +1,5 @@
 use crate::class::constant::Constant::{
-    ClassRef, Double, Long, MethodRef, NameAndType, Utf8, NOOP,
+    ClassRef, Double, InterfaceMethodRef, Long, MethodRef, NameAndType, Utf8, NOOP,
 };
 use crate::error::{Error, ErrorKind, Result};
 use crate::vm::data_type::FieldRef;
@@ -110,6 +110,17 @@ impl ConstantPool {
     pub fn get_method_ref(&self, index: u16) -> Result<(&str, &str, &str)> {
         let entry = self.get(index);
         if let MethodRef(class_index, name_type_index) = entry {
+            let class_name = self.get_class_info_name(*class_index)?;
+            let (method_name, descriptor_string) = self.get_name_and_type(*name_type_index)?;
+            Ok((class_name, method_name, descriptor_string))
+        } else {
+            runtime_error!("Tried to get {:?} as a method reference", entry)
+        }
+    }
+
+    pub fn get_interface_method_ref(&self, index: u16) -> Result<(&str, &str, &str)> {
+        let entry = self.get(index);
+        if let InterfaceMethodRef(class_index, name_type_index) = entry {
             let class_name = self.get_class_info_name(*class_index)?;
             let (method_name, descriptor_string) = self.get_name_and_type(*name_type_index)?;
             Ok((class_name, method_name, descriptor_string))
