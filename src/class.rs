@@ -1,7 +1,6 @@
 use crate::class::attribute::AttributeData::CodeInfo;
 use crate::class::attribute::{Attribute, Code};
 use crate::class::constant::ConstantPool;
-use crate::error::{Error, Result};
 use crate::vm::data_type::MethodDescriptor;
 use std::convert::TryInto;
 use std::rc::Rc;
@@ -85,16 +84,12 @@ impl Class {
         }
     }
 
-    pub fn resolve_method(&self, name: &str, descriptor: &str) -> Result<Rc<MethodInfo>> {
-        Ok(self
-            .methods
+    pub fn resolve_method(&self, name: &str, descriptor: &str) -> Option<Rc<MethodInfo>> {
+        self.methods
             .iter()
             .filter(|m| m.name == name)
             .find(|m| m.descriptor == descriptor.try_into().unwrap())
-            .ok_or_else(|| {
-                Error::runtime(format!("Could not find method {}/{}", name, descriptor))
-            })?
-            .clone())
+            .cloned()
     }
 
     pub fn find_public_static_method(&self, name: &str) -> Option<Rc<MethodInfo>> {
@@ -179,15 +174,14 @@ pub struct FieldInfo {
 mod test {
     use crate::class::constant::ConstantPool;
     use crate::class::{Class, MethodAccessFlags, MethodInfo};
-    use crate::error::ErrorKind;
     use std::convert::TryInto;
     use std::rc::Rc;
 
     #[test]
     fn resolve_non_existing_method() {
         let class = class_with_methods(vec![("not_me", "()V")]);
-        let error = class.resolve_method("method", "()V").unwrap_err();
-        assert!(matches!(error.kind(), ErrorKind::RuntimeError));
+        let method = class.resolve_method("method", "()V");
+        assert!(matches!(method, None));
     }
 
     #[test]

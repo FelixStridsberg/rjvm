@@ -1,4 +1,4 @@
-use rjvm::vm::data_type::Value::{Double, Float, Int, Long, Reference};
+use rjvm::vm::data_type::Value::Int;
 
 #[path = "./java_utils.rs"]
 mod java;

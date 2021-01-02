@@ -91,3 +91,20 @@ fn instance_invocation_different_args() {
         Int(10)
     );
 }
+
+/* TODO
+#[test]
+fn interface_invocation() {
+    assert_eq!(
+        java::run_method("test_data/Invocation", "interface_invocation"),
+        Int(100)
+    );
+}*/
+
+#[test]
+fn super_invocation() {
+    assert_eq!(
+        java::run_method("test_data/Invocation", "super_invocation"),
+        Int(122)
+    );
+}

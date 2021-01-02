@@ -159,7 +159,7 @@ impl VirtualMachine {
                     self.invoke_special(class_loader, index, stack)?;
                 }
                 VMInvokeVirtual(index) => {
-                    self.invoke_special(class_loader, index, stack)?;
+                    self.invoke_virtual(class_loader, index, stack)?;
                 }
                 VMPutField(index) => {
                     self.put_field(heap, index, stack);
@@ -364,7 +364,38 @@ impl VirtualMachine {
             .constants
             .get_method_ref(index)?;
         let (class, init_frame) = class_loader.resolve(class_name)?;
-        let method = class.resolve_method(method_name, descriptor)?;
+        let method = class.resolve_method(method_name, descriptor).expect("Method not found");
+
+        let mut args = stack
+            .current_frame()
+            .pop_field_types(&method.descriptor.argument_types);
+
+        let object_ref = stack.current_frame().pop_operand().expect_reference();
+        args.insert(0, Reference(object_ref));
+
+        let mut frame = Frame::new(class, method);
+        frame.load_arguments(args);
+
+        stack.push(frame);
+        if let Some(init_frame) = init_frame {
+            stack.push(init_frame);
+        }
+        Ok(())
+    }
+
+    fn invoke_virtual(
+        &self,
+        class_loader: &mut ClassLoader,
+        index: u16,
+        stack: &mut Stack,
+    ) -> Result<()> {
+        let (class_name, method_name, descriptor) = stack
+            .current_frame()
+            .class
+            .constants
+            .get_method_ref(index)?;
+        let (class, init_frame) = class_loader.resolve(class_name)?;
+        let method = class.resolve_method(method_name, descriptor).expect("Method not found");
 
         let mut args = stack
             .current_frame()
@@ -395,7 +426,7 @@ impl VirtualMachine {
             .constants
             .get_method_ref(index)?;
         let (class, init_frame) = class_loader.resolve(class_name)?;
-        let method = class.resolve_method(method_name, descriptor)?;
+        let method = class.resolve_method(method_name, descriptor).expect("Method not found");
 
         let args = stack
             .current_frame()
