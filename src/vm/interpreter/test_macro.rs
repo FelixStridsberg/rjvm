@@ -49,7 +49,7 @@ macro_rules! test_instruction {
             $(frame.set_operand_stack(vec![$($stack),*]);)?
 
             $($(frame.set_local($local_idx, $local_value);)*)?
-            $($(frame.set_local_long($local_l_idx, $local_l_value);)*)?
+            $($(frame.set_local($local_l_idx, $local_l_value);)*)?
 
             // Execute
             let mut _heap = Heap::default();
@@ -78,7 +78,7 @@ macro_rules! test_instruction {
                     assert_eq!(
                         frame.get_local($expect_local_idx),
                         $expected_local,
-                        "Expecting local {} to contain {}", $expect_local_idx, $expected_local
+                        "Expecting local {} to contain {:?}", $expect_local_idx, $expected_local
                     )
                 )*
             )?
@@ -86,9 +86,9 @@ macro_rules! test_instruction {
             $(
                 $(
                     assert_eq!(
-                        frame.get_local_long($expect_local_l_idx),
+                        frame.get_local($expect_local_l_idx),
                         $expected_local_l,
-                        "Expecting long local {} to contain {}", $expect_local_l_idx, $expected_local_l
+                        "Expecting long local {} to contain {:?}", $expect_local_l_idx, $expected_local_l
                     )
                 )*
             )?

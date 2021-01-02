@@ -107,8 +107,8 @@ pub fn jump_subroutine_wide(frame: &mut Frame, operands: &[u8]) {
 
 pub fn return_from_subroutine(frame: &mut Frame, operands: &[u8]) {
     let index = operands[0] as u16;
-    let offset = frame.get_local(index) as i16;
-    frame.pc_offset(offset);
+    let offset = frame.get_local(index).expect_return_address();
+    frame.pc_offset(offset as i16);
 }
 
 #[cfg(test)]
@@ -458,7 +458,7 @@ mod test {
     fn ret() {
         test_instruction!(
             start_pc: 4,
-            start_locals: {4 => 96},
+            start_locals: {4 => ReturnAddress(96)},
             instruction: Ret; [0x04],
             final_pc: 100,
         );

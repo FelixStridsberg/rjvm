@@ -13,13 +13,15 @@ mod conversion;
 #[macro_use]
 mod control_transfer;
 
+#[macro_use]
 mod load_and_store;
+
 mod stack_management;
 
 use crate::class::code::Instruction;
 use crate::class::code::Opcode::*;
 use crate::error::Result;
-use crate::vm::data_type::Value::{Double, Float, Int, Long, Null, Reference};
+use crate::vm::data_type::Value::{Double, Float, Int, Long, Null, Reference, ReturnAddress};
 use crate::vm::data_type::{
     ByteType, CharType, DoubleType, FloatType, IntType, LongType, ShortType,
 };
@@ -88,65 +90,65 @@ fn interpret_instruction(
         Nop => {}
 
         // Load and store:
-        ILoad => load_int(frame, &instruction.operands),
-        ILoad0 => load_int_n(frame, 0),
-        ILoad1 => load_int_n(frame, 1),
-        ILoad2 => load_int_n(frame, 2),
-        ILoad3 => load_int_n(frame, 3),
+        ILoad => load!(frame, instruction, Int(_)),
+        ILoad0 => load!(frame, Int(_), 0),
+        ILoad1 => load!(frame, Int(_), 1),
+        ILoad2 => load!(frame, Int(_), 2),
+        ILoad3 => load!(frame, Int(_), 3),
 
-        LLoad => load_long(frame, &instruction.operands),
-        LLoad0 => load_long_n(frame, 0),
-        LLoad1 => load_long_n(frame, 1),
-        LLoad2 => load_long_n(frame, 2),
-        LLoad3 => load_long_n(frame, 3),
+        LLoad => load!(frame, instruction, Long(_)),
+        LLoad0 => load!(frame, Long(_), 0),
+        LLoad1 => load!(frame, Long(_), 1),
+        LLoad2 => load!(frame, Long(_), 2),
+        LLoad3 => load!(frame, Long(_), 3),
 
-        FLoad => load_float(frame, &instruction.operands),
-        FLoad0 => load_float_n(frame, 0),
-        FLoad1 => load_float_n(frame, 1),
-        FLoad2 => load_float_n(frame, 2),
-        FLoad3 => load_float_n(frame, 3),
+        FLoad => load!(frame, instruction, Float(_)),
+        FLoad0 => load!(frame, Float(_), 0),
+        FLoad1 => load!(frame, Float(_), 1),
+        FLoad2 => load!(frame, Float(_), 2),
+        FLoad3 => load!(frame, Float(_), 3),
 
-        DLoad => load_double(frame, &instruction.operands),
-        DLoad0 => load_double_n(frame, 0),
-        DLoad1 => load_double_n(frame, 1),
-        DLoad2 => load_double_n(frame, 2),
-        DLoad3 => load_double_n(frame, 3),
+        DLoad => load!(frame, instruction, Double(_)),
+        DLoad0 => load!(frame, Double(_), 0),
+        DLoad1 => load!(frame, Double(_), 1),
+        DLoad2 => load!(frame, Double(_), 2),
+        DLoad3 => load!(frame, Double(_), 3),
 
-        ALoad => load_reference(frame, &instruction.operands),
-        ALoad0 => load_reference_n(frame, 0),
-        ALoad1 => load_reference_n(frame, 1),
-        ALoad2 => load_reference_n(frame, 2),
-        ALoad3 => load_reference_n(frame, 3),
+        ALoad => load!(frame, instruction, Reference(_) | Null),
+        ALoad0 => load!(frame, Reference(_) | Null, 0),
+        ALoad1 => load!(frame, Reference(_) | Null, 1),
+        ALoad2 => load!(frame, Reference(_) | Null, 2),
+        ALoad3 => load!(frame, Reference(_) | Null, 3),
 
-        IStore => store_int(frame, &instruction.operands)?,
-        IStore0 => store_int_n(frame, 0)?,
-        IStore1 => store_int_n(frame, 1)?,
-        IStore2 => store_int_n(frame, 2)?,
-        IStore3 => store_int_n(frame, 3)?,
+        IStore => store!(frame, instruction, Int(_)),
+        IStore0 => store!(frame, Int(_), 0),
+        IStore1 => store!(frame, Int(_), 1),
+        IStore2 => store!(frame, Int(_), 2),
+        IStore3 => store!(frame, Int(_), 3),
 
-        LStore => store_long(frame, &instruction.operands)?,
-        LStore0 => store_long_n(frame, 0)?,
-        LStore1 => store_long_n(frame, 1)?,
-        LStore2 => store_long_n(frame, 2)?,
-        LStore3 => store_long_n(frame, 3)?,
+        LStore => store!(frame, instruction, Long(_)),
+        LStore0 => store!(frame, Long(_), 0),
+        LStore1 => store!(frame, Long(_), 1),
+        LStore2 => store!(frame, Long(_), 2),
+        LStore3 => store!(frame, Long(_), 3),
 
-        FStore => store_float(frame, &instruction.operands)?,
-        FStore0 => store_float_n(frame, 0)?,
-        FStore1 => store_float_n(frame, 1)?,
-        FStore2 => store_float_n(frame, 2)?,
-        FStore3 => store_float_n(frame, 3)?,
+        FStore => store!(frame, instruction, Float(_)),
+        FStore0 => store!(frame, Float(_), 0),
+        FStore1 => store!(frame, Float(_), 1),
+        FStore2 => store!(frame, Float(_), 2),
+        FStore3 => store!(frame, Float(_), 3),
 
-        DStore => store_double(frame, &instruction.operands)?,
-        DStore0 => store_double_n(frame, 0)?,
-        DStore1 => store_double_n(frame, 1)?,
-        DStore2 => store_double_n(frame, 2)?,
-        DStore3 => store_double_n(frame, 3)?,
+        DStore => store!(frame, instruction, Double(_)),
+        DStore0 => store!(frame, Double(_), 0),
+        DStore1 => store!(frame, Double(_), 1),
+        DStore2 => store!(frame, Double(_), 2),
+        DStore3 => store!(frame, Double(_), 3),
 
-        AStore => store_reference(frame, &instruction.operands)?,
-        AStore0 => store_reference_n(frame, 0)?,
-        AStore1 => store_reference_n(frame, 1)?,
-        AStore2 => store_reference_n(frame, 2)?,
-        AStore3 => store_reference_n(frame, 3)?,
+        AStore => store!(frame, instruction, Reference(_) | ReturnAddress(_)),
+        AStore0 => store!(frame, Reference(_) | ReturnAddress(_), 0),
+        AStore1 => store!(frame, Reference(_) | ReturnAddress(_), 1),
+        AStore2 => store!(frame, Reference(_) | ReturnAddress(_), 2),
+        AStore3 => store!(frame, Reference(_) | ReturnAddress(_), 3),
 
         BiPush => push_byte(frame, &instruction.operands),
         SiPush => push_short(frame, &instruction.operands),

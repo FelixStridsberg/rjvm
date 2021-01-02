@@ -46,9 +46,9 @@ pub fn neg_double(frame: &mut Frame) {
 
 pub fn int_increase(frame: &mut Frame, operands: &[u8]) {
     let index = operands[0] as u16;
-    let constant = operands[1] as u32;
-    let value = frame.get_local(index);
-    frame.set_local(index, value + constant);
+    let constant = operands[1] as i32;
+    let value = frame.get_local(index).expect_int();
+    frame.set_local(index, Int(value + constant));
 }
 
 // TODO NaN
@@ -422,9 +422,9 @@ mod test {
     #[test]
     fn iinc() {
         test_instruction!(
-            start_locals: {1 => 0x0a},
+            start_locals: {1 => Int(0x0a)},
             instruction: IInc; [0x01, 0x06],
-            final_locals: {1 => 0x10},
+            final_locals: {1 => Int(0x10)},
         );
     }
 

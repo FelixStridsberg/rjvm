@@ -3,153 +3,46 @@
 
 use crate::class::constant::Constant;
 use crate::error::Result;
+use crate::vm::data_type::IntType;
 use crate::vm::data_type::Value::*;
-use crate::vm::data_type::{DoubleType, FloatType, IntType, LongType, ReferenceType};
 use crate::vm::frame::Frame;
 
-pub fn load_int(frame: &mut Frame, operands: &[u8]) {
-    let index = operands[0] as u16;
-    load_int_n(frame, index);
-}
+#[macro_export]
+macro_rules! load {
+    ($frame:ident, $instruction:ident, $($type:pat)|+) => {{
+        let index = $instruction.operands[0] as u16;
+        load!($frame, $($type)|*, index);
+    }};
+    ($frame:ident, $($type:pat)|+, $index:expr) => {{
+        let value = $frame.get_local($index);
 
-pub fn load_int_n(frame: &mut Frame, index: u16) {
-    let int = frame.get_local(index) as IntType;
-    frame.push_operand(Int(int));
-}
-
-pub fn load_long(frame: &mut Frame, operands: &[u8]) {
-    let index = operands[0] as u16;
-    load_long_n(frame, index);
-}
-
-pub fn load_long_n(frame: &mut Frame, index: u16) {
-    let i1 = frame.get_local(index) as LongType;
-    let i2 = frame.get_local(index + 1) as LongType;
-    frame.push_operand(Long(i1 << 32 | i2));
-}
-
-pub fn load_float(frame: &mut Frame, operands: &[u8]) {
-    let index = operands[0] as u16;
-    load_float_n(frame, index);
-}
-
-pub fn load_float_n(frame: &mut Frame, index: u16) {
-    let bits = frame.get_local(index);
-    frame.push_operand(Float(FloatType::from_bits(bits)));
-}
-
-pub fn load_double(frame: &mut Frame, operands: &[u8]) {
-    let index = operands[0] as u16;
-    load_double_n(frame, index);
-}
-
-pub fn load_double_n(frame: &mut Frame, index: u16) {
-    let i1 = frame.get_local(index) as u64;
-    let i2 = frame.get_local(index + 1) as u64;
-    let bits = i1 << 32 | i2;
-    frame.push_operand(Double(DoubleType::from_bits(bits)));
-}
-
-pub fn load_reference(frame: &mut Frame, operands: &[u8]) {
-    let index = operands[0] as u16;
-    load_reference_n(frame, index);
-}
-
-pub fn load_reference_n(frame: &mut Frame, index: u16) {
-    let int = frame.get_local(index);
-    frame.push_operand(Reference(int as ReferenceType));
-}
-
-pub fn store_int(frame: &mut Frame, operands: &[u8]) -> Result<()> {
-    let index = operands[0] as u16;
-    store_int_n(frame, index)
-}
-
-pub fn store_int_n(frame: &mut Frame, index: u16) -> Result<()> {
-    let operand = frame.pop_operand();
-    if let Int(value) = operand {
-        frame.set_local(index, value as u32);
-        Ok(())
-    } else {
-        runtime_error!(
-            "istore_<n> expected an int value on top of the stack. Got {:?}",
-            operand
-        )
-    }
-}
-
-pub fn store_long(frame: &mut Frame, operands: &[u8]) -> Result<()> {
-    let index = operands[0] as u16;
-    store_long_n(frame, index)
-}
-
-pub fn store_long_n(frame: &mut Frame, index: u16) -> Result<()> {
-    let operand = frame.pop_operand();
-    if let Long(value) = operand {
-        frame.set_local_long(index, value as u64);
-        Ok(())
-    } else {
-        runtime_error!(
-            "lstore_<n> expected a long value on top of the stack. Got {:?}",
-            operand
-        )
-    }
-}
-
-pub fn store_float(frame: &mut Frame, operands: &[u8]) -> Result<()> {
-    let index = operands[0] as u16;
-    store_float_n(frame, index)
-}
-
-pub fn store_float_n(frame: &mut Frame, index: u16) -> Result<()> {
-    let operand = frame.pop_operand();
-    if let Float(value) = operand {
-        frame.set_local(index, value.to_bits());
-        Ok(())
-    } else {
-        runtime_error!(
-            "fstore_<n> expected an int value on top of the stack. Got {:?}",
-            operand
-        )
-    }
-}
-
-pub fn store_double(frame: &mut Frame, operands: &[u8]) -> Result<()> {
-    let index = operands[0] as u16;
-    store_double_n(frame, index)
-}
-
-pub fn store_double_n(frame: &mut Frame, index: u16) -> Result<()> {
-    let operand = frame.pop_operand();
-    if let Double(value) = operand {
-        frame.set_local_long(index, value.to_bits());
-        Ok(())
-    } else {
-        runtime_error!(
-            "fstore_<n> expected an int value on top of the stack. Got {:?}",
-            operand
-        )
-    }
-}
-
-pub fn store_reference(frame: &mut Frame, operands: &[u8]) -> Result<()> {
-    let index = operands[0] as u16;
-    store_reference_n(frame, index)
-}
-
-pub fn store_reference_n(frame: &mut Frame, index: u16) -> Result<()> {
-    let value = match frame.pop_operand() {
-        Reference(r) => r,
-        ReturnAddress(r) => r,
-        operand => {
+        if !matches!(value, $($type)|*) {
             return runtime_error!(
-                "astore_<n> expected an int value on top of the stack. Got {:?}",
-                operand
-            )
+                "*store_<n> expected a {} value on top of the stack. Got {:?}",
+                stringify!($($type)|*), value);
         }
-    };
-    frame.set_local(index, value as u32);
-    Ok(())
+
+        $frame.push_operand(value);
+    }};
+}
+
+#[macro_export]
+macro_rules! store {
+    ($frame:ident, $instruction:ident, $($type:pat)|+) => {{
+        let index = $instruction.operands[0] as u16;
+        store!($frame, $($type)|*, index);
+    }};
+    ($frame:ident, $($type:pat)|+, $index:expr) => {{
+        let operand = $frame.pop_operand();
+
+        if !matches!(operand, $($type)|*) {
+            return runtime_error!(
+                    "*store_<n> expected a {} value on top of the stack. Got {:?}",
+                    stringify!($($type)|*), operand);
+        }
+
+        $frame.set_local($index, operand);
+    }};
 }
 
 pub fn push_byte(frame: &mut Frame, operands: &[u8]) {
@@ -216,7 +109,7 @@ mod test {
     #[test]
     fn iload() {
         test_instruction!(
-            start_locals: { 5 => 6 },
+            start_locals: { 5 => Int(6) },
             instruction: ILoad; [0x05],
             final_stack: [Int(6)],
         );
@@ -225,7 +118,7 @@ mod test {
     #[test]
     fn iload0() {
         test_instruction!(
-            start_locals: { 0 => 1 },
+            start_locals: { 0 => Int(1) },
             instruction: ILoad0,
             final_stack: [Int(1)],
         );
@@ -234,7 +127,7 @@ mod test {
     #[test]
     fn iload1() {
         test_instruction!(
-            start_locals: { 1 => 2 },
+            start_locals: { 1 => Int(2) },
             instruction: ILoad1,
             final_stack: [Int(2)],
         );
@@ -243,7 +136,7 @@ mod test {
     #[test]
     fn iload2() {
         test_instruction!(
-            start_locals: { 2 => 3 },
+            start_locals: { 2 => Int(3) },
             instruction: ILoad2,
             final_stack: [Int(3)],
         );
@@ -252,7 +145,7 @@ mod test {
     #[test]
     fn iload3() {
         test_instruction!(
-            start_locals: { 3 => 4 },
+            start_locals: { 3 => Int(4) },
             instruction: ILoad3,
             final_stack: [Int(4)],
         );
@@ -261,7 +154,7 @@ mod test {
     #[test]
     fn lload() {
         test_instruction!(
-            start_locals_long: { 4 => 8 },
+            start_locals_long: { 4 => Long(8) },
             instruction: LLoad; [0x04],
             final_stack: [Long(8)],
         );
@@ -270,7 +163,7 @@ mod test {
     #[test]
     fn lload0() {
         test_instruction!(
-            start_locals_long: { 0 => 1 },
+            start_locals_long: { 0 => Long(1) },
             instruction: LLoad0,
             final_stack: [Long(1)],
         );
@@ -279,7 +172,7 @@ mod test {
     #[test]
     fn lload1() {
         test_instruction!(
-            start_locals_long: { 1 => 2 },
+            start_locals_long: { 1 => Long(2) },
             instruction: LLoad1,
             final_stack: [Long(2)],
         );
@@ -288,7 +181,7 @@ mod test {
     #[test]
     fn lload2() {
         test_instruction!(
-            start_locals_long: { 2 => 3 },
+            start_locals_long: { 2 => Long(3) },
             instruction: LLoad2,
             final_stack: [Long(3)],
         );
@@ -297,7 +190,7 @@ mod test {
     #[test]
     fn lload3() {
         test_instruction!(
-            start_locals_long: { 3 => 4 },
+            start_locals_long: { 3 => Long(4) },
             instruction: LLoad3,
             final_stack: [Long(4)],
         );
@@ -306,7 +199,7 @@ mod test {
     #[test]
     fn fload() {
         test_instruction!(
-            start_locals: { 5 => 6.8_f32.to_bits() },
+            start_locals: { 5 => Float(6.8) },
             instruction: FLoad; [0x05],
             final_stack: [Float(6.8)],
         );
@@ -315,7 +208,7 @@ mod test {
     #[test]
     fn fload0() {
         test_instruction!(
-            start_locals: { 0 => 1.2_f32.to_bits() },
+            start_locals: { 0 => Float(1.2) },
             instruction: FLoad0,
             final_stack: [Float(1.2)],
         );
@@ -324,7 +217,7 @@ mod test {
     #[test]
     fn fload1() {
         test_instruction!(
-            start_locals: { 1 => 2.3_f32.to_bits() },
+            start_locals: { 1 => Float(2.3) },
             instruction: FLoad1,
             final_stack: [Float(2.3)],
         );
@@ -333,7 +226,7 @@ mod test {
     #[test]
     fn fload2() {
         test_instruction!(
-            start_locals: { 2 => 3.4_f32.to_bits() },
+            start_locals: { 2 => Float(3.4) },
             instruction: FLoad2,
             final_stack: [Float(3.4)],
         );
@@ -342,7 +235,7 @@ mod test {
     #[test]
     fn fload3() {
         test_instruction!(
-            start_locals: { 3 => 4.5_f32.to_bits() },
+            start_locals: { 3 => Float(4.5) },
             instruction: FLoad3,
             final_stack: [Float(4.5)],
         );
@@ -351,7 +244,7 @@ mod test {
     #[test]
     fn dload() {
         test_instruction!(
-            start_locals_long: { 4 => 5.6_f64.to_bits() },
+            start_locals_long: { 4 => Double(5.6) },
             instruction: DLoad; [0x04],
             final_stack: [Double(5.6)],
         );
@@ -360,7 +253,7 @@ mod test {
     #[test]
     fn dload0() {
         test_instruction!(
-            start_locals_long: { 0 => 1.2_f64.to_bits() },
+            start_locals_long: { 0 => Double(1.2) },
             instruction: DLoad0,
             final_stack: [Double(1.2)],
         );
@@ -369,7 +262,7 @@ mod test {
     #[test]
     fn dload1() {
         test_instruction!(
-            start_locals_long: { 1 => 2.3_f64.to_bits() },
+            start_locals_long: { 1 => Double(2.3) },
             instruction: DLoad1,
             final_stack: [Double(2.3)],
         );
@@ -378,7 +271,7 @@ mod test {
     #[test]
     fn dload2() {
         test_instruction!(
-            start_locals_long: { 2 => 3.4_f64.to_bits() },
+            start_locals_long: { 2 => Double(3.4) },
             instruction: DLoad2,
             final_stack: [Double(3.4)],
         );
@@ -387,7 +280,7 @@ mod test {
     #[test]
     fn dload3() {
         test_instruction!(
-            start_locals_long: { 3 => 4.5_f64.to_bits() },
+            start_locals_long: { 3 => Double(4.5) },
             instruction: DLoad3,
             final_stack: [Double(4.5)],
         );
@@ -396,7 +289,7 @@ mod test {
     #[test]
     fn aload() {
         test_instruction!(
-            start_locals: { 5 => 6 },
+            start_locals: { 5 => Reference(6) },
             instruction: ALoad; [0x05],
             final_stack: [Reference(6)],
         );
@@ -405,7 +298,7 @@ mod test {
     #[test]
     fn aload0() {
         test_instruction!(
-            start_locals: { 0 => 1 },
+            start_locals: { 0 => Reference(1) },
             instruction: ALoad0,
             final_stack: [Reference(1)],
         );
@@ -414,7 +307,7 @@ mod test {
     #[test]
     fn aload1() {
         test_instruction!(
-            start_locals: { 1 => 2 },
+            start_locals: { 1 => Reference(2) },
             instruction: ALoad1,
             final_stack: [Reference(2)],
         );
@@ -423,7 +316,7 @@ mod test {
     #[test]
     fn aload2() {
         test_instruction!(
-            start_locals: { 2 => 3 },
+            start_locals: { 2 => Reference(3) },
             instruction: ALoad2,
             final_stack: [Reference(3)],
         );
@@ -432,7 +325,7 @@ mod test {
     #[test]
     fn aload3() {
         test_instruction!(
-            start_locals: { 3 => 4 },
+            start_locals: { 3 => Reference(4) },
             instruction: ALoad3,
             final_stack: [Reference(4)],
         );
@@ -443,7 +336,7 @@ mod test {
         test_instruction!(
             start_stack: [Int(0), Int(0), Int(0), Int(0), Int(0), Int(10)],
             instruction: IStore; [0x05],
-            final_locals: { 5 => 10 },
+            final_locals: { 5 => Int(10) },
         );
     }
 
@@ -452,7 +345,7 @@ mod test {
         test_instruction!(
             start_stack: [Int(1)],
             instruction: IStore0,
-            final_locals: { 0 => 1 },
+            final_locals: { 0 => Int(1) },
         );
     }
 
@@ -461,7 +354,7 @@ mod test {
         test_instruction!(
             start_stack: [Int(2)],
             instruction: IStore1,
-            final_locals: { 1 => 2 },
+            final_locals: { 1 => Int(2) },
         );
     }
 
@@ -470,7 +363,7 @@ mod test {
         test_instruction!(
             start_stack: [Int(3)],
             instruction: IStore2,
-            final_locals: { 2 => 3 },
+            final_locals: { 2 => Int(3) },
         );
     }
 
@@ -479,7 +372,7 @@ mod test {
         test_instruction!(
             start_stack: [Int(4)],
             instruction: IStore3,
-            final_locals: { 3 => 4 },
+            final_locals: { 3 => Int(4) },
         );
     }
 
@@ -488,7 +381,7 @@ mod test {
         test_instruction!(
             start_stack: [Int(0), Int(0), Int(0), Int(0), Int(0), Long(10)],
             instruction: LStore; [0x05],
-            final_locals_long: { 5 => 10 },
+            final_locals_long: { 5 => Long(10) },
         );
     }
 
@@ -497,7 +390,7 @@ mod test {
         test_instruction!(
             start_stack: [Long(1)],
             instruction: LStore0,
-            final_locals_long: { 0 => 1 },
+            final_locals_long: { 0 => Long(1) },
         );
     }
 
@@ -506,7 +399,7 @@ mod test {
         test_instruction!(
             start_stack: [Long(2)],
             instruction: LStore1,
-            final_locals_long: { 1 => 2 },
+            final_locals_long: { 1 => Long(2) },
         );
     }
 
@@ -515,7 +408,7 @@ mod test {
         test_instruction!(
             start_stack: [Long(3)],
             instruction: LStore2,
-            final_locals_long: { 2 => 3 },
+            final_locals_long: { 2 => Long(3) },
         );
     }
 
@@ -524,7 +417,7 @@ mod test {
         test_instruction!(
             start_stack: [Long(4)],
             instruction: LStore3,
-            final_locals_long: { 3 => 4 },
+            final_locals_long: { 3 => Long(4) },
         );
     }
 
@@ -533,7 +426,7 @@ mod test {
         test_instruction!(
             start_stack: [Int(0), Int(0), Int(0), Int(0), Int(0), Float(5.1)],
             instruction: FStore; [0x05],
-            final_locals: { 5 => 5.1_f32.to_bits() },
+            final_locals: { 5 => Float(5.1) },
         );
     }
 
@@ -542,7 +435,7 @@ mod test {
         test_instruction!(
             start_stack: [Float(1.1)],
             instruction: FStore0,
-            final_locals: { 0 => 1.1_f32.to_bits() },
+            final_locals: { 0 => Float(1.1) },
         );
     }
 
@@ -551,7 +444,7 @@ mod test {
         test_instruction!(
             start_stack: [Float(2.2)],
             instruction: FStore1,
-            final_locals: { 1 => 2.2_f32.to_bits() },
+            final_locals: { 1 => Float(2.2) },
         );
     }
 
@@ -560,7 +453,7 @@ mod test {
         test_instruction!(
             start_stack: [Float(3.3)],
             instruction: FStore2,
-            final_locals: { 2 => 3.3_f32.to_bits() },
+            final_locals: { 2 => Float(3.3) },
         );
     }
 
@@ -569,7 +462,7 @@ mod test {
         test_instruction!(
             start_stack: [Float(4.4)],
             instruction: FStore3,
-            final_locals: { 3 => 4.4_f32.to_bits() },
+            final_locals: { 3 => Float(4.4) },
         );
     }
 
@@ -578,7 +471,7 @@ mod test {
         test_instruction!(
             start_stack: [Int(0), Int(0), Int(0), Int(0), Int(0), Double(5.1)],
             instruction: DStore; [0x05],
-            final_locals_long: { 5 => 5.1_f64.to_bits() },
+            final_locals_long: { 5 => Double(5.1) },
         );
     }
 
@@ -587,7 +480,7 @@ mod test {
         test_instruction!(
             start_stack: [Double(1.1)],
             instruction: DStore0,
-            final_locals_long: { 0 => 1.1_f64.to_bits() },
+            final_locals_long: { 0 => Double(1.1) },
         );
     }
 
@@ -596,7 +489,7 @@ mod test {
         test_instruction!(
             start_stack: [Double(2.2)],
             instruction: DStore1,
-            final_locals_long: { 1 => 2.2_f64.to_bits() },
+            final_locals_long: { 1 => Double(2.2) },
         );
     }
 
@@ -605,7 +498,7 @@ mod test {
         test_instruction!(
             start_stack: [Double(3.3)],
             instruction: DStore2,
-            final_locals_long: { 2 => 3.3_f64.to_bits() },
+            final_locals_long: { 2 => Double(3.3) },
         );
     }
 
@@ -614,7 +507,7 @@ mod test {
         test_instruction!(
             start_stack: [Double(4.4)],
             instruction: DStore3,
-            final_locals_long: { 3 => 4.4_f64.to_bits() },
+            final_locals_long: { 3 => Double(4.4) },
         );
     }
 
@@ -623,7 +516,7 @@ mod test {
         test_instruction!(
             start_stack: [Int(0), Int(0), Int(0), Int(0), Int(0), ReturnAddress(10)],
             instruction: AStore; [0x05],
-            final_locals: { 5 => 10 },
+            final_locals: { 5 => ReturnAddress(10) },
         );
     }
 
@@ -632,7 +525,7 @@ mod test {
         test_instruction!(
             start_stack: [Reference(1)],
             instruction: AStore0,
-            final_locals: { 0 => 1 },
+            final_locals: { 0 => Reference(1) },
         );
     }
 
@@ -641,7 +534,7 @@ mod test {
         test_instruction!(
             start_stack: [Reference(2)],
             instruction: AStore1,
-            final_locals: { 1 => 2 },
+            final_locals: { 1 => Reference(2) },
         );
     }
 
@@ -650,7 +543,7 @@ mod test {
         test_instruction!(
             start_stack: [Reference(3)],
             instruction: AStore2,
-            final_locals: { 2 => 3 },
+            final_locals: { 2 => Reference(3) },
         );
     }
 
@@ -659,7 +552,7 @@ mod test {
         test_instruction!(
             start_stack: [Reference(4)],
             instruction: AStore3,
-            final_locals: { 3 => 4 },
+            final_locals: { 3 => Reference(4) },
         );
     }
 

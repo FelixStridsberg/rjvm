@@ -68,9 +68,20 @@ impl Value {
         expect_type!(self, Double)
     }
 
-    // TODO make this a result, it may throw null pointer exception rather than panic
+    pub fn expect_return_address(self) -> ReturnAddressType {
+        expect_type!(self, ReturnAddress)
+    }
+
     pub fn expect_reference(self) -> ReferenceType {
         expect_type!(self, Reference)
+    }
+
+    pub fn expect_nullable_reference(self) -> Option<ReferenceType> {
+        match self {
+            Reference(r) => Some(r),
+            Null => None,
+            _ => panic!("Tried to use a {:?} as a nullable Reference", self),
+        }
     }
 
     pub fn expect_type(self, field_type: &FieldType) -> Value {
@@ -83,7 +94,9 @@ impl Value {
             FieldType::Long => Long(self.expect_long()),
             FieldType::Short => Short(self.expect_short()),
             FieldType::Boolean => Boolean(self.expect_boolean()),
-            FieldType::Object(_) => Reference(self.expect_reference()),
+            FieldType::Object(_) => self
+                .expect_nullable_reference()
+                .map_or(Null, |r| Reference(r)),
             FieldType::Array(_) => Reference(self.expect_reference()),
         }
     }

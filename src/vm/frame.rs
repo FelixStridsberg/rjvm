@@ -12,7 +12,7 @@ use std::rc::Rc;
 #[derive(Debug)]
 pub struct Frame {
     pub pc: u16,
-    pub local_variables: Vec<u32>,
+    pub local_variables: Vec<Value>,
     pub operand_stack: Vec<Value>,
     pub operand_stack_depth: u32,
     pub class: Rc<Class>,
@@ -27,7 +27,7 @@ impl Frame {
 
         Frame {
             pc: 0,
-            local_variables: vec![0; code.max_locals as usize],
+            local_variables: vec![Null; code.max_locals as usize],
             operand_stack: Vec::with_capacity(code.max_stack as usize),
             operand_stack_depth: 0,
             class,
@@ -55,10 +55,10 @@ impl Frame {
         let mut index = 0;
         for arg in args {
             if arg.get_category() == 1 {
-                self.set_local(index, arg.as_int_value());
+                self.set_local(index, arg);
                 index += 1;
             } else {
-                self.set_local_long(index, arg.as_long_value());
+                self.set_local(index, arg);
                 index += 2;
             }
         }
@@ -72,27 +72,16 @@ impl Frame {
         self.operand_stack = stack;
     }
 
-    pub fn set_locals(&mut self, locals: Vec<u32>) {
+    pub fn set_locals(&mut self, locals: Vec<Value>) {
         self.local_variables = locals;
     }
 
-    pub fn get_local(&self, index: u16) -> u32 {
-        self.local_variables[index as usize]
+    pub fn get_local(&self, index: u16) -> Value {
+        self.local_variables[index as usize].clone()
     }
 
-    pub fn get_local_long(&self, index: u16) -> u64 {
-        let i1 = self.local_variables[index as usize] as u64;
-        let i2 = self.local_variables[(index + 1) as usize] as u64;
-        (i1 << 32) | i2
-    }
-
-    pub fn set_local(&mut self, index: u16, value: u32) {
+    pub fn set_local(&mut self, index: u16, value: Value) {
         self.local_variables[index as usize] = value
-    }
-
-    pub fn set_local_long(&mut self, index: u16, value: u64) {
-        self.local_variables[index as usize] = (value >> 32) as u32;
-        self.local_variables[(index + 1) as usize] = (value & 0xFFFF_FFFF) as u32;
     }
 
     pub fn pop_field_types(&mut self, types: &[FieldType]) -> Vec<Value> {
@@ -180,6 +169,7 @@ mod test {
     use crate::class::constant::ConstantPool;
     use crate::class::{Class, MethodInfo};
     use crate::vm::data_type::Value;
+    use crate::vm::data_type::Value::{Int, Null};
     use crate::vm::frame::Frame;
     use std::rc::Rc;
 
@@ -201,8 +191,8 @@ mod test {
         let method = MethodInfo::from_code(Code::new(0, 2, vec![], vec![], vec![]));
         let mut frame = Frame::new(Rc::new(class), Rc::new(method));
 
-        frame.set_local(1, 13);
-        assert_eq!(frame.get_local(0), 0);
-        assert_eq!(frame.get_local(1), 13);
+        frame.set_local(1, Int(13));
+        assert_eq!(frame.get_local(0), Null);
+        assert_eq!(frame.get_local(1), Int(13));
     }
 }

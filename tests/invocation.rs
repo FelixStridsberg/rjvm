@@ -73,8 +73,13 @@ fn instance_invocation_reference_arg() {
     );
 }
 
-/* TODO
 #[test]
 fn instance_invocation_null_reference_arg() {
-    assert_eq!(java::run_method("test_data/Invocation", "instance_invocation_null_reference_arg"), Int(0));
-}*/
+    assert_eq!(
+        java::run_method(
+            "test_data/Invocation",
+            "instance_invocation_null_reference_arg"
+        ),
+        Int(1)
+    );
+}
