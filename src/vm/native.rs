@@ -47,6 +47,7 @@ impl Native {
     fn register_natives(&mut self, class_name: &str) {
         match class_name {
             "java/lang/Class" => java_lang_class::register_natives(self),
+            "java/lang/System" => java_lang_system::register_natives(self),
             _ => eprintln!("No natives to register for {}", class_name),
         }
     }
@@ -56,6 +57,26 @@ impl Native {
         key.push(':');
         key.push_str(method_name);
         key
+    }
+}
+
+mod java_lang_system {
+    use crate::vm::native::Native;
+    use crate::vm::frame::Frame;
+    use crate::vm::data_type::Value;
+    use crate::vm::data_type::Value::Null;
+
+    pub fn register_natives(native: &mut Native) {
+        native.register_method(
+            "java/lang/System",
+            "initProperties",
+            init_properties,
+        );
+    }
+
+    fn init_properties(frame: &mut Frame) -> Option<Value> {
+        println!("MOCK, initProperties arg: {:?}", frame.get_local(0));
+        Some(Null)
     }
 }
 
@@ -114,7 +135,7 @@ mod java_lang_double {
     use crate::vm::native::Native;
     use crate::vm::data_type::Value;
     use crate::vm::frame::Frame;
-    use crate::vm::data_type::Value::Int;
+    use crate::vm::data_type::Value::{Int, Double};
 
     pub fn auto_register_natives(native: &mut Native) {
         native.register_method(
@@ -122,10 +143,21 @@ mod java_lang_double {
             "doubleToRawLongBits",
             double_to_raw_int_bits
         );
+
+        native.register_method(
+            "java/lang/Double",
+            "longBitsToDouble",
+            long_bits_to_double
+        );
     }
 
     fn double_to_raw_int_bits(frame: &mut Frame) -> Option<Value> {
         println!("MOCK doubleToRawIntBits, arg: {:?}", frame.get_local(0));
         Some(Int(0))
+    }
+
+    fn long_bits_to_double(frame: &mut Frame) -> Option<Value> {
+        println!("MOCK longBitsToDouble, arg: {:?}", frame.get_local(0));
+        Some(Double(0.0))
     }
 }
