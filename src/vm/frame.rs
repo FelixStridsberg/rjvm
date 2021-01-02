@@ -24,8 +24,8 @@ pub struct Frame {
 impl Frame {
     pub fn new(class: Rc<Class>, method: Rc<MethodInfo>) -> Frame {
         let code = method.get_code();
-        let max_locals = code.as_ref().map_or(0, |c| c.max_locals);
-        let max_stack = code.as_ref().map_or(0, |c| c.max_stack);
+        let max_locals = code.as_ref().map_or(10, |c| c.max_locals);
+        let max_stack = code.as_ref().map_or(10, |c| c.max_stack);
 
         Frame {
             pc: 0,
