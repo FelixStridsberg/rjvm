@@ -11,7 +11,10 @@ impl Native {
         let mut native = Native {
             methods: HashMap::new(),
         };
-        java_lang_class::register_natives(&mut native);
+
+        java_lang_float::auto_register_natives(&mut native);
+        java_lang_double::auto_register_natives(&mut native);
+
         native
     }
 
@@ -60,6 +63,7 @@ mod java_lang_class {
     use crate::vm::data_type::Value;
     use crate::vm::frame::Frame;
     use crate::vm::native::Native;
+    use crate::vm::data_type::Value::Null;
 
     pub fn register_natives(native: &mut Native) {
         native.register_method(
@@ -67,10 +71,61 @@ mod java_lang_class {
             "desiredAssertionStatus0",
             desired_assertion_status0,
         );
+
+        native.register_method(
+            "java/lang/Class",
+            "getPrimitiveClass",
+            get_primitive_class,
+        );
     }
 
     fn desired_assertion_status0(_frame: &mut Frame) -> Option<Value> {
         println!("MOCK desiredAssertionStatus0, return Int(0)");
         Some(Value::Int(0))
+    }
+
+    fn get_primitive_class(frame: &mut Frame) -> Option<Value> {
+        println!("MOCK getPrimitiveClass, arg: {:?}", frame.get_local(0));
+        Some(Null)
+    }
+}
+
+mod java_lang_float {
+    use crate::vm::native::Native;
+    use crate::vm::data_type::Value;
+    use crate::vm::frame::Frame;
+    use crate::vm::data_type::Value::Int;
+
+    pub fn auto_register_natives(native: &mut Native) {
+        native.register_method(
+            "java/lang/Float",
+            "floatToRawIntBits",
+            float_to_raw_int_bits
+        );
+    }
+
+    fn float_to_raw_int_bits(frame: &mut Frame) -> Option<Value> {
+        println!("MOCK floatToRawIntBits, arg: {:?}", frame.get_local(0));
+        Some(Int(0))
+    }
+}
+
+mod java_lang_double {
+    use crate::vm::native::Native;
+    use crate::vm::data_type::Value;
+    use crate::vm::frame::Frame;
+    use crate::vm::data_type::Value::Int;
+
+    pub fn auto_register_natives(native: &mut Native) {
+        native.register_method(
+            "java/lang/Double",
+            "doubleToRawLongBits",
+            double_to_raw_int_bits
+        );
+    }
+
+    fn double_to_raw_int_bits(frame: &mut Frame) -> Option<Value> {
+        println!("MOCK doubleToRawIntBits, arg: {:?}", frame.get_local(0));
+        Some(Int(0))
     }
 }
