@@ -87,9 +87,10 @@ impl Frame {
     pub fn pop_field_types(&mut self, types: &[FieldType]) -> Vec<Value> {
         let mut values = Vec::with_capacity(types.len());
 
-        for field_type in types {
+        for field_type in types.iter().rev() {
             values.push(self.pop_operand().expect_type(&field_type));
         }
+        values.reverse();
         values
     }
 

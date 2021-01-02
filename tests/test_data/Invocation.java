@@ -43,6 +43,11 @@ public class Invocation {
         return i1.reference_arg(null);
     }
 
+    public static int instance_invocation_different_args() {
+        Invocation i1 = new Invocation();
+        return i1.different_args(1, 2, 3.0, 4.0f);
+    }
+
     private int no_args() {
         return 3;
     }
@@ -57,5 +62,9 @@ public class Invocation {
         }
 
         return 1;
+    }
+
+    private int different_args(int i, long l, double d, float f) {
+        return i + (int)l + (int)d + (int)f;
     }
 }

@@ -83,3 +83,11 @@ fn instance_invocation_null_reference_arg() {
         Int(1)
     );
 }
+
+#[test]
+fn instance_invocation_different_args() {
+    assert_eq!(
+        java::run_method("test_data/Invocation", "instance_invocation_different_args"),
+        Int(10)
+    );
+}
