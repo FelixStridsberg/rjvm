@@ -28,6 +28,10 @@ fn run_java_tests() {
 
     let classes = find_test_classes(&mut class_loader);
 
+    // We must use a new class loader since we don't do the static initialization properly above.
+    let mut class_loader = ClassLoader::new();
+    class_loader.set_paths(vec!["./tests/java_lib/", "./tests/"]);
+
     let mut native = Native::new();
     native.register_method("vadeen/test/Assertion", "assertEquals", java_assert_equals);
 
