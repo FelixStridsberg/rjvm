@@ -37,6 +37,9 @@ impl Value {
     }
 
     pub fn expect_boolean(self) -> BooleanType {
+        if matches!(self, Int(_)) {
+            return self.expect_int() == 1;
+        }
         expect_type!(self, Boolean)
     }
 

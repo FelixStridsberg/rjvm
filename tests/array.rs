@@ -1,6 +1,6 @@
 use rjvm::vm::data_type::Value::{Double, Float, Int, Long, Reference};
 
-#[path = "./java_utils.rs"]
+#[path = "utils.rs"]
 mod java;
 
 #[test]

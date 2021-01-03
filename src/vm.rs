@@ -1,6 +1,6 @@
 use crate::error::Result;
 use crate::vm::class_loader::ClassLoader;
-use crate::vm::data_type::Value::{Null, Reference};
+use crate::vm::data_type::Value::Reference;
 use crate::vm::data_type::{ReferenceType, Value};
 use crate::vm::frame::Frame;
 use crate::vm::heap::{Heap, HeapObject};
@@ -35,7 +35,7 @@ mod frame;
 mod heap;
 mod interpreter;
 pub mod native;
-mod stack;
+pub mod stack;
 
 #[derive(Debug)]
 enum VMCommand {
@@ -203,7 +203,7 @@ impl VirtualMachine {
     }
 
     fn call_native(&self, stack: &mut Stack, native: &mut Native) {
-        let val = native.invoke(stack.current_frame());
+        let val = native.invoke(stack);
         stack.pop();
 
         if let Some(val) = val {
@@ -406,10 +406,13 @@ impl VirtualMachine {
 
         let mut class_name = class_name.to_owned();
         loop {
+            println!("method_name: {}:{} {}", class_name, method_name, descriptor);
             let (class, init_frame) = class_loader.resolve(&class_name)?;
+            println!("Found!");
             let method = class.resolve_method(method_name, descriptor);
+            println!("Method: {:?}", method);
 
-            if let None = method {
+            if method.is_none() {
                 class_name = class.super_class.clone();
                 continue;
             }

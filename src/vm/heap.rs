@@ -1,5 +1,4 @@
 use crate::class::Class;
-use crate::vm::data_type::FieldType::{Byte, Char};
 use crate::vm::data_type::ReferenceType;
 use crate::vm::heap::HeapObject::{
     ByteArray, CharArray, DoubleArray, FloatArray, Instance, IntArray, LongArray, Null,

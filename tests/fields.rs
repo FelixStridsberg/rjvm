@@ -2,13 +2,13 @@ extern crate rjvm;
 
 use rjvm::vm::data_type::Value::{Double, Float, Int, Long};
 
-#[path = "./java_utils.rs"]
+#[path = "utils.rs"]
 mod java;
 
-/*#[test]
+#[test]
 fn test_static_boolean_field() {
-    assert_eq!(run_method("s_boolean"), Boolean(false));
-}*/// TODO
+    assert_eq!(java::run_method("test_data/Fields", "s_boolean"), Int(0));
+}
 
 #[test]
 fn test_static_int_field() {

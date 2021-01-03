@@ -132,6 +132,6 @@ impl ClassLoader {
             }
         }
 
-        runtime_error!("Could not resolve class {}", class_name)
+        panic!("Could not resolve class {}", class_name)
     }
 }

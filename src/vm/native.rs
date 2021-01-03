@@ -1,9 +1,9 @@
 use crate::vm::data_type::Value;
-use crate::vm::frame::Frame;
 use std::collections::HashMap;
+use crate::vm::stack::Stack;
 
 pub struct Native {
-    methods: HashMap<String, fn(frame: &mut Frame) -> Option<Value>>,
+    methods: HashMap<String, fn(stack: &mut Stack) -> Option<Value>>,
 }
 
 impl Native {
@@ -23,13 +23,14 @@ impl Native {
         &mut self,
         class_name: &str,
         method_name: &str,
-        method: fn(frame: &mut Frame) -> Option<Value>,
+        method: fn(stack: &mut Stack) -> Option<Value>,
     ) {
         let key = Self::method_key(class_name, method_name);
         self.methods.insert(key, method);
     }
 
-    pub fn invoke(&mut self, frame: &mut Frame) -> Option<Value> {
+    pub fn invoke(&mut self, stack: &mut Stack) -> Option<Value> {
+        let frame = stack.current_frame();
         if frame.method.name == "registerNatives" {
             self.register_natives(&frame.class.this_class);
             return None;
@@ -42,7 +43,7 @@ impl Native {
         }
 
         let method = self.methods.get(&key).unwrap();
-        method(frame)
+        method(stack)
     }
 
     fn register_natives(&mut self, class_name: &str) {
@@ -65,15 +66,15 @@ impl Native {
 mod java_lang_object {
     use crate::vm::data_type::Value;
     use crate::vm::data_type::Value::Int;
-    use crate::vm::frame::Frame;
     use crate::vm::native::Native;
+    use crate::vm::stack::Stack;
 
     pub fn register_natives(native: &mut Native) {
         native.register_method("java/lang/Object", "hashCode", init_properties);
     }
 
-    fn init_properties(frame: &mut Frame) -> Option<Value> {
-        println!("MOCK, hashCode arg: {:?}", frame.get_local(0));
+    fn init_properties(stack: &mut Stack) -> Option<Value> {
+        println!("MOCK, hashCode arg: {:?}", stack.current_frame().get_local(0));
         Some(Int(0))
     }
 }
@@ -81,8 +82,8 @@ mod java_lang_object {
 mod java_lang_throwable {
     use crate::vm::data_type::Value;
     use crate::vm::data_type::Value::Null;
-    use crate::vm::frame::Frame;
     use crate::vm::native::Native;
+    use crate::vm::stack::Stack;
 
     pub fn auto_register_natives(native: &mut Native) {
         native.register_method(
@@ -92,8 +93,8 @@ mod java_lang_throwable {
         );
     }
 
-    fn fill_in_stack_trace(frame: &mut Frame) -> Option<Value> {
-        println!("MOCK, fillInStackTrace arg: {:?}", frame.get_local(0));
+    fn fill_in_stack_trace(stack: &mut Stack) -> Option<Value> {
+        println!("MOCK, fillInStackTrace arg: {:?}", stack.current_frame().get_local(0));
         Some(Null)
     }
 }
@@ -101,15 +102,15 @@ mod java_lang_throwable {
 mod java_lang_system {
     use crate::vm::data_type::Value;
     use crate::vm::data_type::Value::Null;
-    use crate::vm::frame::Frame;
     use crate::vm::native::Native;
+    use crate::vm::stack::Stack;
 
     pub fn register_natives(native: &mut Native) {
         native.register_method("java/lang/System", "initProperties", init_properties);
     }
 
-    fn init_properties(frame: &mut Frame) -> Option<Value> {
-        println!("MOCK, initProperties arg: {:?}", frame.get_local(0));
+    fn init_properties(stack: &mut Stack) -> Option<Value> {
+        println!("MOCK, initProperties arg: {:?}", stack.current_frame().get_local(0));
         Some(Null)
     }
 }
@@ -117,8 +118,8 @@ mod java_lang_system {
 mod java_lang_class {
     use crate::vm::data_type::Value;
     use crate::vm::data_type::Value::Null;
-    use crate::vm::frame::Frame;
     use crate::vm::native::Native;
+    use crate::vm::stack::Stack;
 
     pub fn register_natives(native: &mut Native) {
         native.register_method(
@@ -130,13 +131,13 @@ mod java_lang_class {
         native.register_method("java/lang/Class", "getPrimitiveClass", get_primitive_class);
     }
 
-    fn desired_assertion_status0(_frame: &mut Frame) -> Option<Value> {
+    fn desired_assertion_status0(_stack: &mut Stack) -> Option<Value> {
         println!("MOCK desiredAssertionStatus0, return Int(0)");
         Some(Value::Int(0))
     }
 
-    fn get_primitive_class(frame: &mut Frame) -> Option<Value> {
-        println!("MOCK getPrimitiveClass, arg: {:?}", frame.get_local(0));
+    fn get_primitive_class(stack: &mut Stack) -> Option<Value> {
+        println!("MOCK getPrimitiveClass, arg: {:?}", stack.current_frame().get_local(0));
         Some(Null)
     }
 }
@@ -144,8 +145,8 @@ mod java_lang_class {
 mod java_lang_float {
     use crate::vm::data_type::Value;
     use crate::vm::data_type::Value::Int;
-    use crate::vm::frame::Frame;
     use crate::vm::native::Native;
+    use crate::vm::stack::Stack;
 
     pub fn auto_register_natives(native: &mut Native) {
         native.register_method(
@@ -155,8 +156,8 @@ mod java_lang_float {
         );
     }
 
-    fn float_to_raw_int_bits(frame: &mut Frame) -> Option<Value> {
-        println!("MOCK floatToRawIntBits, arg: {:?}", frame.get_local(0));
+    fn float_to_raw_int_bits(stack: &mut Stack) -> Option<Value> {
+        println!("MOCK floatToRawIntBits, arg: {:?}", stack.current_frame().get_local(0));
         Some(Int(0))
     }
 }
@@ -164,8 +165,8 @@ mod java_lang_float {
 mod java_lang_double {
     use crate::vm::data_type::Value;
     use crate::vm::data_type::Value::{Double, Int};
-    use crate::vm::frame::Frame;
     use crate::vm::native::Native;
+    use crate::vm::stack::Stack;
 
     pub fn auto_register_natives(native: &mut Native) {
         native.register_method(
@@ -177,13 +178,13 @@ mod java_lang_double {
         native.register_method("java/lang/Double", "longBitsToDouble", long_bits_to_double);
     }
 
-    fn double_to_raw_int_bits(frame: &mut Frame) -> Option<Value> {
-        println!("MOCK doubleToRawIntBits, arg: {:?}", frame.get_local(0));
+    fn double_to_raw_int_bits(stack: &mut Stack) -> Option<Value> {
+        println!("MOCK doubleToRawIntBits, arg: {:?}", stack.current_frame().get_local(0));
         Some(Int(0))
     }
 
-    fn long_bits_to_double(frame: &mut Frame) -> Option<Value> {
-        println!("MOCK longBitsToDouble, arg: {:?}", frame.get_local(0));
+    fn long_bits_to_double(stack: &mut Stack) -> Option<Value> {
+        println!("MOCK longBitsToDouble, arg: {:?}", stack.current_frame().get_local(0));
         Some(Double(0.0))
     }
 }

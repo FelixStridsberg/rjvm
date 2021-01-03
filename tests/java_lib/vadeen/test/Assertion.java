@@ -1,0 +1,17 @@
+package vadeen.test;
+
+public class Assertion {
+
+    public static native void assertEquals(boolean left, boolean right);
+
+    public static native void assertEquals(short left, short right);
+
+    public static native void assertEquals(int left, int right);
+
+    public static native void assertEquals(long left, long right);
+
+    public static native void assertEquals(float left, float right);
+
+    public static native void assertEquals(double left, double right);
+
+}

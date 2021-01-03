@@ -2,7 +2,7 @@ extern crate rjvm;
 
 use rjvm::vm::data_type::Value::{Int, Long};
 
-#[path = "./java_utils.rs"]
+#[path = "utils.rs"]
 mod java;
 
 #[test]
