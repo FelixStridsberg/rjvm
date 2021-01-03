@@ -1,6 +1,6 @@
 use crate::vm::data_type::Value;
-use std::collections::HashMap;
 use crate::vm::stack::Stack;
+use std::collections::HashMap;
 
 pub struct Native {
     methods: HashMap<String, fn(stack: &mut Stack) -> Option<Value>>,
@@ -30,7 +30,7 @@ impl Native {
     }
 
     pub fn invoke(&mut self, stack: &mut Stack) -> Option<Value> {
-        let frame = stack.current_frame();
+        let frame = stack.current_frame_mut();
         if frame.method.name == "registerNatives" {
             self.register_natives(&frame.class.this_class);
             return None;
@@ -74,7 +74,10 @@ mod java_lang_object {
     }
 
     fn init_properties(stack: &mut Stack) -> Option<Value> {
-        println!("MOCK, hashCode arg: {:?}", stack.current_frame().get_local(0));
+        println!(
+            "MOCK, hashCode arg: {:?}",
+            stack.current_frame_mut().get_local(0)
+        );
         Some(Int(0))
     }
 }
@@ -94,7 +97,10 @@ mod java_lang_throwable {
     }
 
     fn fill_in_stack_trace(stack: &mut Stack) -> Option<Value> {
-        println!("MOCK, fillInStackTrace arg: {:?}", stack.current_frame().get_local(0));
+        println!(
+            "MOCK, fillInStackTrace arg: {:?}",
+            stack.current_frame_mut().get_local(0)
+        );
         Some(Null)
     }
 }
@@ -110,7 +116,10 @@ mod java_lang_system {
     }
 
     fn init_properties(stack: &mut Stack) -> Option<Value> {
-        println!("MOCK, initProperties arg: {:?}", stack.current_frame().get_local(0));
+        println!(
+            "MOCK, initProperties arg: {:?}",
+            stack.current_frame_mut().get_local(0)
+        );
         Some(Null)
     }
 }
@@ -137,7 +146,10 @@ mod java_lang_class {
     }
 
     fn get_primitive_class(stack: &mut Stack) -> Option<Value> {
-        println!("MOCK getPrimitiveClass, arg: {:?}", stack.current_frame().get_local(0));
+        println!(
+            "MOCK getPrimitiveClass, arg: {:?}",
+            stack.current_frame_mut().get_local(0)
+        );
         Some(Null)
     }
 }
@@ -157,7 +169,10 @@ mod java_lang_float {
     }
 
     fn float_to_raw_int_bits(stack: &mut Stack) -> Option<Value> {
-        println!("MOCK floatToRawIntBits, arg: {:?}", stack.current_frame().get_local(0));
+        println!(
+            "MOCK floatToRawIntBits, arg: {:?}",
+            stack.current_frame_mut().get_local(0)
+        );
         Some(Int(0))
     }
 }
@@ -179,12 +194,18 @@ mod java_lang_double {
     }
 
     fn double_to_raw_int_bits(stack: &mut Stack) -> Option<Value> {
-        println!("MOCK doubleToRawIntBits, arg: {:?}", stack.current_frame().get_local(0));
+        println!(
+            "MOCK doubleToRawIntBits, arg: {:?}",
+            stack.current_frame_mut().get_local(0)
+        );
         Some(Int(0))
     }
 
     fn long_bits_to_double(stack: &mut Stack) -> Option<Value> {
-        println!("MOCK longBitsToDouble, arg: {:?}", stack.current_frame().get_local(0));
+        println!(
+            "MOCK longBitsToDouble, arg: {:?}",
+            stack.current_frame_mut().get_local(0)
+        );
         Some(Double(0.0))
     }
 }

@@ -117,9 +117,6 @@ impl ClassLoader {
     }
 
     fn load_class(&mut self, class_name: &str) -> Result<Rc<Class>> {
-        let mut filename = class_name.to_string();
-        filename.push_str(".class");
-
         for source in &self.sources {
             if let Some(class) = source.load_class(class_name)? {
                 let c = Rc::new(class);

@@ -67,8 +67,8 @@ pub struct VirtualMachine {}
 impl VirtualMachine {
     pub fn run(
         &mut self,
-        class_loader: ClassLoader,
-        native: Native,
+        class_loader: &mut ClassLoader,
+        native: &mut Native,
         class_name: &str,
         method_name: &str,
         args: Vec<Value>,
@@ -135,13 +135,13 @@ impl VirtualMachine {
             let mut freeze_pc = false;
             let stack_size = stack.len();
 
-            let frame = stack.current_frame();
+            let frame = stack.current_frame_mut();
             match interpret_frame(frame, heap)? {
                 VMReturn(value) => {
                     if stack.last_frame() {
                         return Ok(value);
                     } else {
-                        let frame = stack.current_frame();
+                        let frame = stack.current_frame_mut();
                         let void_return = frame.method.descriptor.return_type.is_none();
 
                         // We must not update the pc when returning from implicit frames.
@@ -152,7 +152,7 @@ impl VirtualMachine {
                         stack.pop();
 
                         if !void_return {
-                            stack.current_frame().push_operand(value);
+                            stack.current_frame_mut().push_operand(value);
                         }
                     }
                 }
@@ -196,7 +196,7 @@ impl VirtualMachine {
 
             // Update pc only if we did not get a new frame, or the pc is frozen.
             if !freeze_pc && stack.len() <= stack_size {
-                let frame = stack.current_frame();
+                let frame = stack.current_frame_mut();
                 frame.pc_next();
             }
         }
@@ -207,18 +207,18 @@ impl VirtualMachine {
         stack.pop();
 
         if let Some(val) = val {
-            stack.current_frame().push_operand(val);
+            stack.current_frame_mut().push_operand(val);
         }
     }
 
     fn handle_exception(&self, heap: &Heap, stack: &mut Stack) {
-        let reference = stack.current_frame().pop_operand().expect_reference();
+        let reference = stack.current_frame_mut().pop_operand().expect_reference();
         let exception = heap.get(reference).expect_instance();
 
         println!("Exception thrown: {:?}", exception);
 
         loop {
-            let frame = stack.current_frame();
+            let frame = stack.current_frame_mut();
 
             if frame.handle_exception(&exception) {
                 frame.push_operand(Reference(reference));
@@ -234,7 +234,7 @@ impl VirtualMachine {
     }
 
     fn put_static(&self, static_context: &mut StaticContext, index: u16, stack: &mut Stack) {
-        let frame = stack.current_frame();
+        let frame = stack.current_frame_mut();
         let value = frame.pop_operand();
         let field = frame.class.constants.get_field_ref(index).unwrap();
 
@@ -252,7 +252,7 @@ impl VirtualMachine {
         stack: &mut Stack,
     ) {
         let field = stack
-            .current_frame()
+            .current_frame_mut()
             .class
             .constants
             .get_field_ref(index)
@@ -272,7 +272,7 @@ impl VirtualMachine {
             .unwrap()
             .clone();
 
-        stack.current_frame().push_operand(v);
+        stack.current_frame_mut().push_operand(v);
     }
 
     fn allocate_reference_array(
@@ -282,7 +282,7 @@ impl VirtualMachine {
         index: u16,
         stack: &mut Stack,
     ) -> Result<()> {
-        let frame = stack.current_frame();
+        let frame = stack.current_frame_mut();
         let length = frame.pop_operand().expect_int();
         let class_name = frame.class.constants.get_class_info_name(index).unwrap();
 
@@ -299,12 +299,12 @@ impl VirtualMachine {
     }
 
     fn put_field(&self, heap: &mut Heap, index: u16, stack: &mut Stack) {
-        let value = stack.current_frame().pop_operand();
-        let reference = stack.current_frame().pop_operand().expect_reference();
+        let value = stack.current_frame_mut().pop_operand();
+        let reference = stack.current_frame_mut().pop_operand().expect_reference();
 
         if let HeapObject::Instance(object) = heap.get_mut(reference) {
             let field = stack
-                .current_frame()
+                .current_frame_mut()
                 .class
                 .constants
                 .get_field_ref(index)
@@ -328,10 +328,10 @@ impl VirtualMachine {
     }
 
     fn get_field(&self, heap: &mut Heap, index: u16, stack: &mut Stack) {
-        let reference = stack.current_frame().pop_operand().expect_reference();
+        let reference = stack.current_frame_mut().pop_operand().expect_reference();
         if let HeapObject::Instance(object) = heap.get_mut(reference) {
             let field = stack
-                .current_frame()
+                .current_frame_mut()
                 .class
                 .constants
                 .get_field_ref(index)
@@ -344,7 +344,7 @@ impl VirtualMachine {
                 );
             }
 
-            stack.current_frame().push_operand(
+            stack.current_frame_mut().push_operand(
                 object
                     .fields
                     .get(&field.field_name)
@@ -366,7 +366,7 @@ impl VirtualMachine {
         stack: &mut Stack,
     ) -> Result<()> {
         let (class_name, method_name, descriptor) = stack
-            .current_frame()
+            .current_frame_mut()
             .class
             .constants
             .get_method_ref(index)?;
@@ -376,10 +376,10 @@ impl VirtualMachine {
             .expect("Method not found");
 
         let mut args = stack
-            .current_frame()
+            .current_frame_mut()
             .pop_field_types(&method.descriptor.argument_types);
 
-        let object_ref = stack.current_frame().pop_operand().expect_reference();
+        let object_ref = stack.current_frame_mut().pop_operand().expect_reference();
         args.insert(0, Reference(object_ref));
 
         let mut frame = Frame::new(class, method);
@@ -399,7 +399,7 @@ impl VirtualMachine {
         stack: &mut Stack,
     ) -> Result<()> {
         let (class_name, method_name, descriptor) = stack
-            .current_frame()
+            .current_frame_mut()
             .class
             .constants
             .get_method_ref(index)?;
@@ -419,10 +419,10 @@ impl VirtualMachine {
 
             let method = method.unwrap();
             let mut args = stack
-                .current_frame()
+                .current_frame_mut()
                 .pop_field_types(&method.descriptor.argument_types);
 
-            let object_ref = stack.current_frame().pop_operand().expect_reference();
+            let object_ref = stack.current_frame_mut().pop_operand().expect_reference();
             args.insert(0, Reference(object_ref));
 
             let mut frame = Frame::new(class, method);
@@ -445,7 +445,7 @@ impl VirtualMachine {
         stack: &mut Stack,
     ) -> Result<()> {
         let (interface_name, method_name, descriptor) = stack
-            .current_frame()
+            .current_frame_mut()
             .class
             .constants
             .get_interface_method_ref(index)?;
@@ -454,7 +454,7 @@ impl VirtualMachine {
         let method_name = method_name.to_owned();
         let descriptor = descriptor.to_owned();
 
-        let object_ref = stack.current_frame().pop_operand().expect_reference();
+        let object_ref = stack.current_frame_mut().pop_operand().expect_reference();
         let instance = heap.get(object_ref).expect_instance();
 
         let mut class_name = instance.class.to_owned();
@@ -481,7 +481,7 @@ impl VirtualMachine {
 
             let method = method.unwrap();
             let mut args = stack
-                .current_frame()
+                .current_frame_mut()
                 .pop_field_types(&method.descriptor.argument_types);
 
             args.insert(0, Reference(object_ref));
@@ -505,7 +505,7 @@ impl VirtualMachine {
         stack: &mut Stack,
     ) -> Result<()> {
         let (class_name, method_name, descriptor) = stack
-            .current_frame()
+            .current_frame_mut()
             .class
             .constants
             .get_method_ref(index)?;
@@ -516,7 +516,7 @@ impl VirtualMachine {
             .expect("Method not found");
 
         let args = stack
-            .current_frame()
+            .current_frame_mut()
             .pop_field_types(&method.descriptor.argument_types);
 
         let mut frame = Frame::new(class, method);

@@ -13,8 +13,8 @@ fn test_load_archive() {
 
     let mut vm = VirtualMachine::default();
     let value = vm.run(
-        class_loader,
-        native,
+        &mut class_loader,
+        &mut native,
         "test_data/Native",
         "call_native",
         vec![],

@@ -28,7 +28,13 @@ impl Stack {
         self.stack.pop().expect("Tried to pop from empty stack.")
     }
 
-    pub fn current_frame(&mut self) -> &mut Frame {
+    pub fn current_frame(&self) -> &Frame {
+        self.stack
+            .last()
+            .expect("Tried to get current frame on empty stack.")
+    }
+
+    pub fn current_frame_mut(&mut self) -> &mut Frame {
         self.stack
             .last_mut()
             .expect("Tried to get current frame on empty stack.")
