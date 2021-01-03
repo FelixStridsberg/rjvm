@@ -24,7 +24,7 @@ fn java_assert_equals(stack: &mut Stack) -> Option<Value> {
 #[test]
 fn run_java_tests() {
     let mut class_loader = ClassLoader::new();
-    class_loader.set_paths(vec!["./tests/java_lib/", "./tests/jre/", "./tests/"]);
+    class_loader.set_paths(vec!["./tests/java_lib/", "./tests/"]);
 
     let classes = find_test_classes(&mut class_loader);
 

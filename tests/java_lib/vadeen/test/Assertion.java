@@ -18,4 +18,6 @@ public class Assertion {
 
     public static native void assertEquals(Object left, Object right);
 
+    public static native void fail();
+
 }

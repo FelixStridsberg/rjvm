@@ -1,6 +1,6 @@
 CC=javac
 
-JAVA_FILES=$(shell find . -name *.java)
+JAVA_FILES=$(shell find . -name '*.java')
 CLASS_FILES=$(JAVA_FILES:.java=.class)
 
 %.class: %.java
