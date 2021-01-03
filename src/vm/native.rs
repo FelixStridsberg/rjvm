@@ -14,6 +14,7 @@ impl Native {
 
         java_lang_float::auto_register_natives(&mut native);
         java_lang_double::auto_register_natives(&mut native);
+        java_lang_throwable::auto_register_natives(&mut native);
 
         native
     }
@@ -48,6 +49,7 @@ impl Native {
         match class_name {
             "java/lang/Class" => java_lang_class::register_natives(self),
             "java/lang/System" => java_lang_system::register_natives(self),
+            "java/lang/Object" => java_lang_object::register_natives(self),
             _ => eprintln!("No natives to register for {}", class_name),
         }
     }
@@ -57,6 +59,42 @@ impl Native {
         key.push(':');
         key.push_str(method_name);
         key
+    }
+}
+
+mod java_lang_object {
+    use crate::vm::data_type::Value;
+    use crate::vm::data_type::Value::Int;
+    use crate::vm::frame::Frame;
+    use crate::vm::native::Native;
+
+    pub fn register_natives(native: &mut Native) {
+        native.register_method("java/lang/Object", "hashCode", init_properties);
+    }
+
+    fn init_properties(frame: &mut Frame) -> Option<Value> {
+        println!("MOCK, hashCode arg: {:?}", frame.get_local(0));
+        Some(Int(0))
+    }
+}
+
+mod java_lang_throwable {
+    use crate::vm::data_type::Value;
+    use crate::vm::data_type::Value::Null;
+    use crate::vm::frame::Frame;
+    use crate::vm::native::Native;
+
+    pub fn auto_register_natives(native: &mut Native) {
+        native.register_method(
+            "java/lang/Throwable",
+            "fillInStackTrace",
+            fill_in_stack_trace,
+        );
+    }
+
+    fn fill_in_stack_trace(frame: &mut Frame) -> Option<Value> {
+        println!("MOCK, fillInStackTrace arg: {:?}", frame.get_local(0));
+        Some(Null)
     }
 }
 

@@ -26,10 +26,10 @@ use crate::vm::data_type::{
     ByteType, CharType, DoubleType, FloatType, IntType, LongType, ShortType,
 };
 use crate::vm::frame::Frame;
-use crate::vm::heap::Heap;
 use crate::vm::heap::HeapObject::{
     ByteArray, CharArray, DoubleArray, FloatArray, IntArray, LongArray, ShortArray,
 };
+use crate::vm::heap::{Heap, HeapObject};
 use crate::vm::interpreter::arithmetic::*;
 use crate::vm::interpreter::control_transfer::*;
 use crate::vm::interpreter::load_and_store::*;
@@ -289,8 +289,26 @@ fn interpret_instruction(
         AaStore => reference_array_store(frame, heap),
         ArrayLength => array_length(frame, heap)?,
 
-        // Checkcast => TODO
-        // Instanceof => TODO
+        CheckCast => {
+            // TODO
+            eprintln!(
+                "TODO CheckCast not implemented: {:?}",
+                heap.get(reference(&instruction.operands) as u32)
+            );
+        }
+        Instanceof => {
+            // TODO
+            let _objectref = frame.pop_operand();
+            eprintln!(
+                "TODO instance of {:?}",
+                heap.get(reference(&instruction.operands) as u32)
+            );
+            if heap.get(reference(&instruction.operands) as u32) == &HeapObject::Null {
+                frame.push_operand(Int(0));
+            } else {
+                frame.push_operand(Int(1));
+            }
+        }
 
         // Operand stack management:
         Pop => pop_operand(frame),
@@ -320,8 +338,8 @@ fn interpret_instruction(
         IfIcmpLe => jump!(if_cmp_operands!(frame, instruction, Int, <=)),
         IfIcmpGt => jump!(if_cmp_operands!(frame, instruction, Int, >)),
         IfIcmpGe => jump!(if_cmp_operands!(frame, instruction, Int, >=)),
-        IfAcmpEq => jump!(if_cmp_operands!(frame, instruction, Reference, ==)),
-        IfAcmpNe => jump!(if_cmp_operands!(frame, instruction, Reference, !=)),
+        IfAcmpEq => jump!(if_acmpeq(frame, &instruction.operands)),
+        IfAcmpNe => jump!(if_acmpne(frame, &instruction.operands)),
 
         TableSwitch => table_switch(frame, &instruction.operands),
         LookupSwitch => lookup_switch(frame, &instruction.operands),

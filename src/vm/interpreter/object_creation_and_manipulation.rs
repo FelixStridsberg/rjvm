@@ -46,8 +46,8 @@ pub fn new_array(frame: &mut Frame, heap: &mut Heap, operands: &[u8]) -> Result<
 
 pub fn array_length(frame: &mut Frame, heap: &Heap) -> Result<()> {
     let reference = frame.pop_operand().expect_reference();
-    let array = heap.get(reference).expect_int_array();
-    frame.push_operand(Int(array.len() as i32));
+    let array_len = heap.get(reference).array_length();
+    frame.push_operand(Int(array_len as i32));
     Ok(())
 }
 

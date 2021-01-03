@@ -153,6 +153,21 @@ impl FieldType {
             _ => 1,
         }
     }
+
+    pub fn default_value(&self) -> Value {
+        match &self {
+            FieldType::Byte => Int(0),
+            FieldType::Char => Int(0),
+            FieldType::Double => Double(0.0),
+            FieldType::Float => Float(0.0),
+            FieldType::Int => Int(0),
+            FieldType::Long => Long(0),
+            FieldType::Short => Int(0),
+            FieldType::Boolean => Int(0),
+            FieldType::Object(_) => Null,
+            FieldType::Array(_) => Null,
+        }
+    }
 }
 
 impl<'a> TryFrom<&'a str> for FieldType {

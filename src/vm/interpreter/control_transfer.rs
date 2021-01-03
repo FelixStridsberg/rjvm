@@ -1,7 +1,7 @@
 use crate::binary::*;
 use crate::vm::data_type::ReturnAddressType;
 use crate::vm::data_type::Value;
-use crate::vm::data_type::Value::ReturnAddress;
+use crate::vm::data_type::Value::{Null, ReturnAddress};
 use crate::vm::frame::Frame;
 
 #[macro_export]
@@ -34,6 +34,54 @@ macro_rules! if_cmp_operands (
         }
     }}
 );
+
+// TODO broke this out for the null pointer hack
+pub fn if_acmpeq(frame: &mut Frame, operands: &[u8]) {
+    let value1 = frame.pop_operand();
+    let value2 = frame.pop_operand();
+
+    if matches!(value1, Null) || matches!(value2, Null) {
+        if matches!(value1, Null) && matches!(value2, Null) {
+            frame.pc_offset(crate::binary::bytes_to_i16(operands));
+        } else {
+            frame.pc_next();
+        }
+        return;
+    }
+
+    let value1 = value1.expect_reference();
+    let value2 = value2.expect_reference();
+
+    if value1 == value2 {
+        frame.pc_offset(crate::binary::bytes_to_i16(operands));
+    } else {
+        frame.pc_next();
+    }
+}
+
+// TODO broke this out for the null pointer hack
+pub fn if_acmpne(frame: &mut Frame, operands: &[u8]) {
+    let value1 = frame.pop_operand();
+    let value2 = frame.pop_operand();
+
+    if matches!(value1, Null) || matches!(value2, Null) {
+        if !(matches!(value1, Null) && matches!(value2, Null)) {
+            frame.pc_offset(crate::binary::bytes_to_i16(operands));
+        } else {
+            frame.pc_next();
+        }
+        return;
+    }
+
+    let value1 = value1.expect_reference();
+    let value2 = value2.expect_reference();
+
+    if value1 != value2 {
+        frame.pc_offset(crate::binary::bytes_to_i16(operands));
+    } else {
+        frame.pc_next();
+    }
+}
 
 pub fn if_null(frame: &mut Frame, operands: &[u8]) {
     if matches!(frame.pop_operand(), Value::Null) {

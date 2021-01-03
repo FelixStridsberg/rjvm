@@ -53,7 +53,7 @@ enum VMCommand {
     VMNative(),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Object {
     class: String,
     fields: HashMap<String, Value>,
@@ -85,7 +85,10 @@ impl VirtualMachine {
             &mut heap,
             &mut stack,
             &mut class_loader,
-            "java/lang/System", "initializeSystemClass", vec![], &mut native
+            "java/lang/System",
+            "initializeSystemClass",
+            vec![],
+            &mut native,
         );
 
         panic!("INIT RET {:?}", init_result.unwrap());
@@ -345,7 +348,7 @@ impl VirtualMachine {
                 object
                     .fields
                     .get(&field.field_name)
-                    .map_or(Null, |f| f.clone()),
+                    .map_or(field.field_type.default_value(), |f| f.clone()),
             );
         } else {
             panic!(
@@ -460,10 +463,12 @@ impl VirtualMachine {
                 panic!("Todo init_frame on resolving interface method");
             }
 
+            /* TODO interfaces can extend each other etc...
             if !class.interfaces.contains(&interface_name) {
+                println!("NOT FOUND");
                 class_name = class.super_class.to_owned();
                 continue;
-            }
+            }*/
 
             let method = class.resolve_method(&method_name, &descriptor);
             if matches!(method, None) {
@@ -501,6 +506,7 @@ impl VirtualMachine {
             .class
             .constants
             .get_method_ref(index)?;
+
         let (class, init_frame) = class_loader.resolve(class_name)?;
         let method = class
             .resolve_method(method_name, descriptor)

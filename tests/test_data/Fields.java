@@ -8,7 +8,7 @@ public class Fields {
     public static double s_double = 400.0d;
 
     public boolean t_boolean = true;
-    public int t_int = 0;
+    public int t_int;
     public long t_long = 100L;
     public float t_float = 1.0f;
     public double t_double = 2.0d;
