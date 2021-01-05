@@ -495,7 +495,7 @@ impl VirtualMachine {
             .constants
             .get_interface_method_ref(index)?;
 
-        let interface_name = interface_name.to_owned();
+        let _interface_name = interface_name.to_owned();
         let method_name = method_name.to_owned();
         let descriptor = descriptor.to_owned();
 
