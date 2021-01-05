@@ -2,7 +2,7 @@ package java_tests;
 
 import java_tests.helpers.OtherFields;
 
-import static vadeen.test.Assertion.assertEquals;
+import static vadeen.test.Assertion.*;
 
 public class FieldsTests {
     public static boolean static_boolean = false;

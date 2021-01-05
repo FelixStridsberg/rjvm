@@ -15,7 +15,6 @@ pub type ReturnAddressType = u32;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Value {
-    Boolean(BooleanType),
     Byte(ByteType),
     Short(ShortType),
     Int(IntType),
@@ -34,13 +33,6 @@ impl Value {
             Long(_) | Double(_) => 2,
             _ => 1,
         }
-    }
-
-    pub fn expect_boolean(self) -> BooleanType {
-        if matches!(self, Int(_)) {
-            return self.expect_int() == 1;
-        }
-        expect_type!(self, Boolean)
     }
 
     pub fn expect_byte(self) -> ByteType {
@@ -98,9 +90,9 @@ impl Value {
             FieldType::Double => Double(self.expect_double()),
             FieldType::Float => Float(self.expect_float()),
             FieldType::Int => Int(self.expect_int_like()),
+            FieldType::Boolean => Int(self.expect_int_like()),
             FieldType::Long => Long(self.expect_long()),
             FieldType::Short => Short(self.expect_short()),
-            FieldType::Boolean => Boolean(self.expect_boolean()),
             FieldType::Object(_) => self
                 .expect_nullable_reference()
                 .map_or(Null, |r| Reference(r)),
@@ -110,13 +102,6 @@ impl Value {
 
     pub fn as_int_value(&self) -> IntType {
         match self {
-            Boolean(b) => {
-                if *b {
-                    1
-                } else {
-                    0
-                }
-            }
             Byte(b) => *b as IntType,
             Short(s) => *s as IntType,
             Char(c) => *c as IntType,

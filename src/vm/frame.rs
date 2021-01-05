@@ -192,17 +192,6 @@ mod test {
     use std::rc::Rc;
 
     #[test]
-    fn pop_bool() {
-        let constants = ConstantPool::new(0);
-        let class = Class::from_constant_pool(constants);
-        let method = MethodInfo::from_code(Code::new(1, 0, vec![], vec![], vec![]));
-        let mut frame = Frame::new(Rc::new(class), Rc::new(method));
-        frame.push_operand(Value::Boolean(true));
-
-        assert_eq!(frame.pop_operand(), Value::Boolean(true));
-    }
-
-    #[test]
     fn set_local() {
         let constants = ConstantPool::new(0);
         let class = Class::from_constant_pool(constants);
