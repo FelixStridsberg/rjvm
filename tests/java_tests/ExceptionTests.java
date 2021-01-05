@@ -15,7 +15,7 @@ public class ExceptionTests {
             }
             i = 1;
         } catch (Exception e) {
-            fail();
+            assertEquals(1, 2); // Always fail if we reach this
         }
 
         assertEquals(i, 1);
