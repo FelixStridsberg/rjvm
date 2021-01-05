@@ -454,11 +454,8 @@ impl VirtualMachine {
 
         let mut class_name = class_name.to_owned();
         loop {
-            println!("method_name: {}:{} {}", class_name, method_name, descriptor);
             let (class, init_frame) = class_loader.resolve(&class_name)?;
-            println!("Found!");
             let method = class.resolve_method(method_name, descriptor);
-            println!("Method: {:?}", method);
 
             if method.is_none() {
                 class_name = class.super_class.clone();
