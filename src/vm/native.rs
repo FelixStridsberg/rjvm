@@ -84,7 +84,7 @@ mod java_lang_object {
 
 mod java_lang_throwable {
     use crate::vm::data_type::Value;
-    use crate::vm::data_type::Value::Null;
+    use crate::vm::data_type::Value::Reference;
     use crate::vm::native::Native;
     use crate::vm::stack::Stack;
 
@@ -101,13 +101,13 @@ mod java_lang_throwable {
             "MOCK, fillInStackTrace arg: {:?}",
             stack.current_frame_mut().get_local(0)
         );
-        Some(Null)
+        Some(Reference(None))
     }
 }
 
 mod java_lang_system {
     use crate::vm::data_type::Value;
-    use crate::vm::data_type::Value::Null;
+    use crate::vm::data_type::Value::Reference;
     use crate::vm::native::Native;
     use crate::vm::stack::Stack;
 
@@ -120,13 +120,13 @@ mod java_lang_system {
             "MOCK, initProperties arg: {:?}",
             stack.current_frame_mut().get_local(0)
         );
-        Some(Null)
+        Some(Reference(None))
     }
 }
 
 mod java_lang_class {
     use crate::vm::data_type::Value;
-    use crate::vm::data_type::Value::Null;
+    use crate::vm::data_type::Value::Reference;
     use crate::vm::native::Native;
     use crate::vm::stack::Stack;
 
@@ -150,7 +150,7 @@ mod java_lang_class {
             "MOCK getPrimitiveClass, arg: {:?}",
             stack.current_frame_mut().get_local(0)
         );
-        Some(Null)
+        Some(Reference(None))
     }
 }
 

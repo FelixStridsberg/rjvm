@@ -1,7 +1,6 @@
 use crate::binary::*;
 use crate::vm::data_type::ReturnAddressType;
-use crate::vm::data_type::Value;
-use crate::vm::data_type::Value::{Null, ReturnAddress};
+use crate::vm::data_type::Value::{Reference, ReturnAddress};
 use crate::vm::frame::Frame;
 
 #[macro_export]
@@ -35,56 +34,8 @@ macro_rules! if_cmp_operands (
     }}
 );
 
-// TODO broke this out for the null pointer hack
-pub fn if_acmpeq(frame: &mut Frame, operands: &[u8]) {
-    let value1 = frame.pop_operand();
-    let value2 = frame.pop_operand();
-
-    if matches!(value1, Null) || matches!(value2, Null) {
-        if matches!(value1, Null) && matches!(value2, Null) {
-            frame.pc_offset(crate::binary::bytes_to_i16(operands));
-        } else {
-            frame.pc_next();
-        }
-        return;
-    }
-
-    let value1 = value1.expect_reference();
-    let value2 = value2.expect_reference();
-
-    if value1 == value2 {
-        frame.pc_offset(crate::binary::bytes_to_i16(operands));
-    } else {
-        frame.pc_next();
-    }
-}
-
-// TODO broke this out for the null pointer hack
-pub fn if_acmpne(frame: &mut Frame, operands: &[u8]) {
-    let value1 = frame.pop_operand();
-    let value2 = frame.pop_operand();
-
-    if matches!(value1, Null) || matches!(value2, Null) {
-        if !(matches!(value1, Null) && matches!(value2, Null)) {
-            frame.pc_offset(crate::binary::bytes_to_i16(operands));
-        } else {
-            frame.pc_next();
-        }
-        return;
-    }
-
-    let value1 = value1.expect_reference();
-    let value2 = value2.expect_reference();
-
-    if value1 != value2 {
-        frame.pc_offset(crate::binary::bytes_to_i16(operands));
-    } else {
-        frame.pc_next();
-    }
-}
-
 pub fn if_null(frame: &mut Frame, operands: &[u8]) {
-    if matches!(frame.pop_operand(), Value::Null) {
+    if matches!(frame.pop_operand(), Reference(None)) {
         frame.pc_offset(bytes_to_i16(operands));
     } else {
         frame.pc_next();
@@ -92,7 +43,7 @@ pub fn if_null(frame: &mut Frame, operands: &[u8]) {
 }
 
 pub fn if_non_null(frame: &mut Frame, operands: &[u8]) {
-    if !matches!(frame.pop_operand(), Value::Null) {
+    if !matches!(frame.pop_operand(), Reference(None)) {
         frame.pc_offset(bytes_to_i16(operands));
     } else {
         frame.pc_next();
@@ -288,7 +239,7 @@ mod test {
     fn ifnull_success() {
         test_instruction!(
             start_pc: 4,
-            start_stack: [Null],
+            start_stack: [Reference(None)],
             instruction: IfNull; [0x00, 0x05],
             final_pc: 9,
         );
@@ -298,7 +249,7 @@ mod test {
     fn ifnull_fail() {
         test_instruction!(
             start_pc: 4,
-            start_stack: [Reference(10)],
+            start_stack: [Reference(Some(10))],
             instruction: IfNull; [0x00, 0x05],
             final_pc: 7,
         );
@@ -308,7 +259,7 @@ mod test {
     fn ifnonnull_success() {
         test_instruction!(
             start_pc: 4,
-            start_stack: [Reference(10)],
+            start_stack: [Reference(Some(10))],
             instruction: IfNonNull; [0x00, 0x05],
             final_pc: 9,
         );
@@ -318,7 +269,7 @@ mod test {
     fn ifnonnull_fail() {
         test_instruction!(
             start_pc: 4,
-            start_stack: [Null],
+            start_stack: [Reference(None)],
             instruction: IfNonNull; [0x00, 0x05],
             final_pc: 7,
         );
@@ -448,7 +399,7 @@ mod test {
     fn ifacmpeq_success() {
         test_instruction!(
             start_pc: 4,
-            start_stack: [Reference(1), Reference(1)],
+            start_stack: [Reference(Some(1)), Reference(Some(1))],
             instruction: IfAcmpEq; [0x00, 0x05],
             final_pc: 9,
         );
@@ -458,7 +409,7 @@ mod test {
     fn ifacmpeq_fail() {
         test_instruction!(
             start_pc: 4,
-            start_stack: [Reference(10), Reference(0)],
+            start_stack: [Reference(Some(10)), Reference(Some(0))],
             instruction: IfAcmpEq; [0x00, 0x05],
             final_pc: 7,
         );

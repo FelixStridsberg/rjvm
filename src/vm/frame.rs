@@ -12,7 +12,7 @@ use std::rc::Rc;
 #[derive(Debug)]
 pub struct Frame {
     pub pc: u16,
-    pub local_variables: Vec<Value>,
+    pub local_variables: Vec<Option<Value>>,
     pub operand_stack: Vec<Value>,
     pub operand_stack_depth: u32,
     pub class: Rc<Class>,
@@ -29,7 +29,7 @@ impl Frame {
 
         Frame {
             pc: 0,
-            local_variables: vec![Null; max_locals as usize],
+            local_variables: vec![None; max_locals as usize],
             operand_stack: Vec::with_capacity(max_stack as usize),
             operand_stack_depth: 0,
             class,
@@ -75,15 +75,17 @@ impl Frame {
     }
 
     pub fn set_locals(&mut self, locals: Vec<Value>) {
-        self.local_variables = locals;
+        self.local_variables = locals.into_iter().map(Option::Some).collect();
     }
 
     pub fn get_local(&self, index: u16) -> Value {
-        self.local_variables[index as usize].clone()
+        self.local_variables[index as usize]
+            .clone()
+            .expect("Illegal use of an uninitialized local")
     }
 
     pub fn set_local(&mut self, index: u16, value: Value) {
-        self.local_variables[index as usize] = value
+        self.local_variables[index as usize] = Some(value)
     }
 
     pub fn pop_field_types(&mut self, types: &[FieldType]) -> Vec<Value> {
@@ -186,8 +188,7 @@ mod test {
     use crate::class::attribute::Code;
     use crate::class::constant::ConstantPool;
     use crate::class::{Class, MethodInfo};
-    use crate::vm::data_type::Value;
-    use crate::vm::data_type::Value::{Int, Null};
+    use crate::vm::data_type::Value::Int;
     use crate::vm::frame::Frame;
     use std::rc::Rc;
 
@@ -199,7 +200,17 @@ mod test {
         let mut frame = Frame::new(Rc::new(class), Rc::new(method));
 
         frame.set_local(1, Int(13));
-        assert_eq!(frame.get_local(0), Null);
         assert_eq!(frame.get_local(1), Int(13));
+    }
+
+    #[test]
+    #[should_panic]
+    fn get_uninitialized_local() {
+        let constants = ConstantPool::new(0);
+        let class = Class::from_constant_pool(constants);
+        let method = MethodInfo::from_code(Code::new(0, 2, vec![], vec![], vec![]));
+        let frame = Frame::new(Rc::new(class), Rc::new(method));
+
+        frame.get_local(0); // Will panic, has not been initialized
     }
 }

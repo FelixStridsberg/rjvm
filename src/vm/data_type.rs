@@ -22,9 +22,8 @@ pub enum Value {
     Char(CharType),
     Float(FloatType),
     Double(DoubleType),
-    Reference(ReferenceType),
+    Reference(Option<ReferenceType>),
     ReturnAddress(ReturnAddressType),
-    Null,
 }
 
 impl Value {
@@ -71,16 +70,8 @@ impl Value {
         expect_type!(self, ReturnAddress)
     }
 
-    pub fn expect_reference(self) -> ReferenceType {
+    pub fn expect_reference(self) -> Option<ReferenceType> {
         expect_type!(self, Reference)
-    }
-
-    pub fn expect_nullable_reference(self) -> Option<ReferenceType> {
-        match self {
-            Reference(r) => Some(r),
-            Null => None,
-            _ => panic!("Tried to use a {:?} as a nullable Reference", self),
-        }
     }
 
     pub fn expect_type(self, field_type: &FieldType) -> Value {
@@ -93,9 +84,7 @@ impl Value {
             FieldType::Boolean => Int(self.expect_int_like()),
             FieldType::Long => Long(self.expect_long()),
             FieldType::Short => Short(self.expect_short()),
-            FieldType::Object(_) => self
-                .expect_nullable_reference()
-                .map_or(Null, |r| Reference(r)),
+            FieldType::Object(_) => Reference(self.expect_reference()),
             FieldType::Array(_) => Reference(self.expect_reference()),
         }
     }
@@ -152,8 +141,8 @@ impl FieldType {
             FieldType::Long => Long(0),
             FieldType::Short => Int(0),
             FieldType::Boolean => Int(0),
-            FieldType::Object(_) => Null,
-            FieldType::Array(_) => Null,
+            FieldType::Object(_) => Reference(None),
+            FieldType::Array(_) => Reference(None),
         }
     }
 }

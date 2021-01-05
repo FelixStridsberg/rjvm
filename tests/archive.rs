@@ -17,5 +17,5 @@ fn test_load_archive() {
         "hello_from_archive",
         vec![],
     );
-    assert_eq!(value, Int(2))
+    assert_eq!(value, Some(Int(2)))
 }

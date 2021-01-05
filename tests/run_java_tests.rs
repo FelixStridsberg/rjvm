@@ -8,8 +8,10 @@ use std::path::Path;
 
 fn java_assert_equals(stack: &mut Stack) -> Option<Value> {
     let frame = stack.current_frame();
-    let left = &frame.local_variables[0];
-    let right = &frame.local_variables[left.get_category() as usize];
+    let left = &frame.local_variables[0].as_ref().unwrap();
+    let right = &frame.local_variables[left.get_category() as usize]
+        .as_ref()
+        .unwrap();
 
     if left == right {
         return None;

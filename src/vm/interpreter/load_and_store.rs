@@ -71,7 +71,7 @@ fn push_constant_index(frame: &mut Frame, index: u16) -> Result<()> {
         Constant::Integer(i) => Int(*i),
         Constant::Float(f) => Float(*f),
         // TODO reference and reference resolution
-        constant => Reference(0), //runtime_error!("ldc not implemented for constant {:?}", constant),
+        constant => runtime_error!("ldc not implemented for constant {:?}", constant)?,
     };
 
     frame.push_operand(value);
@@ -97,7 +97,7 @@ pub fn push_constant_long(frame: &mut Frame, operands: &[u8]) -> Result<()> {
 }
 
 pub fn push_null(frame: &mut Frame) {
-    frame.push_operand(Null);
+    frame.push_operand(Reference(None));
 }
 
 #[cfg(test)]
@@ -289,45 +289,45 @@ mod test {
     #[test]
     fn aload() {
         test_instruction!(
-            start_locals: { 5 => Reference(6) },
+            start_locals: { 5 => Reference(Some(6)) },
             instruction: ALoad; [0x05],
-            final_stack: [Reference(6)],
+            final_stack: [Reference(Some(6))],
         );
     }
 
     #[test]
     fn aload0() {
         test_instruction!(
-            start_locals: { 0 => Reference(1) },
+            start_locals: { 0 => Reference(Some(1)) },
             instruction: ALoad0,
-            final_stack: [Reference(1)],
+            final_stack: [Reference(Some(1))],
         );
     }
 
     #[test]
     fn aload1() {
         test_instruction!(
-            start_locals: { 1 => Reference(2) },
+            start_locals: { 1 => Reference(Some(2)) },
             instruction: ALoad1,
-            final_stack: [Reference(2)],
+            final_stack: [Reference(Some(2))],
         );
     }
 
     #[test]
     fn aload2() {
         test_instruction!(
-            start_locals: { 2 => Reference(3) },
+            start_locals: { 2 => Reference(Some(3)) },
             instruction: ALoad2,
-            final_stack: [Reference(3)],
+            final_stack: [Reference(Some(3))],
         );
     }
 
     #[test]
     fn aload3() {
         test_instruction!(
-            start_locals: { 3 => Reference(4) },
+            start_locals: { 3 => Reference(Some(4)) },
             instruction: ALoad3,
-            final_stack: [Reference(4)],
+            final_stack: [Reference(Some(4))],
         );
     }
 
@@ -523,36 +523,36 @@ mod test {
     #[test]
     fn astore0() {
         test_instruction!(
-            start_stack: [Reference(1)],
+            start_stack: [Reference(Some(1))],
             instruction: AStore0,
-            final_locals: { 0 => Reference(1) },
+            final_locals: { 0 => Reference(Some(1)) },
         );
     }
 
     #[test]
     fn astore1() {
         test_instruction!(
-            start_stack: [Reference(2)],
+            start_stack: [Reference(Some(2))],
             instruction: AStore1,
-            final_locals: { 1 => Reference(2) },
+            final_locals: { 1 => Reference(Some(2)) },
         );
     }
 
     #[test]
     fn astore2() {
         test_instruction!(
-            start_stack: [Reference(3)],
+            start_stack: [Reference(Some(3))],
             instruction: AStore2,
-            final_locals: { 2 => Reference(3) },
+            final_locals: { 2 => Reference(Some(3)) },
         );
     }
 
     #[test]
     fn astore3() {
         test_instruction!(
-            start_stack: [Reference(4)],
+            start_stack: [Reference(Some(4))],
             instruction: AStore3,
-            final_locals: { 3 => Reference(4) },
+            final_locals: { 3 => Reference(Some(4)) },
         );
     }
 

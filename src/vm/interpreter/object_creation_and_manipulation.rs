@@ -1,6 +1,6 @@
 use crate::error::Result;
 use crate::vm::data_type::ReferenceType;
-use crate::vm::data_type::Value::{Int, Null, Reference};
+use crate::vm::data_type::Value::{Int, Reference};
 use crate::vm::frame::Frame;
 use crate::vm::heap::Heap;
 
@@ -8,7 +8,7 @@ use crate::vm::heap::Heap;
 macro_rules! array_load (
     ($frame:ident, $heap:ident, $array_type:path, $value_type:path, $inner_type:ty) => {{
         let index = $frame.pop_operand().expect_int();
-        let reference = $frame.pop_operand().expect_reference();
+        let reference = $frame.pop_operand().expect_reference().expect("Null pointer error"); // TODO
         let array = expect_type!($heap.get(reference), $array_type);
 
         $frame.push_operand($value_type(array[index as usize] as $inner_type));
@@ -20,7 +20,7 @@ macro_rules! array_store (
     ($frame:ident, $heap:ident, $array_type:path, $value_type:path, [$($inner_type:ty),*]) => {{
         let value = expect_type!($frame.pop_operand(), $value_type);
         let index = $frame.pop_operand().expect_int();
-        let reference = $frame.pop_operand().expect_reference();
+        let reference = $frame.pop_operand().expect_reference().expect("Null pointer error"); // TODO
 
         let array = expect_type!($heap.get_mut(reference), $array_type);
         array[index as usize] = value $(as $inner_type)*;
@@ -40,12 +40,15 @@ pub fn new_array(frame: &mut Frame, heap: &mut Heap, operands: &[u8]) -> Result<
         a => return runtime_error!("Unknown array type {}.", a),
     };
 
-    frame.push_operand(Reference(reference as ReferenceType));
+    frame.push_operand(Reference(Some(reference as ReferenceType)));
     Ok(())
 }
 
 pub fn array_length(frame: &mut Frame, heap: &Heap) -> Result<()> {
-    let reference = frame.pop_operand().expect_reference();
+    let reference = frame
+        .pop_operand()
+        .expect_reference()
+        .expect("Null pointer error"); // TODO
     let array_len = heap.get(reference).array_length();
     frame.push_operand(Int(array_len as i32));
     Ok(())
@@ -59,13 +62,19 @@ pub fn new_object(frame: &mut Frame, heap: &mut Heap, operands: &[u8]) {
         .get_class_info_name(index as u16)
         .unwrap();
     let reference = heap.allocate_object(class);
-    frame.push_operand(Reference(reference as ReferenceType));
+    frame.push_operand(Reference(Some(reference as ReferenceType)));
 }
 
 pub fn reference_array_store(frame: &mut Frame, heap: &mut Heap) {
-    let value = frame.pop_operand().expect_reference();
+    let value = frame
+        .pop_operand()
+        .expect_reference()
+        .expect("Null pointer error"); // TODO
     let index = frame.pop_operand().expect_int();
-    let reference = frame.pop_operand().expect_reference();
+    let reference = frame
+        .pop_operand()
+        .expect_reference()
+        .expect("Null pointer error"); // TODO
 
     let object_type = heap.get(value).expect_instance().class.to_owned();
     let (array_type, array) = heap.get_mut(reference).expect_mut_reference_array();
@@ -80,13 +89,16 @@ pub fn reference_array_store(frame: &mut Frame, heap: &mut Heap) {
 
 pub fn reference_array_load(frame: &mut Frame, heap: &mut Heap) {
     let index = frame.pop_operand().expect_int();
-    let reference = frame.pop_operand().expect_reference();
+    let reference = frame
+        .pop_operand()
+        .expect_reference()
+        .expect("Null pointer error"); // TODO
 
     let (_, array) = heap.get_mut(reference).expect_mut_reference_array();
     if let Some(object_reference) = array[index as usize] {
-        frame.push_operand(Reference(object_reference));
+        frame.push_operand(Reference(Some(object_reference)));
     } else {
-        frame.push_operand(Null);
+        frame.push_operand(Reference(None));
     }
 }
 
@@ -103,7 +115,7 @@ mod test {
             heap: heap,
             start_stack: [Int(10)],
             instruction: NewArray; [0x08],
-            final_stack: [Reference(0)],
+            final_stack: [Reference(Some(0))],
         );
 
         let array = heap.get_mut(0).expect_byte_array();
@@ -117,7 +129,7 @@ mod test {
             heap: heap,
             start_stack: [Int(10)],
             instruction: NewArray; [0x0a],
-            final_stack: [Reference(0)],
+            final_stack: [Reference(Some(0))],
         );
 
         let array = heap.get_mut(0).expect_int_array();
@@ -131,7 +143,7 @@ mod test {
 
         test_instruction!(
             heap: heap,
-            start_stack: [Reference(0), Int(1), Int(2)],
+            start_stack: [Reference(Some(0)), Int(1), Int(2)],
             instruction: IaStore; [],
             final_stack: [],
         );
@@ -152,7 +164,7 @@ mod test {
 
         test_instruction!(
             heap: heap,
-            start_stack: [Reference(0), Int(4)],
+            start_stack: [Reference(Some(0)), Int(4)],
             instruction: IaLoad; [],
             final_stack: [Int(10)],
         );

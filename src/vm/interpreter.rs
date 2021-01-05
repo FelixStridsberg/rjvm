@@ -21,7 +21,7 @@ mod stack_management;
 use crate::class::code::Instruction;
 use crate::class::code::Opcode::*;
 use crate::error::Result;
-use crate::vm::data_type::Value::{Double, Float, Int, Long, Null, Reference, ReturnAddress};
+use crate::vm::data_type::Value::{Double, Float, Int, Long, Reference, ReturnAddress};
 use crate::vm::data_type::{
     ByteType, CharType, DoubleType, FloatType, IntType, LongType, ShortType,
 };
@@ -118,11 +118,11 @@ fn interpret_instruction(
         DLoad2 => load!(frame, Double(_), 2),
         DLoad3 => load!(frame, Double(_), 3),
 
-        ALoad => load!(frame, instruction, Reference(_) | Null),
-        ALoad0 => load!(frame, Reference(_) | Null, 0),
-        ALoad1 => load!(frame, Reference(_) | Null, 1),
-        ALoad2 => load!(frame, Reference(_) | Null, 2),
-        ALoad3 => load!(frame, Reference(_) | Null, 3),
+        ALoad => load!(frame, instruction, Reference(_)),
+        ALoad0 => load!(frame, Reference(_), 0),
+        ALoad1 => load!(frame, Reference(_), 1),
+        ALoad2 => load!(frame, Reference(_), 2),
+        ALoad3 => load!(frame, Reference(_), 3),
 
         IStore => store!(frame, instruction, Int(_)),
         IStore0 => store!(frame, Int(_), 0),
@@ -148,11 +148,11 @@ fn interpret_instruction(
         DStore2 => store!(frame, Double(_), 2),
         DStore3 => store!(frame, Double(_), 3),
 
-        AStore => store!(frame, instruction, Reference(_) | ReturnAddress(_) | Null),
-        AStore0 => store!(frame, Reference(_) | ReturnAddress(_) | Null, 0),
-        AStore1 => store!(frame, Reference(_) | ReturnAddress(_) | Null, 1),
-        AStore2 => store!(frame, Reference(_) | ReturnAddress(_) | Null, 2),
-        AStore3 => store!(frame, Reference(_) | ReturnAddress(_) | Null, 3),
+        AStore => store!(frame, instruction, Reference(_) | ReturnAddress(_)),
+        AStore0 => store!(frame, Reference(_) | ReturnAddress(_), 0),
+        AStore1 => store!(frame, Reference(_) | ReturnAddress(_), 1),
+        AStore2 => store!(frame, Reference(_) | ReturnAddress(_), 2),
+        AStore3 => store!(frame, Reference(_) | ReturnAddress(_), 3),
 
         BiPush => push_byte(frame, &instruction.operands),
         SiPush => push_short(frame, &instruction.operands),
@@ -338,8 +338,8 @@ fn interpret_instruction(
         IfIcmpLe => jump!(if_cmp_operands!(frame, instruction, Int, <=)),
         IfIcmpGt => jump!(if_cmp_operands!(frame, instruction, Int, >)),
         IfIcmpGe => jump!(if_cmp_operands!(frame, instruction, Int, >=)),
-        IfAcmpEq => jump!(if_acmpeq(frame, &instruction.operands)),
-        IfAcmpNe => jump!(if_acmpne(frame, &instruction.operands)),
+        IfAcmpEq => jump!(if_cmp_operands!(frame, instruction, Reference, ==)),
+        IfAcmpNe => jump!(if_cmp_operands!(frame, instruction, Reference, !=)),
 
         TableSwitch => table_switch(frame, &instruction.operands),
         LookupSwitch => lookup_switch(frame, &instruction.operands),
@@ -356,18 +356,15 @@ fn interpret_instruction(
         InvokeSpecial => vm_command!(VMInvokeSpecial(reference(&instruction.operands))),
         InvokeStatic => vm_command!(VMInvokeStatic(reference(&instruction.operands))),
         // Invokedynamic => TODO
-        Return => vm_command!(VMReturn(Null)),
-        IReturn => vm_command!(VMReturn(Int(frame.pop_operand().expect_int_like()))),
-        LReturn => vm_command!(VMReturn(Long(frame.pop_operand().expect_long()))),
-        FReturn => vm_command!(VMReturn(Float(frame.pop_operand().expect_float()))),
-        DReturn => vm_command!(VMReturn(Double(frame.pop_operand().expect_double()))),
+        Return => vm_command!(VMReturn(None)),
+        IReturn => vm_command!(VMReturn(Some(Int(frame.pop_operand().expect_int_like())))),
+        LReturn => vm_command!(VMReturn(Some(Long(frame.pop_operand().expect_long())))),
+        FReturn => vm_command!(VMReturn(Some(Float(frame.pop_operand().expect_float())))),
+        DReturn => vm_command!(VMReturn(Some(Double(frame.pop_operand().expect_double())))),
         AReturn => {
-            return Ok(Command(VMReturn(
-                frame
-                    .pop_operand()
-                    .expect_nullable_reference()
-                    .map_or(Null, |r| Reference(r)),
-            )))
+            return Ok(Command(VMReturn(Some(Reference(
+                frame.pop_operand().expect_reference(),
+            )))))
         }
 
         // Throwing exceptions:

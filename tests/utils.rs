@@ -25,7 +25,7 @@ fn java_assert_equals(stack: &mut Stack) -> Option<Value> {
 }
 
 #[allow(dead_code)]
-pub fn run_method(class_name: &str, method_name: &str) -> Value {
+pub fn run_method(class_name: &str, method_name: &str) -> Option<Value> {
     let mut class_loader = ClassLoader::new();
     class_loader.set_paths(vec!["./tests/", "./tests/jre/"]);
 
@@ -43,7 +43,7 @@ pub fn run_method(class_name: &str, method_name: &str) -> Value {
 }
 
 #[allow(dead_code)]
-pub fn run_method_args(class_name: &str, method_name: &str, args: Vec<Value>) -> Value {
+pub fn run_method_args(class_name: &str, method_name: &str, args: Vec<Value>) -> Option<Value> {
     let mut class_loader = ClassLoader::new();
     class_loader.set_paths(vec!["./tests/", "./tests/jre/"]);
 

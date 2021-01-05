@@ -20,5 +20,5 @@ fn test_load_archive() {
         vec![],
     );
 
-    assert_eq!(value, Int(20))
+    assert_eq!(value, Some(Int(20)))
 }

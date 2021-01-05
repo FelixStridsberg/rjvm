@@ -39,7 +39,7 @@ pub mod stack;
 
 #[derive(Debug)]
 enum VMCommand {
-    VMReturn(Value),
+    VMReturn(Option<Value>),
     VMInvokeStatic(u16),
     VMInvokeSpecial(u16),
     VMInvokeVirtual(u16),
@@ -72,7 +72,7 @@ impl VirtualMachine {
         class_name: &str,
         method_name: &str,
         args: Vec<Value>,
-    ) -> Value {
+    ) -> Option<Value> {
         let mut heap = Heap::default();
         let mut stack = Stack::new();
         let mut class_loader = class_loader;
@@ -128,7 +128,7 @@ impl VirtualMachine {
         init_method_name: &str,
         args: Vec<Value>,
         native: &mut Native,
-    ) -> Result<Value> {
+    ) -> Result<Option<Value>> {
         self.prepare_static_method(class_loader, init_class_name, init_method_name, args, stack);
 
         loop {
@@ -152,7 +152,7 @@ impl VirtualMachine {
                         stack.pop();
 
                         if !void_return {
-                            stack.current_frame_mut().push_operand(value);
+                            stack.current_frame_mut().push_operand(value.unwrap());
                         }
                     }
                 }
@@ -212,7 +212,11 @@ impl VirtualMachine {
     }
 
     fn handle_exception(&self, heap: &Heap, stack: &mut Stack) {
-        let reference = stack.current_frame_mut().pop_operand().expect_reference();
+        let reference = stack
+            .current_frame_mut()
+            .pop_operand()
+            .expect_reference()
+            .expect("Null pointer error"); // TODO;
         let exception = heap.get(reference).expect_instance();
 
         println!("Exception thrown: {:?}", exception);
@@ -221,7 +225,7 @@ impl VirtualMachine {
             let frame = stack.current_frame_mut();
 
             if frame.handle_exception(&exception) {
-                frame.push_operand(Reference(reference));
+                frame.push_operand(Reference(Some(reference)));
                 break;
             }
 
@@ -289,7 +293,7 @@ impl VirtualMachine {
         let (class, init_frame) = class_loader.resolve(class_name)?;
         let reference = heap.allocate_reference_array(length, class);
 
-        frame.push_operand(Reference(reference as ReferenceType));
+        frame.push_operand(Reference(Some(reference as ReferenceType)));
 
         if let Some(init_frame) = init_frame {
             stack.push(init_frame);
@@ -300,7 +304,11 @@ impl VirtualMachine {
 
     fn put_field(&self, heap: &mut Heap, index: u16, stack: &mut Stack) {
         let value = stack.current_frame_mut().pop_operand();
-        let reference = stack.current_frame_mut().pop_operand().expect_reference();
+        let reference = stack
+            .current_frame_mut()
+            .pop_operand()
+            .expect_reference()
+            .expect("Null pointer error"); // TODO;
 
         if let HeapObject::Instance(object) = heap.get_mut(reference) {
             let field = stack
@@ -328,7 +336,11 @@ impl VirtualMachine {
     }
 
     fn get_field(&self, heap: &mut Heap, index: u16, stack: &mut Stack) {
-        let reference = stack.current_frame_mut().pop_operand().expect_reference();
+        let reference = stack
+            .current_frame_mut()
+            .pop_operand()
+            .expect_reference()
+            .expect("Null pointer error"); // TODO;
         if let HeapObject::Instance(object) = heap.get_mut(reference) {
             let field = stack
                 .current_frame_mut()
@@ -454,7 +466,11 @@ impl VirtualMachine {
         let method_name = method_name.to_owned();
         let descriptor = descriptor.to_owned();
 
-        let object_ref = stack.current_frame_mut().pop_operand().expect_reference();
+        let object_ref = stack
+            .current_frame_mut()
+            .pop_operand()
+            .expect_reference()
+            .expect("Null pointer error"); // TODO
         let instance = heap.get(object_ref).expect_instance();
 
         let mut class_name = instance.class.to_owned();
@@ -484,7 +500,7 @@ impl VirtualMachine {
                 .current_frame_mut()
                 .pop_field_types(&method.descriptor.argument_types);
 
-            args.insert(0, Reference(object_ref));
+            args.insert(0, Reference(Some(object_ref)));
 
             let mut frame = Frame::new(class, method);
             frame.load_arguments(args);
