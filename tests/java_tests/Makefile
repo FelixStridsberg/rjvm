@@ -4,7 +4,7 @@ JAVA_FILES=$(shell find . -name '*.java')
 CLASS_FILES=$(JAVA_FILES:.java=.class)
 
 %.class: %.java
-	$(CC) -cp ../java_lib:../../jre:.. $<
+	$(CC) -cp ../java_lib:.. $<
 
 .PHONY: all
 all: compile_java_lib compile

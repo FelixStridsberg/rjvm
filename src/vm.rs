@@ -1,3 +1,7 @@
+use crate::class::attribute::Code;
+use crate::class::code::Instruction;
+use crate::class::code::Opcode::AThrow;
+use crate::class::MethodInfo;
 use crate::error::Result;
 use crate::vm::class_loader::ClassLoader;
 use crate::vm::data_type::Value::Reference;
@@ -8,10 +12,12 @@ use crate::vm::interpreter::interpret_frame;
 use crate::vm::native::Native;
 use crate::vm::stack::Stack;
 use crate::vm::VMCommand::{
-    VMAllocateReferenceArray, VMException, VMGetField, VMGetStatic, VMInvokeInterface,
-    VMInvokeSpecial, VMInvokeStatic, VMInvokeVirtual, VMNative, VMPutField, VMPutStatic, VMReturn,
+    VMAllocateReferenceArray, VMException, VMGetField, VMGetStatic, VMInternalException,
+    VMInvokeInterface, VMInvokeSpecial, VMInvokeStatic, VMInvokeVirtual, VMNative, VMPutField,
+    VMPutStatic, VMReturn,
 };
 use std::collections::HashMap;
+use std::rc::Rc;
 
 #[macro_export]
 macro_rules! expect_type {
@@ -50,6 +56,7 @@ enum VMCommand {
     VMGetStatic(u16),
     VMAllocateReferenceArray(u16),
     VMException(),
+    VMInternalException(String), // TODO arguments to create the exception
     VMNative(),
 }
 
@@ -189,6 +196,9 @@ impl VirtualMachine {
                     freeze_pc = true;
                     self.handle_exception(heap, stack);
                 }
+                VMInternalException(name) => {
+                    self.throw_internal_exception(class_loader, heap, stack, name)?;
+                }
                 VMNative() => {
                     self.call_native(stack, native);
                 }
@@ -209,6 +219,32 @@ impl VirtualMachine {
         if let Some(val) = val {
             stack.current_frame_mut().push_operand(val);
         }
+    }
+
+    // TODO clean and abstract this (probably true for more stuff in this module)
+    fn throw_internal_exception(
+        &self,
+        class_loader: &mut ClassLoader,
+        heap: &mut Heap,
+        stack: &mut Stack,
+        exception_name: String,
+    ) -> Result<()> {
+        let (exception_class, init_frame) = class_loader.resolve(&exception_name)?;
+
+        let index = heap.allocate_object(&exception_name);
+        let code = Code::new(1, 0, vec![], vec![], vec![Instruction::new(AThrow, vec![])]);
+
+        let method = MethodInfo::from_code(code);
+        let mut exception_frame = Frame::new(exception_class.clone(), Rc::new(method));
+        exception_frame.push_operand(Reference(Some(index)));
+
+        stack.push(exception_frame);
+
+        if let Some(init_frame) = init_frame {
+            stack.push(init_frame);
+        }
+
+        Ok(())
     }
 
     fn handle_exception(&self, heap: &Heap, stack: &mut Stack) {

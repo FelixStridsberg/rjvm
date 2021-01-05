@@ -11,7 +11,14 @@ macro_rules! array_load (
         let reference = $frame.pop_operand().expect_reference().expect("Null pointer error"); // TODO
         let array = expect_type!($heap.get(reference), $array_type);
 
-        $frame.push_operand($value_type(array[index as usize] as $inner_type));
+        if let Some(value) = array.get(index as usize) {
+            $frame.push_operand($value_type(*value as $inner_type));
+            Ok(Normal)
+        } else {
+            Ok(InternalException(
+                "java/lang/ArrayIndexOutOfBoundsException".to_owned(),
+            ))
+        }
     }}
 );
 
@@ -23,7 +30,14 @@ macro_rules! array_store (
         let reference = $frame.pop_operand().expect_reference().expect("Null pointer error"); // TODO
 
         let array = expect_type!($heap.get_mut(reference), $array_type);
-        array[index as usize] = value $(as $inner_type)*;
+        if let Some(elem) = array.get_mut(index as usize) {
+            *elem = value $(as $inner_type)*;
+            Ok(Normal)
+        } else {
+            Ok(InternalException(
+                "java/lang/ArrayIndexOutOfBoundsException".to_owned(),
+            ))
+        }
     }}
 );
 
@@ -95,11 +109,7 @@ pub fn reference_array_load(frame: &mut Frame, heap: &mut Heap) {
         .expect("Null pointer error"); // TODO
 
     let (_, array) = heap.get_mut(reference).expect_mut_reference_array();
-    if let Some(object_reference) = array[index as usize] {
-        frame.push_operand(Reference(Some(object_reference)));
-    } else {
-        frame.push_operand(Reference(None));
-    }
+    frame.push_operand(Reference(array[index as usize]));
 }
 
 #[cfg(test)]

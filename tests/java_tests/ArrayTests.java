@@ -1,6 +1,7 @@
 package java_tests;
 
 import java.lang.Object;
+import java.lang.ArrayIndexOutOfBoundsException;
 
 import static vadeen.test.Assertion.*;
 
@@ -76,4 +77,23 @@ public class ArrayTests {
         assertEquals(f.length, 100);
     }
 
+    public static void test_array_out_of_bounds_load() {
+        int[] f = new int[10];
+
+        try {
+            int _tmp = f[12];
+            assertEquals(1, 2); // Should never happen
+        } catch (java.lang.ArrayIndexOutOfBoundsException e) {
+        }
+    }
+
+    public static void test_array_out_of_bounds_store() {
+        int[] f = new int[10];
+
+        try {
+            f[12] = 10;
+            assertEquals(1, 2); // Should never happen
+        } catch (java.lang.ArrayIndexOutOfBoundsException e) {
+        }
+    }
 }

@@ -128,11 +128,10 @@ pub struct MethodInfo {
 }
 
 impl MethodInfo {
-    // Only used by tests, probably put somewhere else?
     pub fn from_code(code: Code) -> MethodInfo {
         MethodInfo {
             access_flags: MethodAccessFlags::ACC_PUBLIC,
-            name: "<Anonymous>".to_owned(),
+            name: "<Internal>".to_owned(),
             descriptor: "()V".try_into().unwrap(),
             attributes: vec![Attribute {
                 name: "Code".to_string(),

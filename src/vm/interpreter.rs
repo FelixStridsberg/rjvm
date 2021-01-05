@@ -35,11 +35,12 @@ use crate::vm::interpreter::control_transfer::*;
 use crate::vm::interpreter::load_and_store::*;
 use crate::vm::interpreter::object_creation_and_manipulation::*;
 use crate::vm::interpreter::stack_management::*;
-use crate::vm::interpreter::InterpretResult::{Command, Jump, Normal};
+use crate::vm::interpreter::InterpretResult::{Command, InternalException, Jump, Normal};
 use crate::vm::VMCommand;
 use crate::vm::VMCommand::{
-    VMAllocateReferenceArray, VMException, VMGetField, VMGetStatic, VMInvokeInterface,
-    VMInvokeSpecial, VMInvokeStatic, VMInvokeVirtual, VMNative, VMPutField, VMPutStatic, VMReturn,
+    VMAllocateReferenceArray, VMException, VMGetField, VMGetStatic, VMInternalException,
+    VMInvokeInterface, VMInvokeSpecial, VMInvokeStatic, VMInvokeVirtual, VMNative, VMPutField,
+    VMPutStatic, VMReturn,
 };
 
 macro_rules! jump (
@@ -55,9 +56,11 @@ macro_rules! vm_command (
     }}
 );
 
+#[derive(Debug)]
 enum InterpretResult {
     Normal,
     Jump,
+    InternalException(String),
     Command(VMCommand),
 }
 
@@ -73,14 +76,11 @@ pub(super) fn interpret_frame(frame: &mut Frame, heap: &mut Heap) -> Result<VMCo
         debug!("{}", frame);
         debug!("[I] {}", instruction);
 
-        let result = interpret_instruction(frame, heap, instruction)?;
-
-        if let Command(vm_command) = result {
-            return Ok(vm_command);
-        }
-
-        if !matches!(result, Jump) {
-            frame.pc_next();
+        match interpret_instruction(frame, heap, instruction)? {
+            Jump => {}
+            Normal => frame.pc_next(),
+            Command(vm_command) => return Ok(vm_command),
+            InternalException(exception_name) => return Ok(VMInternalException(exception_name)),
         }
     }
 }
@@ -271,21 +271,21 @@ fn interpret_instruction(
         GetStatic => vm_command!(VMGetStatic(reference(&instruction.operands))),
         PutStatic => vm_command!(VMPutStatic(reference(&instruction.operands))),
 
-        BaLoad => array_load!(frame, heap, ByteArray, Int, IntType),
-        CaLoad => array_load!(frame, heap, CharArray, Int, IntType),
-        SaLoad => array_load!(frame, heap, ShortArray, Int, IntType),
-        IaLoad => array_load!(frame, heap, IntArray, Int, IntType),
-        LaLoad => array_load!(frame, heap, LongArray, Long, LongType),
-        FaLoad => array_load!(frame, heap, FloatArray, Float, FloatType),
-        DaLoad => array_load!(frame, heap, DoubleArray, Double, DoubleType),
+        BaLoad => return array_load!(frame, heap, ByteArray, Int, IntType),
+        CaLoad => return array_load!(frame, heap, CharArray, Int, IntType),
+        SaLoad => return array_load!(frame, heap, ShortArray, Int, IntType),
+        IaLoad => return array_load!(frame, heap, IntArray, Int, IntType),
+        LaLoad => return array_load!(frame, heap, LongArray, Long, LongType),
+        FaLoad => return array_load!(frame, heap, FloatArray, Float, FloatType),
+        DaLoad => return array_load!(frame, heap, DoubleArray, Double, DoubleType),
         AaLoad => reference_array_load(frame, heap),
-        BaStore => array_store!(frame, heap, ByteArray, Int, [ByteType]),
-        CaStore => array_store!(frame, heap, CharArray, Int, [u8, CharType]),
-        SaStore => array_store!(frame, heap, ShortArray, Int, [ShortType]),
-        IaStore => array_store!(frame, heap, IntArray, Int, [IntType]),
-        LaStore => array_store!(frame, heap, LongArray, Long, [LongType]),
-        FaStore => array_store!(frame, heap, FloatArray, Float, [FloatType]),
-        DaStore => array_store!(frame, heap, DoubleArray, Double, [DoubleType]),
+        BaStore => return array_store!(frame, heap, ByteArray, Int, [ByteType]),
+        CaStore => return array_store!(frame, heap, CharArray, Int, [u8, CharType]),
+        SaStore => return array_store!(frame, heap, ShortArray, Int, [ShortType]),
+        IaStore => return array_store!(frame, heap, IntArray, Int, [IntType]),
+        LaStore => return array_store!(frame, heap, LongArray, Long, [LongType]),
+        FaStore => return array_store!(frame, heap, FloatArray, Float, [FloatType]),
+        DaStore => return array_store!(frame, heap, DoubleArray, Double, [DoubleType]),
         AaStore => reference_array_store(frame, heap),
         ArrayLength => array_length(frame, heap)?,
 
