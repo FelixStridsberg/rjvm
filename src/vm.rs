@@ -6,7 +6,7 @@ use crate::class::{Class, MethodInfo};
 use crate::error::Result;
 use crate::vm::class_loader::ClassLoader;
 use crate::vm::data_type::Value::Reference;
-use crate::vm::data_type::{ReferenceType, Value};
+use crate::vm::data_type::{MethodDescriptor, ReferenceType, Value};
 use crate::vm::frame::Frame;
 use crate::vm::heap::{Heap, HeapObject};
 use crate::vm::interpreter::interpret_frame;
@@ -18,6 +18,7 @@ use crate::vm::VMCommand::{
     VMPutStatic, VMReturn,
 };
 use std::collections::HashMap;
+use std::convert::TryInto;
 use std::rc::Rc;
 
 #[macro_export]
@@ -171,7 +172,7 @@ impl VirtualMachine {
                     self.invoke_special(class_loader, index, stack)?;
                 }
                 VMInvokeVirtual(index) => {
-                    self.invoke_virtual(class_loader, index, stack)?;
+                    self.invoke_virtual(heap, class_loader, index, stack)?;
                 }
                 VMInvokeInterface(index) => {
                     self.invoke_interface(heap, class_loader, index, stack)?;
@@ -417,43 +418,54 @@ impl VirtualMachine {
             .class
             .constants
             .get_method_ref(index)?;
-        let (class, method, init_frames) =
+
+        let (class, method, mut init_frames) =
             class_loader.resolve_method(class_name, method_name, descriptor)?;
 
-        self.invoke(stack, class, method, init_frames)
-    }
-
-    fn invoke_virtual(
-        &self,
-        class_loader: &mut ClassLoader,
-        index: u16,
-        stack: &mut Stack,
-    ) -> Result<()> {
-        let (class_name, method_name, descriptor) = stack
-            .current_frame_mut()
-            .class
-            .constants
-            .get_method_ref(index)?;
-
-        let (class, method, init_frames) =
-            class_loader.resolve_method(class_name, method_name, descriptor)?;
-
-        self.invoke(stack, class, method, init_frames)
-    }
-
-    fn invoke(
-        &self,
-        stack: &mut Stack,
-        class: Rc<Class>,
-        method: Rc<MethodInfo>,
-        mut init_frames: Vec<Frame>,
-    ) -> Result<()> {
         let mut args = stack
             .current_frame_mut()
             .pop_field_types(&method.descriptor.argument_types);
 
         let object_ref = stack.current_frame_mut().pop_operand().expect_reference();
         args.insert(0, Reference(object_ref));
+
+        let mut frame = Frame::new(class, method);
+        frame.load_arguments(args);
+
+        stack.push(frame);
+        stack.append(&mut init_frames);
+
+        Ok(())
+    }
+
+    fn invoke_virtual(
+        &self,
+        heap: &Heap,
+        class_loader: &mut ClassLoader,
+        index: u16,
+        stack: &mut Stack,
+    ) -> Result<()> {
+        let (_, method_name, descriptor) = stack
+            .current_frame()
+            .class
+            .constants
+            .get_method_ref(index)?;
+
+        let method_name = method_name.to_owned();
+        let descriptor = descriptor.to_owned();
+
+        let method_descriptor: MethodDescriptor = descriptor.as_str().try_into().unwrap();
+
+        let mut frame = stack.current_frame_mut();
+        let mut args = frame.pop_field_types(&method_descriptor.argument_types);
+
+        let object_ref = frame.pop_operand().expect_reference().unwrap();
+        args.insert(0, Reference(Some(object_ref)));
+
+        let instance = heap.get(object_ref).expect_instance();
+
+        let (class, method, mut init_frames) =
+            class_loader.resolve_method(&instance.class, &method_name, &descriptor)?;
 
         let mut frame = Frame::new(class, method);
         frame.load_arguments(args);
