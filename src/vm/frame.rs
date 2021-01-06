@@ -128,13 +128,7 @@ impl Frame {
     }
 
     fn find_exception_handler(&self, exception: &Object) -> Option<&ExceptionHandler> {
-        if self.code.is_none() {
-            return None;
-        }
-
-        self.code
-            .as_ref()
-            .unwrap()
+        self.code.as_ref()?
             .exception_handlers
             .iter()
             .find(|e| {

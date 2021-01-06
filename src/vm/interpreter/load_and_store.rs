@@ -71,7 +71,7 @@ fn push_constant_index(frame: &mut Frame, index: u16) -> Result<()> {
         Constant::Integer(i) => Int(*i),
         Constant::Float(f) => Float(*f),
         // TODO reference and reference resolution
-        constant => runtime_error!("ldc not implemented for constant {:?}", constant)?,
+        constant => return runtime_error!("ldc not implemented for constant {:?}", constant),
     };
 
     frame.push_operand(value);

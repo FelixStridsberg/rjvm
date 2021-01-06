@@ -2,7 +2,7 @@ use crate::class::attribute::Code;
 use crate::class::code::Instruction;
 use crate::class::code::Opcode::AThrow;
 use crate::class::constant::Constant;
-use crate::class::{Class, MethodInfo};
+use crate::class::MethodInfo;
 use crate::error::Result;
 use crate::vm::class_loader::ClassLoader;
 use crate::vm::data_type::Value::Reference;
@@ -237,7 +237,7 @@ impl VirtualMachine {
         let code = Code::new(1, 0, vec![], vec![], vec![Instruction::new(AThrow, vec![])]);
 
         let method = MethodInfo::from_code(code);
-        let mut exception_frame = Frame::new(exception_class.clone(), Rc::new(method));
+        let mut exception_frame = Frame::new(exception_class, Rc::new(method));
         exception_frame.push_operand(Reference(Some(index)));
 
         stack.push(exception_frame);
@@ -309,7 +309,7 @@ impl VirtualMachine {
 
         let v = static_context
             .get(&field.class_name)
-            .map_or(None, |m| m.get(&field.field_name).cloned())
+            .and_then(|m| m.get(&field.field_name).cloned())
             .unwrap_or_else(|| field.field_type.default_value());
 
         stack.current_frame_mut().push_operand(v);
@@ -456,7 +456,7 @@ impl VirtualMachine {
 
         let method_descriptor: MethodDescriptor = descriptor.as_str().try_into().unwrap();
 
-        let mut frame = stack.current_frame_mut();
+        let frame = stack.current_frame_mut();
         let mut args = frame.pop_field_types(&method_descriptor.argument_types);
 
         let object_ref = frame.pop_operand().expect_reference().unwrap();
