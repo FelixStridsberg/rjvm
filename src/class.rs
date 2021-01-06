@@ -92,6 +92,14 @@ impl Class {
             .cloned()
     }
 
+    pub fn resolve_static_method(&self, name: &str, descriptor: &str) -> Option<Rc<MethodInfo>> {
+        self.methods
+            .iter()
+            .filter(|m| m.name == name && m.access_flags.contains(MethodAccessFlags::ACC_STATIC))
+            .find(|m| m.descriptor == descriptor.try_into().unwrap())
+            .cloned()
+    }
+
     pub fn find_public_static_method(&self, name: &str) -> Option<Rc<MethodInfo>> {
         self.methods
             .iter()

@@ -1,4 +1,4 @@
-use crate::class::Class;
+use crate::class::{Class, MethodInfo};
 use crate::error::Result;
 use crate::io::class::ClassReader;
 use crate::vm::class_loader::ClassSource::{Folder, Jar};
@@ -113,6 +113,36 @@ impl ClassLoader {
             });
 
             Ok((class, init_frame))
+        }
+    }
+
+    pub fn resolve_static_method(
+        &mut self,
+        class_name: &str,
+        method_name: &str,
+        descriptor: &str,
+    ) -> Result<(Rc<Class>, Rc<MethodInfo>, Vec<Frame>)> {
+        let mut current_class = class_name.to_owned();
+        let mut init_frames = Vec::new();
+        loop {
+            let (class, init_frame) = self.resolve(&current_class)?;
+
+            if let Some(frame) = init_frame {
+                init_frames.push(frame);
+            }
+
+            if let Some(method) = class.resolve_static_method(method_name, descriptor) {
+                return Ok((class, method, init_frames));
+            }
+
+            if class.super_class.is_empty() {
+                panic!(
+                    "Could not resolve method {}:{} on class {}",
+                    method_name, descriptor, class_name
+                )
+            }
+
+            current_class = class.super_class.to_owned();
         }
     }
 

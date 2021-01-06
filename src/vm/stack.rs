@@ -24,6 +24,10 @@ impl Stack {
         self.stack.push(frame);
     }
 
+    pub fn append(&mut self, other: &mut Vec<Frame>) {
+        self.stack.append(other);
+    }
+
     pub fn pop(&mut self) -> Frame {
         self.stack.pop().expect("Tried to pop from empty stack.")
     }

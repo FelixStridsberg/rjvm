@@ -557,10 +557,8 @@ impl VirtualMachine {
             .constants
             .get_method_ref(index)?;
 
-        let (class, init_frame) = class_loader.resolve(class_name)?;
-        let method = class
-            .resolve_method(method_name, descriptor)
-            .expect("Method not found");
+        let (class, method, mut init_frames) =
+            class_loader.resolve_static_method(class_name, method_name, descriptor)?;
 
         let args = stack
             .current_frame_mut()
@@ -570,9 +568,7 @@ impl VirtualMachine {
         frame.load_arguments(args);
 
         stack.push(frame);
-        if let Some(init_frame) = init_frame {
-            stack.push(init_frame);
-        }
+        stack.append(&mut init_frames);
         Ok(())
     }
 
