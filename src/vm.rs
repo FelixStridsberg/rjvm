@@ -450,34 +450,22 @@ impl VirtualMachine {
             .constants
             .get_method_ref(index)?;
 
-        let mut class_name = class_name.to_owned();
-        loop {
-            let (class, init_frame) = class_loader.resolve(&class_name)?;
-            let method = class.resolve_method(method_name, descriptor);
+        let (class, method, mut init_frames) =
+            class_loader.resolve_method(class_name, method_name, descriptor)?;
 
-            if method.is_none() {
-                class_name = class.super_class.clone();
-                continue;
-            }
+        let mut args = stack
+            .current_frame_mut()
+            .pop_field_types(&method.descriptor.argument_types);
 
-            let method = method.unwrap();
-            let mut args = stack
-                .current_frame_mut()
-                .pop_field_types(&method.descriptor.argument_types);
+        let object_ref = stack.current_frame_mut().pop_operand().expect_reference();
+        args.insert(0, Reference(object_ref));
 
-            let object_ref = stack.current_frame_mut().pop_operand().expect_reference();
-            args.insert(0, Reference(object_ref));
+        let mut frame = Frame::new(class, method);
+        frame.load_arguments(args);
 
-            let mut frame = Frame::new(class, method);
-            frame.load_arguments(args);
-
-            stack.push(frame);
-            if let Some(init_frame) = init_frame {
-                stack.push(init_frame);
-            }
-
-            return Ok(());
-        }
+        stack.push(frame);
+        stack.append(&mut init_frames);
+        return Ok(());
     }
 
     fn invoke_interface(

@@ -146,6 +146,36 @@ impl ClassLoader {
         }
     }
 
+    pub fn resolve_method(
+        &mut self,
+        class_name: &str,
+        method_name: &str,
+        descriptor: &str,
+    ) -> Result<(Rc<Class>, Rc<MethodInfo>, Vec<Frame>)> {
+        let mut current_class = class_name.to_owned();
+        let mut init_frames = Vec::new();
+        loop {
+            let (class, init_frame) = self.resolve(&current_class)?;
+
+            if let Some(frame) = init_frame {
+                init_frames.push(frame);
+            }
+
+            if let Some(method) = class.resolve_method(method_name, descriptor) {
+                return Ok((class, method, init_frames));
+            }
+
+            if class.super_class.is_empty() {
+                panic!(
+                    "Could not resolve method {}:{} on class {}",
+                    method_name, descriptor, class_name
+                )
+            }
+
+            current_class = class.super_class.to_owned();
+        }
+    }
+
     fn load_class(&mut self, class_name: &str) -> Result<Rc<Class>> {
         for source in &self.sources {
             if let Some(class) = source.load_class(class_name)? {
