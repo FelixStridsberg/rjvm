@@ -2,7 +2,7 @@ use crate::class::attribute::Code;
 use crate::class::code::Instruction;
 use crate::class::code::Opcode::AThrow;
 use crate::class::constant::Constant;
-use crate::class::MethodInfo;
+use crate::class::{Class, MethodInfo};
 use crate::error::Result;
 use crate::vm::class_loader::ClassLoader;
 use crate::vm::data_type::Value::Reference;
@@ -417,26 +417,10 @@ impl VirtualMachine {
             .class
             .constants
             .get_method_ref(index)?;
-        let (class, init_frame) = class_loader.resolve(class_name)?;
-        let method = class
-            .resolve_method(method_name, descriptor)
-            .expect("Method not found");
+        let (class, method, init_frames) =
+            class_loader.resolve_method(class_name, method_name, descriptor)?;
 
-        let mut args = stack
-            .current_frame_mut()
-            .pop_field_types(&method.descriptor.argument_types);
-
-        let object_ref = stack.current_frame_mut().pop_operand().expect_reference();
-        args.insert(0, Reference(object_ref));
-
-        let mut frame = Frame::new(class, method);
-        frame.load_arguments(args);
-
-        stack.push(frame);
-        if let Some(init_frame) = init_frame {
-            stack.push(init_frame);
-        }
-        Ok(())
+        self.invoke(stack, class, method, init_frames)
     }
 
     fn invoke_virtual(
@@ -451,9 +435,19 @@ impl VirtualMachine {
             .constants
             .get_method_ref(index)?;
 
-        let (class, method, mut init_frames) =
+        let (class, method, init_frames) =
             class_loader.resolve_method(class_name, method_name, descriptor)?;
 
+        self.invoke(stack, class, method, init_frames)
+    }
+
+    fn invoke(
+        &self,
+        stack: &mut Stack,
+        class: Rc<Class>,
+        method: Rc<MethodInfo>,
+        mut init_frames: Vec<Frame>,
+    ) -> Result<()> {
         let mut args = stack
             .current_frame_mut()
             .pop_field_types(&method.descriptor.argument_types);
@@ -466,7 +460,8 @@ impl VirtualMachine {
 
         stack.push(frame);
         stack.append(&mut init_frames);
-        return Ok(());
+
+        Ok(())
     }
 
     fn invoke_interface(
