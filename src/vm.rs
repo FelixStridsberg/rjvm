@@ -307,10 +307,8 @@ impl VirtualMachine {
 
         let v = static_context
             .get(&field.class_name)
-            .unwrap()
-            .get(&field.field_name)
-            .unwrap()
-            .clone();
+            .map_or(None, |m| m.get(&field.field_name).cloned())
+            .unwrap_or_else(|| field.field_type.default_value());
 
         stack.current_frame_mut().push_operand(v);
     }

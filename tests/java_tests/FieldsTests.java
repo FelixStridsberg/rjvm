@@ -45,7 +45,6 @@ public class FieldsTests {
         assertEquals(static_null_reference, null);
     }
 
-    /* TODO
     public static void test_static_uninitialized_fields() {
         assertEquals(u_static_boolean, false);
         assertEquals(u_static_int, 0);
@@ -53,7 +52,7 @@ public class FieldsTests {
         assertEquals(u_static_float, 0.0);
         assertEquals(u_static_double, 0.0);
         assertEquals(u_static_reference, null);
-    }*/
+    }
 
     public static void test_static_fields_other_class() {
         assertEquals(OtherFields.static_boolean, false);
