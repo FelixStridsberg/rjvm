@@ -114,7 +114,7 @@ impl ConstantPool {
             let (method_name, descriptor_string) = self.get_name_and_type(*name_type_index)?;
             Ok((class_name, method_name, descriptor_string))
         } else {
-            runtime_error!("Tried to get {:?} as a method reference", entry)
+            panic!("Tried to get {:?} as a method reference", entry)
         }
     }
 
@@ -125,7 +125,7 @@ impl ConstantPool {
             let (method_name, descriptor_string) = self.get_name_and_type(*name_type_index)?;
             Ok((class_name, method_name, descriptor_string))
         } else {
-            runtime_error!("Tried to get {:?} as a method reference", entry)
+            panic!("Tried to get {:?} as a method reference", entry)
         }
     }
 
@@ -137,7 +137,7 @@ impl ConstantPool {
 
             Ok(FieldRef::new(class_name, field_name, field_type))
         } else {
-            runtime_error!("Tried to get {:?} as a field reference", entry)
+            panic!("Tried to get {:?} as a field reference", entry)
         }
     }
 }

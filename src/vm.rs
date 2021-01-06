@@ -1,6 +1,7 @@
 use crate::class::attribute::Code;
 use crate::class::code::Instruction;
 use crate::class::code::Opcode::AThrow;
+use crate::class::constant::Constant;
 use crate::class::MethodInfo;
 use crate::error::Result;
 use crate::vm::class_loader::ClassLoader;
@@ -539,11 +540,15 @@ impl VirtualMachine {
         index: u16,
         stack: &mut Stack,
     ) -> Result<()> {
-        let (class_name, method_name, descriptor) = stack
-            .current_frame_mut()
-            .class
-            .constants
-            .get_method_ref(index)?;
+        let constants = &stack.current_frame().class.constants;
+        let reference = constants.get(index);
+        let is_interface = matches!(reference, Constant::InterfaceMethodRef(_, _));
+
+        let (class_name, method_name, descriptor) = if is_interface {
+            constants.get_interface_method_ref(index)?
+        } else {
+            constants.get_method_ref(index)?
+        };
 
         let (class, method, mut init_frames) =
             class_loader.resolve_static_method(class_name, method_name, descriptor)?;

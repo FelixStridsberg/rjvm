@@ -4,6 +4,14 @@ import static vadeen.test.Assertion.*;
 
 public class InvocationTests {
 
+    private interface Interface {
+        int interface_method();
+
+        static int test() {
+            return 100;
+        }
+    }
+
     private static class ParentClass {
         protected static int static_parent_method() {
             return 2;
@@ -44,5 +52,9 @@ public class InvocationTests {
     public static void test_instance_invocation_parent() {
         ChildClass i = new ChildClass();
         assertEquals(i.instance_method_parent(), 10);
+    }
+
+    public static void test_static_interface_invocation() {
+        assertEquals(Interface.test(), 100);
     }
 }
